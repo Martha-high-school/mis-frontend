@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+import { toast } from "react-toastify"
 import { Save, CheckCircle, AlertCircle, Loader2, Search } from "lucide-react"
 import { classService } from "@/services/class.service"
 
@@ -50,7 +50,6 @@ export default function EditClassPage() {
   })
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [saveStatus, setSaveStatus] = useState<"idle" | "success" | "error">("idle")
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   useEffect(() => {
@@ -99,20 +98,22 @@ export default function EditClassPage() {
     e.preventDefault()
     if (!validateForm()) return
     setSaving(true)
-    setSaveStatus("idle")
 
     try {
       await classService.updateClass(id as string, {
         name: formData.name,
         level: formData.level,
-        stream: formData.stream || null, 
+        stream: formData.stream || null,
         classTeacherId: formData.classTeacherId,
       })
-      setSaveStatus("success")
+
+      toast.success("Class updated successfully!")
+
       setTimeout(() => router.push("/classes"), 1500)
+
     } catch (err) {
       console.error("Update failed:", err)
-      setSaveStatus("error")
+      toast.error("Failed to update class.")
     } finally {
       setSaving(false)
     }
@@ -152,21 +153,6 @@ export default function EditClassPage() {
               <CardDescription>Modify class name, level, stream, and teacher</CardDescription>
             </CardHeader>
             <CardContent>
-              {saveStatus === "success" && (
-                <Alert className="border-green-200 bg-green-50 mb-4">
-                  <CheckCircle className="h-4 w-4 text-green-600" />
-                  <AlertDescription className="text-green-800">
-                    Class updated successfully!
-                  </AlertDescription>
-                </Alert>
-              )}
-              {saveStatus === "error" && (
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>Failed to update class.</AlertDescription>
-                </Alert>
-              )}
-
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Class Name */}
@@ -266,7 +252,7 @@ export default function EditClassPage() {
                             </div>
                           </div>
                           {formData.classTeacherId === t.id.toString() && (
-                            <CheckCircle className="h-4 w-4 text-primary" />
+                            <CheckCircle className="h-4 w-4 text-green-600" />
                           )}
                         </div>
                       </div>
