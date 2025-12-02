@@ -1,0 +1,1652 @@
+"use client"
+
+import React, { useState, useEffect, useCallback, useMemo } from "react"
+import { useAuth } from "@/contexts/auth-context"
+import { useAcademicContext } from "@/contexts/use-academic-contex"
+import { ProtectedRoute } from "@/components/auth/protected-route"
+import { MainLayout } from "@/components/layout/main-layout"
+
+import { reportService } from "@/services/report.service"
+import { classService } from "@/services/class.service"
+import { academicYearService } from "@/services/accademic-year.service"
+
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Progress } from "@/components/ui/progress"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Switch } from "@/components/ui/switch"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+
+import {
+  Trash2,
+  Plus,
+  Save,
+  Upload,
+  FileImage,
+  AlertCircle,
+  CheckCircle,
+  Loader2,
+  GraduationCap,
+  FileText,
+  Pen,
+  Eye,
+  MessageSquare,
+  Users,
+  Search,
+  CheckCheck,
+  Wand2,
+  X,
+  RefreshCw,
+  Info,
+  Sparkles
+} from "lucide-react"
+
+import { cn } from "@/lib/utils"
+
+// ============================================================================
+// TYPES & INTERFACES
+// ============================================================================
+
+interface MarkRange {
+  id?: string
+  minMark: number
+  maxMark: number
+  descriptor: string
+  comment: string
+  grade: string
+  color: string
+}
+
+interface Student {
+  id: string
+  firstName?: string
+  lastName?: string
+}
+
+interface Class {
+  id: string
+  name: string
+  level: string
+  grade: string
+}
+
+interface GeneralComment {
+  id: string
+  comment: string
+  isActive?: boolean
+  teacher: {
+    firstName: string
+    lastName: string
+  }
+}
+
+interface AcademicYear {
+  id: string
+  year: number
+}
+
+interface TermConfig {
+  id: string
+  term: string // e.g., "T1" | "T2" | "T3"
+  academicYearId: string
+}
+
+interface TeacherComment {
+  id: string
+  classId: string
+  studentId: string
+  year: number
+  term: number
+  comment: string
+  role?: string
+}
+
+// ============================================================================
+// MAIN COMPONENT
+// ============================================================================
+
+function TeacherReportsContent() {
+  const { user } = useAuth()
+  const { context: academicContext, loading: contextLoading } = useAcademicContext()
+
+  // Loading flags
+  const [loading, setLoading] = useState({
+    fetching: false,
+    saving: false,
+    uploading: false,
+    fetchingClasses: false,
+    fetchingStudents: false,
+    fetchingComments: false,
+    savingComments: false,
+    generating: false,
+    fetchingGeneral: false,
+    fetchingYears: false,
+    fetchingTerms: false
+  })
+
+  // Report Display Settings
+  const [markRanges, setMarkRanges] = useState<MarkRange[]>([])
+  const [signature, setSignature] = useState<string | null>(null)
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+  const [saveStatus, setSaveStatus] = useState<"idle" | "success" | "error">("idle")
+  const [validationErrors, setValidationErrors] = useState<string[]>([])
+
+  // Teacher comments state
+  const [availableYears, setAvailableYears] = useState<AcademicYear[]>([])
+  const [availableTerms, setAvailableTerms] = useState<TermConfig[]>([])
+  const [selectedYear, setSelectedYear] = useState<string>("")
+  const [selectedYearId, setSelectedYearId] = useState<string>("")
+  const [selectedTerm, setSelectedTerm] = useState<string>("") // "T1" | "T2" | "T3"
+  const [selectedClass, setSelectedClass] = useState("")
+  const [classes, setClasses] = useState<Class[]>([])
+  const [students, setStudents] = useState<Student[]>([])
+  const [searchQuery, setSearchQuery] = useState("")
+
+  const [studentComments, setStudentComments] = useState<Map<string, string>>(new Map())
+  const [generalComment, setGeneralComment] = useState<GeneralComment | null>(null)
+  const [generalCommentText, setGeneralCommentText] = useState("")
+  const [generalCommentActive, setGeneralCommentActive] = useState(false)
+
+  const [hasCommentChanges, setHasCommentChanges] = useState(false)
+  const [commentSaveStatus, setCommentSaveStatus] = useState<"idle" | "success" | "error">("idle")
+  const [errorMessage, setErrorMessage] = useState("")
+  const [savedCount, setSavedCount] = useState(0)
+
+  // modal for per-student comment
+  const [commentModalOpen, setCommentModalOpen] = useState(false)
+  const [modalStudent, setModalStudent] = useState<Student | null>(null)
+  const [modalCommentValue, setModalCommentValue] = useState("")
+  const [modalSaving, setModalSaving] = useState(false)
+  const [modalDeleting, setModalDeleting] = useState(false)
+  const [modalLoading, setModalLoading] = useState(false)
+
+  // auto-generate dialog
+  const [showAutoGenerateDialog, setShowAutoGenerateDialog] = useState(false)
+  const [autoGenerateResults, setAutoGenerateResults] = useState<any>(null)
+
+  // pagination
+  const [currentPage, setCurrentPage] = useState(1)
+  const studentsPerPage = 10
+
+  const userRole = user?.role === "head_teacher" ? "head_teacher" : "class_teacher"
+  const isClassTeacher = userRole === "class_teacher"
+  const isHeadTeacher = userRole === "head_teacher"
+
+  // Helper: extract term number
+  const termToNumber = (term: string): number => {
+    const match = term?.match?.(/\d+/)
+    return match ? parseInt(match[0]) : 1
+  }
+
+  const formatTermDisplay = (term: string) => `Term ${termToNumber(term)}`
+
+  const getStudentName = (student: Student) => {
+    const firstName = student.firstName || "Unknown"
+    const lastName = student.lastName || ""
+    return `${firstName} ${lastName}`.trim()
+  }
+
+  const breadcrumbs = [
+    { label: "Dashboard", href: "/dashboard" },
+    { label: "Setting" },
+    { label: "Report Settings" }
+  ]
+
+  // ============================================================================
+  // INITIALIZATION
+  // ============================================================================
+
+  useEffect(() => {
+    loadAvailableYears()
+  }, [])
+
+  useEffect(() => {
+    if (academicContext && availableYears.length > 0) {
+      const currentYear = academicContext.year?.toString()
+      const yearData = availableYears.find(y => y.year.toString() === currentYear)
+
+      if (yearData) {
+        setSelectedYear(currentYear || "")
+        setSelectedYearId(yearData.id.toString())
+      } else if (availableYears.length > 0) {
+        setSelectedYear(availableYears[0].year.toString())
+        setSelectedYearId(availableYears[0].id.toString())
+      }
+    }
+  }, [academicContext, availableYears])
+
+  useEffect(() => {
+    if (selectedYearId) {
+      loadAvailableTerms(selectedYearId)
+    } else {
+      setAvailableTerms([])
+      setSelectedTerm("")
+    }
+  }, [selectedYearId])
+
+  useEffect(() => {
+    if (academicContext && availableTerms.length > 0 && !selectedTerm) {
+      const currentTerm = (academicContext as any).termEnum // expected "T1" | "T2" | "T3"
+      if (currentTerm && availableTerms.some(t => t.term === currentTerm)) {
+        setSelectedTerm(currentTerm)
+      } else if (availableTerms.length > 0) {
+        setSelectedTerm(availableTerms[0].term)
+      }
+    }
+  }, [academicContext, availableTerms, selectedTerm])
+
+  useEffect(() => {
+    if (selectedYear && selectedTerm) {
+      loadClasses()
+    }
+  }, [selectedYear, selectedTerm])
+
+  useEffect(() => {
+    if (selectedClass && selectedYear && selectedTerm) {
+      loadStudents(selectedClass)
+      loadComments()
+      loadGeneralComment()
+    }
+  }, [selectedClass, selectedYear, selectedTerm])
+
+  useEffect(() => {
+    if (isClassTeacher) {
+      loadMarkRanges()
+    }
+    loadSignature()
+  }, [isClassTeacher])
+
+  // ============================================================================
+  // DATA LOADING
+  // ============================================================================
+
+  const loadAvailableYears = async () => {
+    setLoading(prev => ({ ...prev, fetchingYears: true }))
+    try {
+      const response = await academicYearService.getAllAcademicYears()
+      const years = response.academicYears || []
+      setAvailableYears(years)
+    } catch (error: any) {
+      console.error("Error loading years:", error)
+      setErrorMessage("Failed to load academic years")
+    } finally {
+      setLoading(prev => ({ ...prev, fetchingYears: false }))
+    }
+  }
+
+  const loadAvailableTerms = async (yearId: string) => {
+    setLoading(prev => ({ ...prev, fetchingTerms: true }))
+    setAvailableTerms([])
+    setSelectedTerm("")
+
+    try {
+      const response = await academicYearService.getTermsForYear(yearId)
+      const terms = response.terms || []
+      setAvailableTerms(terms)
+    } catch (error: any) {
+      console.error("Error loading terms:", error)
+      setErrorMessage("Failed to load terms")
+    } finally {
+      setLoading(prev => ({ ...prev, fetchingTerms: false }))
+    }
+  }
+
+  const loadClasses = async () => {
+    setLoading(prev => ({ ...prev, fetchingClasses: true }))
+    try {
+      const response = await classService.getMyClasses()
+      const got = response.classes || []
+      setClasses(got)
+
+      if (isClassTeacher && got.length === 1) {
+        setSelectedClass(got[0].id.toString())
+      } else if (got.length > 0 && !selectedClass) {
+        setSelectedClass(got[0].id.toString())
+      }
+    } catch (error: any) {
+      console.error("Error loading classes:", error)
+      setErrorMessage("Failed to load classes")
+    } finally {
+      setLoading(prev => ({ ...prev, fetchingClasses: false }))
+    }
+  }
+
+  
+
+  const loadStudents = async (classId: string) => {
+    if (!selectedYear || !selectedTerm) return
+
+    setLoading(prev => ({ ...prev, fetchingStudents: true }))
+    try {
+      const response = await classService.getClassStudents(
+        classId,
+        Number(selectedYear),
+        selectedTerm
+      )
+      // Handle both flat structure (direct student data) and nested structure (student object)
+      const normalized = (response.students || []).map((s: any) => ({
+        id: s.student?.id || s.id || s.studentId,
+        firstName: s.student?.firstName || s.firstName || "Unknown",
+        lastName: s.student?.lastName || s.lastName || "",
+        gender: s.student?.gender || s.gender || "",
+        classId: s.classId || classId,
+      }))
+
+      setStudents(normalized)
+      setCurrentPage(1) 
+    } catch (error: any) {
+      console.error("Error loading students:", error)
+      setErrorMessage("Failed to load students")
+    } finally {
+      setLoading(prev => ({ ...prev, fetchingStudents: false }))
+    }
+  }
+
+  const loadComments = async () => {
+    if (!selectedClass || !selectedYear || !selectedTerm) return
+
+    setLoading(prev => ({ ...prev, fetchingComments: true }))
+    setErrorMessage("")
+    try {
+      const termNumber = termToNumber(selectedTerm)
+      const comments = await reportService.getClassComments(
+        selectedClass,
+        Number(selectedYear),
+        termNumber,
+        userRole
+      )
+
+      const commentMap = new Map<string, string>()
+      comments.forEach((c: TeacherComment) => {
+        commentMap.set(c.studentId.toString(), c.comment || "")
+      })
+
+      setStudentComments(commentMap)
+      setHasCommentChanges(false)
+      setCommentSaveStatus("idle")
+    } catch (error: any) {
+      console.error("Error loading comments:", error)
+      if (error.response?.status !== 404) {
+        setErrorMessage("Failed to load comments")
+      }
+    } finally {
+      setLoading(prev => ({ ...prev, fetchingComments: false }))
+    }
+  }
+
+  const loadGeneralComment = async () => {
+    if (!selectedClass || !selectedYear || !selectedTerm) return
+
+    setLoading(prev => ({ ...prev, fetchingGeneral: true }))
+
+    try {
+      const termNumber = termToNumber(selectedTerm)
+      const comment = await reportService.getGeneralComment(
+        selectedClass,
+        Number(selectedYear),
+        termNumber,
+        userRole
+      )
+
+      if (comment) {
+        setGeneralComment(comment)
+        setGeneralCommentText(comment.comment || "")
+        setGeneralCommentActive(!!comment.isActive)
+      } else {
+        setGeneralComment(null)
+        setGeneralCommentText("")
+        setGeneralCommentActive(false)
+      }
+    } catch {
+      setGeneralComment(null)
+      setGeneralCommentText("")
+      setGeneralCommentActive(false)
+    } finally {
+      setLoading(prev => ({ ...prev, fetchingGeneral: false }))
+    }
+  }
+
+  const loadMarkRanges = async () => {
+    setLoading(prev => ({ ...prev, fetching: true }))
+    try {
+      const ranges = await reportService.getGradeRanges()
+      setMarkRanges(
+        ranges.map((r: any) => ({
+          id: r.id?.toString(),
+          minMark: r.minMark,
+          maxMark: r.maxMark,
+          descriptor: r.descriptor,
+          comment: r.comment,
+          grade: r.grade,
+          color: r.color
+        }))
+      )
+    } catch (error: any) {
+      console.error("Error loading grade ranges:", error)
+    } finally {
+      setLoading(prev => ({ ...prev, fetching: false }))
+    }
+  }
+
+  const loadSignature = async () => {
+    try {
+      const settings = await reportService.getReportSettings()
+      setSignature(settings.schoolLogo || null)
+    } catch (error: any) {
+      console.error("Error loading signature:", error)
+    }
+  }
+
+  // ============================================================================
+  // TEACHER COMMENTS – SAVE / TOGGLE / DELETE
+  // ============================================================================
+
+  const handleCommentChange = (studentId: string, value: string) => {
+    setStudentComments(prev => {
+      const next = new Map(prev)
+      next.set(studentId, value)
+      return next
+    })
+    setHasCommentChanges(true)
+    setCommentSaveStatus("idle")
+  }
+
+  const handleSaveGeneralComment = async () => {
+    if (!generalCommentText.trim()) {
+      setErrorMessage("General comment cannot be empty")
+      return
+    }
+    if (!selectedClass || !selectedYear || !selectedTerm) {
+      setErrorMessage("Please select class, year, and term")
+      return
+    }
+
+    setLoading(prev => ({ ...prev, savingComments: true }))
+    setErrorMessage("")
+    try {
+      const termNumber = termToNumber(selectedTerm)
+      const result = await reportService.saveGeneralComment({
+        classId: selectedClass,
+        year: Number(selectedYear),
+        term: termNumber,
+        comment: generalCommentText
+      })
+      setGeneralComment(result)
+      setGeneralCommentActive(!!result.isActive)
+      setCommentSaveStatus("success")
+      setTimeout(() => setCommentSaveStatus("idle"), 2500)
+    } catch (error: any) {
+      setErrorMessage(error.message || "Failed to save general comment")
+      setCommentSaveStatus("error")
+    } finally {
+      setLoading(prev => ({ ...prev, savingComments: false }))
+    }
+  }
+
+  const handleToggleGeneralComment = async () => {
+    if (!generalComment || !selectedClass || !selectedYear || !selectedTerm) return
+    setLoading(prev => ({ ...prev, savingComments: true }))
+    try {
+      const termNumber = termToNumber(selectedTerm)
+      await reportService.toggleGeneralComment(
+        selectedClass,
+        Number(selectedYear),
+        termNumber,
+        userRole,
+        !generalCommentActive
+      )
+      setGeneralCommentActive(!generalCommentActive)
+    } catch (error: any) {
+      setErrorMessage(error.message || "Failed to toggle general comment")
+    } finally {
+      setLoading(prev => ({ ...prev, savingComments: false }))
+    }
+  }
+
+  const handleBulkSave = async () => {
+    const payload: { studentId: string; comment: string }[] = []
+    studentComments.forEach((comment, studentId) => {
+      if (comment.trim()) payload.push({ studentId, comment: comment.trim() })
+    })
+
+    if (payload.length === 0) {
+      setErrorMessage("No specific comments to save")
+      return
+    }
+    if (!selectedClass || !selectedYear || !selectedTerm) {
+      setErrorMessage("Please select class, year, and term")
+      return
+    }
+
+    setLoading(prev => ({ ...prev, savingComments: true }))
+    setErrorMessage("")
+    setCommentSaveStatus("idle")
+
+    try {
+      const termNumber = termToNumber(selectedTerm)
+      const result = await reportService.bulkSaveTeacherComments(
+        selectedClass,
+        Number(selectedYear),
+        termNumber,
+        payload
+      )
+      setSavedCount(result.count)
+      setHasCommentChanges(false)
+      setCommentSaveStatus("success")
+      setTimeout(() => setCommentSaveStatus("idle"), 3000)
+      await loadComments()
+    } catch (error: any) {
+      setErrorMessage(error.message || "Failed to save comments")
+      setCommentSaveStatus("error")
+    } finally {
+      setLoading(prev => ({ ...prev, savingComments: false }))
+    }
+  }
+
+  const handleAutoGenerate = async () => {
+    if (!selectedClass || !selectedYear || !selectedTerm) {
+      setErrorMessage("Please select class, year, and term")
+      return
+    }
+    setLoading(prev => ({ ...prev, generating: true }))
+    setErrorMessage("")
+    try {
+      const termNumber = termToNumber(selectedTerm)
+      const results = await reportService.autoGenerateComments(
+        selectedClass,
+        Number(selectedYear),
+        termNumber,
+        false
+      )
+      setAutoGenerateResults(results)
+      setShowAutoGenerateDialog(true)
+      await loadComments()
+    } catch (error: any) {
+      setErrorMessage(error.message || "Failed to auto-generate comments")
+    } finally {
+      setLoading(prev => ({ ...prev, generating: false }))
+    }
+  }
+
+  const handleClearSpecificComment = (studentId: string) => {
+    setStudentComments(prev => {
+      const next = new Map(prev)
+      next.delete(studentId)
+      return next
+    })
+    setHasCommentChanges(true)
+  }
+
+  // ============================================================================
+  // PER-STUDENT MODAL (single save/delete)
+  // ============================================================================
+
+  const openCommentModal = async (student: Student) => {
+    if (!selectedClass || !selectedYear || !selectedTerm) return
+    setModalStudent(student)
+    setModalCommentValue("")
+    setCommentModalOpen(true)
+    setModalLoading(true)
+    setModalSaving(false)
+    setModalDeleting(false)
+
+    try {
+      const termNumber = termToNumber(selectedTerm)
+      const effective = await reportService.getEffectiveComment(
+        student.id,
+        selectedClass,
+        Number(selectedYear),
+        termNumber,
+        userRole
+      )
+      const existingSpecific = studentComments.get(student.id) || ""
+      // Prefer specific if present in local map; else fallback to effective.comment
+      setModalCommentValue(existingSpecific || effective?.comment || "")
+    } catch (e) {
+      setModalCommentValue(studentComments.get(student.id) || "")
+    } finally {
+      setModalLoading(false)
+    }
+  }
+
+  const closeCommentModal = () => {
+    setCommentModalOpen(false)
+    setModalStudent(null)
+    setModalCommentValue("")
+  }
+
+  const saveModalComment = async () => {
+    if (!modalStudent || !selectedClass || !selectedYear || !selectedTerm) return
+    const text = (modalCommentValue || "").trim()
+    if (!text) {
+      setErrorMessage("Comment cannot be empty. Consider deleting instead.")
+      return
+    }
+    setModalSaving(true)
+    try {
+      const termNumber = termToNumber(selectedTerm)
+      await reportService.saveTeacherComment(
+        modalStudent.id,
+        selectedClass,
+        Number(selectedYear),
+        termNumber,
+        text
+      )
+      // update local map
+      setStudentComments(prev => {
+        const next = new Map(prev)
+        next.set(modalStudent.id, text)
+        return next
+      })
+      setHasCommentChanges(false) // explicit save done
+      setCommentSaveStatus("success")
+      setTimeout(() => setCommentSaveStatus("idle"), 2000)
+      closeCommentModal()
+    } catch (e: any) {
+      setErrorMessage(e?.message || "Failed to save comment")
+      setCommentSaveStatus("error")
+    } finally {
+      setModalSaving(false)
+    }
+  }
+
+  const deleteModalComment = async () => {
+    if (!modalStudent || !selectedYear || !selectedTerm) return
+    setModalDeleting(true)
+    try {
+      await reportService.deleteTeacherComment(
+        modalStudent.id,
+        Number(selectedYear),
+        termToNumber(selectedTerm),
+        userRole
+      )
+      // remove from local cache
+      setStudentComments(prev => {
+        const next = new Map(prev)
+        next.delete(modalStudent.id)
+        return next
+      })
+      setHasCommentChanges(false)
+      closeCommentModal()
+    } catch (e: any) {
+      setErrorMessage(e?.message || "Failed to delete comment")
+    } finally {
+      setModalDeleting(false)
+    }
+  }
+
+  // ============================================================================
+  // YEAR CHANGE HANDLER
+  // ============================================================================
+
+  const handleYearChange = (year: string) => {
+    setSelectedYear(year)
+    const yr = availableYears.find(y => y.year.toString() === year)
+    if (yr) setSelectedYearId(yr.id.toString())
+    setSelectedTerm("")
+    setSelectedClass("")
+    setStudents([])
+    setStudentComments(new Map())
+  }
+
+  // ============================================================================
+  // REPORT DISPLAY – MARK RANGES
+  // ============================================================================
+
+  const markAsChanged = useCallback(() => {
+    if (!hasUnsavedChanges) {
+      setHasUnsavedChanges(true)
+      setSaveStatus("idle")
+    }
+  }, [hasUnsavedChanges])
+
+  const validateMarkRanges = useCallback(() => {
+    const errors: string[] = []
+    const sortedRanges = [...markRanges].sort((a, b) => a.minMark - b.minMark)
+    for (let i = 0; i < sortedRanges.length - 1; i++) {
+      if (sortedRanges[i].maxMark >= sortedRanges[i + 1].minMark) {
+        errors.push(`Mark ranges overlap between ${sortedRanges[i].descriptor} and ${sortedRanges[i + 1].descriptor}`)
+      }
+    }
+    markRanges.forEach((range, index) => {
+      if (!range.descriptor.trim()) errors.push(`Mark range ${index + 1} is missing a descriptor`)
+      if (!range.comment.trim()) errors.push(`Mark range ${index + 1} is missing a comment`)
+      if (!range.grade.trim()) errors.push(`Mark range ${index + 1} is missing a grade`)
+      if (range.minMark > range.maxMark) errors.push(`Mark range ${index + 1} has invalid min/max values`)
+    })
+    const sortedByMin = [...markRanges].sort((a, b) => a.minMark - b.minMark)
+    if (sortedByMin.length > 0 && sortedByMin[0].minMark > 0) {
+      errors.push("Mark ranges do not cover scores from 0")
+    }
+    if (sortedByMin.length > 0 && sortedByMin[sortedByMin.length - 1].maxMark < 100) {
+      errors.push("Mark ranges do not cover scores up to 100")
+    }
+    setValidationErrors(errors)
+    return errors.length === 0
+  }, [markRanges])
+
+  useEffect(() => {
+    if (markRanges.length > 0) validateMarkRanges()
+  }, [markRanges, validateMarkRanges])
+
+  const addMarkRange = () => {
+    const newRange: MarkRange = {
+      id: `range_${Date.now()}`,
+      minMark: 0,
+      maxMark: 0,
+      descriptor: "",
+      comment: "",
+      grade: "",
+      color: "#6b7280"
+    }
+    setMarkRanges(prev => [...prev, newRange])
+    markAsChanged()
+  }
+
+  const updateMarkRange = (id: string, field: keyof MarkRange, value: string | number) => {
+    setMarkRanges(prev => prev.map(r => (r.id === id ? { ...r, [field]: value } : r)))
+    markAsChanged()
+  }
+
+  const removeMarkRange = (id: string) => {
+    setMarkRanges(prev => prev.filter(r => r.id !== id))
+    markAsChanged()
+  }
+
+  const saveMarkRanges = async () => {
+    if (!validateMarkRanges()) return
+    setLoading(prev => ({ ...prev, saving: true }))
+    setSaveStatus("idle")
+    try {
+      await reportService.saveGradeRanges(markRanges)
+      setHasUnsavedChanges(false)
+      setSaveStatus("success")
+      setTimeout(() => setSaveStatus("idle"), 3000)
+    } catch (error: any) {
+      console.error("Error saving grade ranges:", error)
+      setSaveStatus("error")
+    } finally {
+      setLoading(prev => ({ ...prev, saving: false }))
+    }
+  }
+
+  // ============================================================================
+  // SIGNATURE UPLOAD
+  // ============================================================================
+
+  const handleSignatureUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setLoading(prev => ({ ...prev, uploading: true }))
+    setUploadProgress(0)
+
+    const interval = setInterval(() => {
+      setUploadProgress(prev => {
+        if (prev >= 90) {
+          clearInterval(interval)
+          return prev
+        }
+        return prev + 10
+      })
+    }, 200)
+
+    try {
+      const reader = new FileReader()
+      reader.onloadend = async () => {
+        const base64 = reader.result as string
+        setSignature(base64)
+        setUploadProgress(100)
+
+        try {
+          await reportService.updateReportSettings({ schoolLogo: base64 })
+        } catch (error) {
+          console.error("Error saving signature:", error)
+        }
+
+        setTimeout(() => {
+          setLoading(prev => ({ ...prev, uploading: false }))
+          setUploadProgress(0)
+        }, 500)
+      }
+      reader.readAsDataURL(file)
+    } catch {
+      setLoading(prev => ({ ...prev, uploading: false }))
+    }
+  }
+
+  const removeSignature = async () => {
+    setSignature(null)
+    try {
+      await reportService.updateReportSettings({ schoolLogo: null })
+    } catch (error) {
+      console.error("Error removing signature:", error)
+    }
+  }
+
+  // ============================================================================
+  // FILTERING & PAGINATION MEMOS
+  // ============================================================================
+
+  const normalizedQuery = useMemo(() => searchQuery.trim().toLowerCase(), [searchQuery])
+
+  const filteredAll = useMemo(() => {
+    if (!normalizedQuery) return students
+    return students.filter(s => {
+      const fn = (s.firstName || "").toLowerCase()
+      const ln = (s.lastName || "").toLowerCase()
+      return fn.includes(normalizedQuery) || ln.includes(normalizedQuery)
+    })
+  }, [students, normalizedQuery])
+
+  const totalPages = Math.ceil(filteredAll.length / studentsPerPage) || 1
+  const pageStartIndex = (currentPage - 1) * studentsPerPage
+  const visibleStudents = filteredAll.slice(pageStartIndex, pageStartIndex + studentsPerPage)
+
+  useEffect(() => {
+    // Reset to first page if search changes or page overflow
+    setCurrentPage(1)
+  }, [normalizedQuery, selectedClass])
+
+  const studentsWithSpecificComments = useMemo(
+    () => Array.from(studentComments.values()).filter(c => c.trim()).length,
+    [studentComments]
+  )
+  const studentsWithGeneralOnly = useMemo(
+    () => (generalCommentActive ? students.length - studentsWithSpecificComments : 0),
+    [generalCommentActive, students.length, studentsWithSpecificComments]
+  )
+
+  // ============================================================================
+  // RENDER
+  // ============================================================================
+
+  if (contextLoading || loading.fetchingYears) {
+    return (
+      <MainLayout breadcrumbs={breadcrumbs}>
+        <div className="flex items-center justify-center h-[60vh]">
+          <div className="text-center space-y-2">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">Loading...</p>
+          </div>
+        </div>
+      </MainLayout>
+    )
+  }
+
+  return (
+    <MainLayout breadcrumbs={breadcrumbs}>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-muted-foreground mt-1">
+              Manage teacher comments and report display settings
+            </p>
+          </div>
+          <Badge variant="outline" className="gap-2">
+            {isHeadTeacher ? "Head Teacher" : "Class Teacher"}
+          </Badge>
+        </div>
+
+        {/* Tabs */}
+        <Tabs defaultValue="comments" className="space-y-6">
+          <TabsList className="grid w-full max-w-md grid-cols-2">
+            <TabsTrigger value="comments" className="gap-2">
+              <MessageSquare className="h-4 w-4" />
+              Teacher Comments
+            </TabsTrigger>
+            <TabsTrigger value="display" className="gap-2">
+              <Eye className="h-4 w-4" />
+              Report Display
+            </TabsTrigger>
+          </TabsList>
+
+          {/* ===================== TEACHER COMMENTS ===================== */}
+          <TabsContent value="comments" className="space-y-6">
+            {/* Filters */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <GraduationCap className="h-4 w-4" />
+                  Select Academic Period & Class
+                </CardTitle>
+                <CardDescription>
+                  Choose the academic year and term to manage teacher comments
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  {/* Year */}
+                  <div className="space-y-2">
+                    <Label htmlFor="year">Academic Year</Label>
+                    <Select
+                      value={selectedYear}
+                      onValueChange={handleYearChange}
+                      disabled={loading.fetchingYears || availableYears.length === 0}
+                    >
+                      <SelectTrigger id="year">
+                        <SelectValue placeholder="Select year" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableYears.map(y => (
+                          <SelectItem key={y.id} value={y.year.toString()}>
+                            {y.year}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Term */}
+                  <div className="space-y-2">
+                    <Label htmlFor="term">Term</Label>
+                    <Select
+                      value={selectedTerm}
+                      onValueChange={setSelectedTerm}
+                      disabled={!selectedYear || loading.fetchingTerms || availableTerms.length === 0}
+                    >
+                      <SelectTrigger id="term">
+                        <SelectValue placeholder={loading.fetchingTerms ? "Loading..." : "Select term"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableTerms.map(t => (
+                          <SelectItem key={t.id} value={t.term}>
+                            {formatTermDisplay(t.term)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {selectedYear && availableTerms.length === 0 && !loading.fetchingTerms && (
+                      <p className="text-xs text-amber-600">No terms configured for this year</p>
+                    )}
+                  </div>
+
+                  {/* Class */}
+                  <div className="space-y-2">
+                    <Label htmlFor="class">Class</Label>
+                    <Select
+                      value={selectedClass}
+                      onValueChange={setSelectedClass}
+                      disabled={
+                        !selectedYear ||
+                        !selectedTerm ||
+                        loading.fetchingClasses ||
+                        (isClassTeacher && classes.length === 1)
+                      }
+                    >
+                      <SelectTrigger id="class">
+                        <SelectValue placeholder="Select class" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {classes.map(cls => (
+                          <SelectItem key={cls.id} value={cls.id.toString()}>
+                            {cls.name} - {cls.level}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {isClassTeacher && classes.length === 1 && (
+                      <p className="text-xs text-muted-foreground">Your assigned class</p>
+                    )}
+                  </div>
+
+                  {/* Refresh */}
+                  <div className="space-y-2">
+                    <Label>&nbsp;</Label>
+                    <Button
+                      onClick={() => {
+                        if (selectedClass) {
+                          loadStudents(selectedClass)
+                          loadComments()
+                          loadGeneralComment()
+                        }
+                      }}
+                      variant="outline"
+                      className="w-full"
+                      disabled={!selectedClass || loading.fetchingComments}
+                    >
+                      <RefreshCw className={cn("h-4 w-4 mr-2", loading.fetchingComments && "animate-spin")} />
+                      Refresh
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Content */}
+            {selectedClass && students.length > 0 ? (
+              <>
+                {/* Alerts */}
+                {errorMessage && (
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>{errorMessage}</AlertDescription>
+                  </Alert>
+                )}
+                {commentSaveStatus === "success" && (
+                  <Alert className="border-green-200 bg-green-50 text-green-900">
+                    <CheckCircle className="h-4 w-4" />
+                    <AlertDescription>Comment saved successfully.</AlertDescription>
+                  </Alert>
+                )}
+                {commentSaveStatus === "error" && (
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>Something went wrong while saving.</AlertDescription>
+                  </Alert>
+                )}
+
+                {/* General Comment */}
+                <Card className="border-blue-200">
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <FileText className="h-5 w-5 text-blue-600" />
+                        <CardTitle>General Comment</CardTitle>
+                      </div>
+                      {generalComment && (
+                        <div className="flex items-center gap-2">
+                          <Label htmlFor="general-active" className="text-sm">
+                            Apply to all
+                          </Label>
+                          <Switch
+                            id="general-active"
+                            checked={generalCommentActive}
+                            onCheckedChange={handleToggleGeneralComment}
+                            disabled={loading.savingComments}
+                          />
+                        </div>
+                      )}
+                    </div>
+                    <CardDescription>
+                      Set a default comment for all students in this class. Students with specific comments will override this.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <Textarea
+                      value={generalCommentText}
+                      onChange={e => setGeneralCommentText(e.target.value)}
+                      placeholder="Enter a general comment that applies to all students in this class..."
+                      rows={4}
+                      disabled={loading.savingComments}
+                      className="resize-none"
+                    />
+                    <Button
+                      onClick={handleSaveGeneralComment}
+                      disabled={!generalCommentText.trim() || loading.savingComments}
+                      size="sm"
+                    >
+                      {loading.savingComments ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="h-4 w-4 mr-2" />
+                          Save General Comment
+                        </>
+                      )}
+                    </Button>
+
+                    {generalCommentActive && (
+                      <Alert className="bg-blue-50 border-blue-200">
+                        <Info className="h-4 w-4 text-blue-600" />
+                        <AlertDescription className="text-blue-900">
+                          This general comment is active and will apply to {studentsWithGeneralOnly} student
+                          {studentsWithGeneralOnly !== 1 ? "s" : ""} without specific comments.
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Specific Comments */}
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Users className="h-5 w-5" />
+                        <CardTitle>Specific Comments</CardTitle>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline">{studentsWithSpecificComments} specific</Badge>
+                        {generalCommentActive && <Badge variant="secondary">{studentsWithGeneralOnly} general</Badge>}
+                      </div>
+                    </div>
+                    <CardDescription>
+                      Click a student to add or edit a specific comment. Specific comments override the general comment.
+                    </CardDescription>
+                  </CardHeader>
+
+                  <CardContent className="space-y-4">
+                    {/* Search */}
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Search students by name..."
+                        value={searchQuery}
+                        onChange={e => setSearchQuery(e.target.value)}
+                        className="pl-9"
+                      />
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleBulkSave}
+                        disabled={!hasCommentChanges || loading.savingComments}
+                      >
+                        {loading.savingComments ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Saving...
+                          </>
+                        ) : (
+                          <>
+                            <Save className="h-4 w-4 mr-2" />
+                            Save Specific Comments
+                          </>
+                        )}
+                      </Button>
+
+                      {isClassTeacher && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleAutoGenerate}
+                          disabled={loading.generating}
+                          className="bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200"
+                        >
+                          {loading.generating ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              Generating...
+                            </>
+                          ) : (
+                            <>
+                              <Wand2 className="h-4 w-4 mr-2" />
+                              Auto-Generate from Marks
+                            </>
+                          )}
+                        </Button>
+                      )}
+                    </div>
+
+                    {hasCommentChanges && (
+                      <Alert>
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertDescription>
+                          You have unsaved changes. Click &quot;Save Specific Comments&quot; to update.
+                        </AlertDescription>
+                      </Alert>
+                    )}
+
+                    {/* Students List */}
+                    <ScrollArea className="h-[450px] pr-4 border rounded-lg p-4">
+                      {visibleStudents.length > 0 ? (
+                        <div className="space-y-4">
+                          {visibleStudents.map((student, idx) => {
+                            const comment = studentComments.get(student.id) || ""
+                            const hasSpecific = comment.trim().length > 0
+                            const usingGeneral = !hasSpecific && generalCommentActive
+                            const name = getStudentName(student)
+
+                            return (
+                              <div key={student.id} className="space-y-2">
+                                {idx > 0 && <Separator className="my-3" />}
+
+                                <div className="flex items-center justify-between">
+                                  <button
+                                    className="text-left hover:underline"
+                                    onClick={() => openCommentModal(student)}
+                                    title="Click to add/edit comment"
+                                  >
+                                    <Label className="font-medium">{name}</Label>
+                                  </button>
+                                  <div className="flex items-center gap-2">
+                                    {hasSpecific && <CheckCheck className="h-4 w-4 text-green-600" />}
+                                    {usingGeneral && (
+                                      <Badge variant="secondary" className="text-xs">
+                                        Using general
+                                      </Badge>
+                                    )}
+                                    {hasSpecific && (
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => handleClearSpecificComment(student.id)}
+                                        disabled={loading.savingComments}
+                                        title="Clear local specific comment"
+                                      >
+                                        <X className="h-4 w-4" />
+                                      </Button>
+                                    )}
+                                    <span className="text-xs text-muted-foreground">
+                                      {(studentComments.get(student.id) || "").length} chars
+                                    </span>
+                                  </div>
+                                </div>
+
+                                {/* Quick inline edit (optional) */}
+                                <Textarea
+                                  value={comment}
+                                  onChange={e => handleCommentChange(student.id, e.target.value)}
+                                  placeholder={
+                                    usingGeneral
+                                      ? "Leave empty to use general comment..."
+                                      : `Enter comment for ${student.firstName || "student"}`
+                                  }
+                                  rows={2}
+                                  disabled={loading.savingComments}
+                                  className={cn(
+                                    "resize-none text-sm",
+                                    hasSpecific && "border-green-200 bg-green-50/50"
+                                  )}
+                                />
+                              </div>
+                            )
+                          })}
+                        </div>
+                      ) : (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <Search className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                          <p>
+                            {normalizedQuery
+                              ? `No students found matching "${searchQuery}"`
+                              : "No students available"}
+                          </p>
+                        </div>
+                      )}
+                    </ScrollArea>
+
+                    {/* Pagination */}
+                    {filteredAll.length > studentsPerPage && (
+                      <div className="flex items-center justify-center mt-4 gap-3">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                          disabled={currentPage === 1}
+                        >
+                          Previous
+                        </Button>
+                        <span className="text-sm text-muted-foreground">
+                          Page {currentPage} of {totalPages}
+                        </span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                          disabled={currentPage === totalPages}
+                        >
+                          Next
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </>
+            ) : selectedClass ? (
+              <Card>
+                <CardContent className="py-12">
+                  <div className="text-center space-y-2">
+                    <Users className="h-12 w-12 mx-auto text-muted-foreground opacity-50" />
+                    <h3 className="text-lg font-medium">No Students</h3>
+                    <p className="text-muted-foreground">No students found in this class for the selected term</p>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card>
+                <CardContent className="py-12">
+                  <div className="text-center space-y-2">
+                    <GraduationCap className="h-12 w-12 mx-auto text-muted-foreground opacity-50" />
+                    <h3 className="text-lg font-medium">Select Academic Period</h3>
+                    <p className="text-muted-foreground">
+                      Please select year and term above to begin managing teacher comments
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          {/* ===================== REPORT DISPLAY ===================== */}
+          <TabsContent value="display" className="space-y-6">
+            {isClassTeacher && (
+              <>
+                <div className="flex justify-end">
+                  <Button
+                    onClick={saveMarkRanges}
+                    disabled={!hasUnsavedChanges || loading.saving || validationErrors.length > 0}
+                  >
+                    {loading.saving ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="h-4 w-4 mr-2" />
+                        Save Grade Ranges
+                      </>
+                    )}
+                  </Button>
+                </div>
+
+                {saveStatus === "success" && (
+                  <Alert className="border-green-200 bg-green-50 text-green-900">
+                    <CheckCircle className="h-4 w-4" />
+                    <AlertDescription>Grade ranges saved successfully!</AlertDescription>
+                  </Alert>
+                )}
+                {saveStatus === "error" && (
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>Failed to save grade ranges. Please try again.</AlertDescription>
+                  </Alert>
+                )}
+                {validationErrors.length > 0 && (
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      <div className="font-medium mb-1">Validation Errors:</div>
+                      <ul className="list-disc list-inside space-y-1">
+                        {validationErrors.map((e, i) => (
+                          <li key={i} className="text-sm">
+                            {e}
+                          </li>
+                        ))}
+                      </ul>
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle className="flex items-center gap-2">
+                          <GraduationCap className="h-5 w-5" />
+                          Grade Ranges
+                        </CardTitle>
+                        <CardDescription>Define mark ranges and default comments for auto-generation</CardDescription>
+                      </div>
+                      <Badge variant="outline">
+                        {markRanges.length} range{markRanges.length !== 1 ? "s" : ""}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {loading.fetching ? (
+                      <div className="flex justify-center py-8">
+                        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {markRanges.map(range => (
+                          <div key={range.id} className="p-4 border rounded-lg space-y-4 bg-card">
+                            <div className="flex items-center justify-between">
+                              <div className="h-6 w-6 rounded" style={{ backgroundColor: range.color }} />
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeMarkRange(range.id!)}
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+
+                            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                              <div className="space-y-2">
+                                <Label htmlFor={`min-${range.id}`}>Min Mark</Label>
+                                <Input
+                                  type="number"
+                                  id={`min-${range.id}`}
+                                  value={range.minMark}
+                                  onChange={e => updateMarkRange(range.id!, "minMark", Number(e.target.value))}
+                                  min={0}
+                                  max={100}
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor={`max-${range.id}`}>Max Mark</Label>
+                                <Input
+                                  type="number"
+                                  id={`max-${range.id}`}
+                                  value={range.maxMark}
+                                  onChange={e => updateMarkRange(range.id!, "maxMark", Number(e.target.value))}
+                                  min={0}
+                                  max={100}
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor={`grade-${range.id}`}>Grade</Label>
+                                <Input
+                                  id={`grade-${range.id}`}
+                                  value={range.grade}
+                                  onChange={e => updateMarkRange(range.id!, "grade", e.target.value)}
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor={`descriptor-${range.id}`}>Descriptor</Label>
+                                <Input
+                                  id={`descriptor-${range.id}`}
+                                  value={range.descriptor}
+                                  onChange={e => updateMarkRange(range.id!, "descriptor", e.target.value)}
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor={`color-${range.id}`}>Color</Label>
+                                <div className="flex gap-2">
+                                  <Input
+                                    type="color"
+                                    value={range.color}
+                                    onChange={e => updateMarkRange(range.id!, "color", e.target.value)}
+                                    className="w-12 h-10 p-1"
+                                  />
+                                  <Input
+                                    value={range.color}
+                                    onChange={e => updateMarkRange(range.id!, "color", e.target.value)}
+                                    className="flex-1 font-mono text-sm"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+
+                            <Separator />
+
+                            <div className="space-y-2">
+                              <Label htmlFor={`comment-${range.id}`}>Default Comment Template</Label>
+                              <Textarea
+                                id={`comment-${range.id}`}
+                                value={range.comment}
+                                onChange={e => updateMarkRange(range.id!, "comment", e.target.value)}
+                                rows={2}
+                                className="resize-none"
+                                placeholder="This comment will be used when auto-generating comments for students in this mark range"
+                              />
+                            </div>
+                          </div>
+                        ))}
+
+                        <Button
+                          onClick={addMarkRange}
+                          variant="outline"
+                          className="w-full border-dashed hover:bg-muted/50"
+                          disabled={loading.fetching}
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add Grade Range
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </>
+            )}
+            
+          </TabsContent>
+        </Tabs>
+
+        {/* Auto-Generate Results Dialog */}
+        <Dialog open={showAutoGenerateDialog} onOpenChange={setShowAutoGenerateDialog}>
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-purple-600" />
+                Auto-Generation Results
+              </DialogTitle>
+              <DialogDescription>Mark-based comments have been generated for students</DialogDescription>
+            </DialogHeader>
+
+            {autoGenerateResults && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-3 gap-4">
+                  <Card>
+                    <CardContent className="pt-6">
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-green-600">
+                          {autoGenerateResults.generated?.length || 0}
+                        </div>
+                        <div className="text-sm text-muted-foreground">Generated</div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="pt-6">
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-yellow-600">
+                          {autoGenerateResults.skipped?.length || 0}
+                        </div>
+                        <div className="text-sm text-muted-foreground">Skipped</div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="pt-6">
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-red-600">
+                          {autoGenerateResults.errors?.length || 0}
+                        </div>
+                        <div className="text-sm text-muted-foreground">Errors</div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {autoGenerateResults.generated?.length > 0 && (
+                  <div>
+                    <h4 className="font-medium mb-2">Generated Comments</h4>
+                    <ScrollArea className="h-[200px]">
+                      <div className="space-y-2">
+                        {autoGenerateResults.generated.map((item: any) => (
+                          <div key={item.studentId} className="text-sm p-2 bg-green-50 rounded">
+                            <div className="font-medium">{item.studentName}</div>
+                            <div className="text-xs text-muted-foreground">Average: {item.averageMark}% ({item.grade})</div>
+                            <div className="text-xs mt-1">{item.comment}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </ScrollArea>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <DialogFooter>
+              <Button onClick={() => setShowAutoGenerateDialog(false)}>Close</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Per-Student Comment Modal */}
+        <Dialog open={commentModalOpen} onOpenChange={(open) => (open ? undefined : closeCommentModal())}>
+          <DialogContent className="max-w-xl">
+            <DialogHeader>
+              <DialogTitle>
+                {modalStudent ? `Comment for ${getStudentName(modalStudent)}` : "Comment"}
+              </DialogTitle>
+              <DialogDescription>
+                Add or edit a specific comment. This overrides the general comment for this student.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-3">
+              {modalLoading ? (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" /> Loading comment...
+                </div>
+              ) : (
+                <>
+                  <Textarea
+                    rows={5}
+                    value={modalCommentValue}
+                    onChange={(e) => setModalCommentValue(e.target.value)}
+                    placeholder="Type the specific comment..."
+                    className="resize-none"
+                  />
+                  <div className="text-xs text-muted-foreground">{modalCommentValue.length} characters</div>
+                </>
+              )}
+            </div>
+
+            <DialogFooter className="gap-2 sm:gap-2">
+              {modalStudent && (
+                <Button
+                  variant="destructive"
+                  onClick={deleteModalComment}
+                  disabled={modalDeleting || modalLoading}
+                  title="Delete the specific comment for this student"
+                >
+                  {modalDeleting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Trash2 className="h-4 w-4 mr-2" />}
+                  Delete
+                </Button>
+              )}
+              <Button
+                variant="outline"
+                onClick={closeCommentModal}
+                disabled={modalSaving || modalLoading || modalDeleting}
+              >
+                Cancel
+              </Button>
+              <Button onClick={saveModalComment} disabled={modalSaving || modalLoading}>
+                {modalSaving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+                Save
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+    </MainLayout>
+  )
+}
+
+export default function TeacherReportsPage() {
+  return (
+    <ProtectedRoute allowedRoles={["class_teacher", "head_teacher"]}>
+      <TeacherReportsContent />
+    </ProtectedRoute>
+  )
+}
