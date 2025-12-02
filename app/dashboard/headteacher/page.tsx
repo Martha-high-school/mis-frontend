@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/auth-context"
 import { ProtectedRoute } from "@/components/auth/protected-route"
 import { MainLayout } from "@/components/layout/main-layout"
 import { Button } from "@/components/ui/button"
+import { toast } from "react-toastify"
 import {
   Users,
   GraduationCap,
@@ -14,8 +15,7 @@ import {
   ArrowDownRight,
   Download,
   RefreshCw,
-  Loader2,
-  AlertCircle
+  Loader2
 } from "lucide-react"
 import {
   BarChart,
@@ -34,9 +34,7 @@ import {
 } from "recharts"
 import { dashboardService, HeadTeacherDashboardData } from "@/services/dashbaord.service"
 
-// ============================================================================
 // COMPONENTS
-// ============================================================================
 
 const MetricCard = ({
   title,
@@ -155,22 +153,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null
 }
 
-const ErrorAlert = ({ message, onRetry }: { message: string; onRetry: () => void }) => (
-  <div className="rounded-lg border border-red-200 bg-red-50 p-4 flex items-center gap-3">
-    <AlertCircle className="h-5 w-5 text-red-500" />
-    <div className="flex-1">
-      <p className="text-sm font-medium text-red-800">Failed to load dashboard</p>
-      <p className="text-sm text-red-600">{message}</p>
-    </div>
-    <Button variant="outline" size="sm" onClick={onRetry}>
-      <RefreshCw className="h-4 w-4 mr-2" /> Retry
-    </Button>
-  </div>
-)
-
-// ============================================================================
 // HEAD TEACHER DASHBOARD CONTENT
-// ============================================================================
 
 function HeadTeacherDashboardContent() {
   const { user } = useAuth()
@@ -185,8 +168,11 @@ function HeadTeacherDashboardContent() {
       const dashboardData = await dashboardService.getHeadTeacherDashboard()
       setData(dashboardData)
     } catch (err: any) {
-      setError(err.message || "Failed to load dashboard data")
-    } finally {
+      const msg = err.message || "Failed to load dashboard data"
+      setError(msg)
+      toast.error(msg)
+    }
+ finally {
       setLoading(false)
     }
   }, [])
@@ -220,9 +206,6 @@ function HeadTeacherDashboardContent() {
             </Button>
           </div>
         </div>
-
-        {/* Error State */}
-        {error && <ErrorAlert message={error} onRetry={fetchDashboard} />}
 
         {/* Row 1: Key Metrics (4 cards) */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
