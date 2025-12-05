@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { toast } from "react-toastify"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
@@ -115,9 +116,6 @@ function FeeManagementContent() {
   const [studentHistory, setStudentHistory] = useState<any[]>([])
   const [loadingHistory, setLoadingHistory] = useState(false)
 
-  // Alerts
-  const [alert, setAlert] = useState<{ type: "success" | "error"; message: string } | null>(null)
-
   // Breadcrumbs
   const breadcrumbs = [
     { label: "Dashboard", href: "/dashboard" },
@@ -161,8 +159,7 @@ function FeeManagementContent() {
       const years = response.academicYears || []
       setAvailableYears(years)
     } catch (error: any) {
-      console.error("Error loading academic years:", error)
-      showAlert("error", "Failed to load academic years")
+      toast.error("Failed to load academic years")
     } finally {
       setLoadingYears(false)
     }
@@ -191,8 +188,8 @@ function FeeManagementContent() {
       const data = await feeService.getAllStudentsWithFees(params)
       setStudents(data.students)
     } catch (error: any) {
-      console.error("Error fetching students:", error)
-      showAlert("error", "Failed to load students")
+      toast.error("Failed to load students")
+      
     } finally {
       setLoading(false)
     }
@@ -213,8 +210,7 @@ function FeeManagementContent() {
       const response = await feeService.getStudentFeeHistory(studentId)
       setStudentHistory(response.history || [])
     } catch (error) {
-      console.error("Error fetching student history:", error)
-      showAlert("error", "Failed to load student fee history")
+      toast.error("Failed to load student fee history")
     } finally {
       setLoadingHistory(false)
     }
@@ -223,17 +219,17 @@ function FeeManagementContent() {
   // Export student financial statement
   const exportStudentStatement = async (student: StudentWithFees) => {
     try {
-      showAlert("success", "Generating financial statement...")
+      toast.info("Generating financial statement...")
       window.open(`/fees/${student.id}`, '_blank')
     } catch (error) {
-      showAlert("error", "Failed to generate statement")
+      toast.error("Failed to generate statement")
     }
   }
 
   // Handlers
   const handleSetFee = async () => {
     if (!selectedStudent || !feeData.tuitionFee) {
-      showAlert("error", "Please enter tuition fee")
+      toast.error("Please enter tuition fee")
       return
     }
 
@@ -247,7 +243,7 @@ function FeeManagementContent() {
           otherFees: Number(feeData.otherFees) || 0,
           notes: feeData.notes
         })
-        showAlert("success", "Fee structure set successfully")
+        toast.success("Fee structure set successfully")
       } else {
         await feeService.setNextTermFee({
           studentId: selectedStudent.id,
@@ -258,7 +254,7 @@ function FeeManagementContent() {
           notes: feeData.notes
         })
         const nextTermInfo = getNextTermInfo()
-        showAlert("success", `Next term fees (${nextTermInfo.year} Term ${nextTermInfo.term}) set successfully`)
+        toast.success(`Next term fees (${nextTermInfo.year} Term ${nextTermInfo.term}) set successfully`)
       }
 
       setShowSetFeeDialog(false)
@@ -266,13 +262,13 @@ function FeeManagementContent() {
       setFeeTermType("current")
       fetchStudents()
     } catch (error: any) {
-      showAlert("error", error.response?.data?.error || "Failed to set fee")
+      toast.error(error.response?.data?.error || "Failed to set fee")
     }
   }
 
   const handleRecordPayment = async () => {
     if (!selectedStudent || !paymentData.amount) {
-      showAlert("error", "Please enter payment amount")
+      toast.error("Please enter payment amount")
       return
     }
 
@@ -286,8 +282,7 @@ function FeeManagementContent() {
         referenceNumber: paymentData.referenceNumber || undefined,
         notes: paymentData.notes || undefined
       })
-
-      showAlert("success", `Payment recorded. New balance: ${formatCurrency(result.updatedBalance)}`)
+      toast.success(`Payment recorded. New balance: ${formatCurrency(result.updatedBalance)}`)
       setShowPaymentDialog(false)
       setPaymentData({
         amount: "",
@@ -297,13 +292,14 @@ function FeeManagementContent() {
       })
       fetchStudents()
     } catch (error: any) {
-      showAlert("error", error.response?.data?.error || "Failed to record payment")
+      toast.error(error.response?.data?.error || "Failed to record payment")
     }
   }
 
   const handleBulkSetFees = async () => {
     if (!bulkFeeData.tuitionFee) {
-      showAlert("error", "Please enter tuition fee")
+      toast.error("Please enter tuition fee")
+
       return
     }
 
@@ -322,7 +318,7 @@ function FeeManagementContent() {
         }
 
         const result = await feeService.bulkSetFees(params)
-        showAlert("success", `Fees set for ${result.count} students`)
+        toast.info(`Fees set for ${result.count} students`)
       } else {
         const params: any = {
           currentYear: Number(selectedYear),
@@ -337,7 +333,7 @@ function FeeManagementContent() {
         }
 
         const result = await feeService.bulkSetNextTermFees(params)
-        showAlert("success", result.message)
+        toast.success(result.message)
       }
 
       setShowBulkSetDialog(false)
@@ -345,7 +341,7 @@ function FeeManagementContent() {
       setBulkFeeTermType("current")
       fetchStudents()
     } catch (error: any) {
-      showAlert("error", error.response?.data?.error || "Failed to set bulk fees")
+      toast.error( error.response?.data?.error || "Failed to set bulk fees")
     }
   }
 
@@ -353,11 +349,6 @@ function FeeManagementContent() {
     setSelectedStudent(student)
     setShowDetailDialog(true)
     await fetchStudentHistory(student.id)
-  }
-
-  const showAlert = (type: "success" | "error", message: string) => {
-    setAlert({ type, message })
-    setTimeout(() => setAlert(null), 5000)
   }
 
   const formatCurrency = (amount: number) => {
@@ -399,17 +390,6 @@ function FeeManagementContent() {
   return (
     <MainLayout breadcrumbs={breadcrumbs}>
       <div className="space-y-6">
-        {/* Alerts */}
-        {alert && (
-          <Alert variant={alert.type === "error" ? "destructive" : "default"}>
-            {alert.type === "success" ? (
-              <CheckCircle className="h-4 w-4" />
-            ) : (
-              <AlertCircle className="h-4 w-4" />
-            )}
-            <AlertDescription>{alert.message}</AlertDescription>
-          </Alert>
-        )}
 
         {/* Summary Cards */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">

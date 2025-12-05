@@ -42,7 +42,6 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
@@ -60,8 +59,8 @@ import {
   Info,
   ArrowRight
 } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
+import { toast } from "react-toastify"
 
 interface LocalDecision {
   studentId: string
@@ -82,7 +81,6 @@ interface OverrideDialogState {
 export default function PromotionsPage() {
   const { user } = useAuth()
   const router = useRouter()
-  const { toast } = useToast()
 
   // Available years for filtering
   const [availableYears, setAvailableYears] = useState<AvailableYear[]>([])
@@ -175,11 +173,7 @@ export default function PromotionsPage() {
       }
 
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to load initial data",
-        variant: "destructive",
-      })
+      toast.error(error.message || "Failed to load initial data")
     } finally {
       setLoading(false)
     }
@@ -242,11 +236,7 @@ export default function PromotionsPage() {
       setStats(statsData.stats)
 
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to load promotion data",
-        variant: "destructive",
-      })
+      toast.error(error.message || "Failed to load promotion data")
     } finally {
       setLoading(false)
     }
@@ -305,10 +295,8 @@ export default function PromotionsPage() {
       }
     }
     setDecisions(newDecisions)
-    toast({
-      title: "Updated",
-      description: "Set all qualifying students to promote"
-    })
+    toast.info("Set all qualifying students to promote")
+
   }
 
   const handleRepeatAllNonQualifying = () => {
@@ -324,10 +312,7 @@ export default function PromotionsPage() {
       }
     }
     setDecisions(newDecisions)
-    toast({
-      title: "Updated",
-      description: "Set all non-qualifying students to repeat"
-    })
+     toast.info("Set all non-qualifying students to repeat")
   }
 
   // ============================================================================
@@ -336,11 +321,7 @@ export default function PromotionsPage() {
 
   const handleProcessPromotions = async () => {
     if (!nextAcademicYear) {
-      toast({
-        title: "Error",
-        description: "Next academic year not available",
-        variant: "destructive",
-      })
+      toast.error("Next academic year not available")
       return
     }
 
@@ -351,11 +332,7 @@ export default function PromotionsPage() {
 
     for (const decision of pendingDecisions) {
       if (decision.action === 'PROMOTE' && !decision.toClassId) {
-        toast({
-          title: "Validation Error",
-          description: "All promote decisions must have a target class selected",
-          variant: "destructive",
-        })
+        toast.error("All promote decisions must have a target class selected")
         return
       }
     }
@@ -376,20 +353,13 @@ export default function PromotionsPage() {
 
       const result = await promotionService.processPromotions(selectedClassId, payload)
 
-      toast({
-        title: "Success",
-        description: `Processed ${result.summary.promoted} promotions and ${result.summary.repeated} repeats`,
-      })
+      toast.success(`Processed ${result.summary.promoted} promotions and ${result.summary.repeated} repeats`)
 
       setShowConfirmDialog(false)
       await loadPromotionData()
 
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to process promotions",
-        variant: "destructive",
-      })
+      toast.error(error.message || "Failed to process promotions")
     } finally {
       setProcessing(false)
     }
@@ -413,11 +383,7 @@ export default function PromotionsPage() {
 
   const handleOverrideSubmit = async () => {
     if (overrideDialog.reason.trim().length < 10) {
-      toast({
-        title: "Error",
-        description: "Reason must be at least 10 characters",
-        variant: "destructive",
-      })
+      toast.error("Reason must be at least 10 characters")
       return
     }
 
@@ -431,22 +397,14 @@ export default function PromotionsPage() {
 
       if (overrideDialog.action === 'PROMOTE') {
         if (!suggestedClassId) {
-          toast({
-            title: "Error",
-            description: "No next class available",
-            variant: "destructive",
-          })
+          toast.error("No next class available")
           return
         }
         payload.toClassId = suggestedClassId
       }
 
       await promotionService.teacherOverride(payload)
-      
-      toast({
-        title: "Success",
-        description: `Override applied successfully`,
-      })
+      toast.success("Override applied successfully")
 
       setOverrideDialog({ ...overrideDialog, open: false, reason: '' })
       
@@ -454,11 +412,7 @@ export default function PromotionsPage() {
       await loadPromotionData()
 
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to submit override",
-        variant: "destructive"
-      })
+      toast.error(error.message || "Failed to submit override")
     }
   }
 
@@ -643,20 +597,19 @@ export default function PromotionsPage() {
 
               {/* O-Level to A-Level transition info */}
               {isOLevelToALevel && (
-                <Alert className="bg-purple-50 border-purple-200">
-                  <Info className="h-4 w-4 text-purple-600" />
-                  <AlertDescription className="text-purple-800">
-                    <strong>O-Level to A-Level Transition:</strong> Students will need to choose between Sciences and Arts streams when promoted to S5.
+                <div className="flex items-start gap-3 p-4 rounded-md border border-purple-300 bg-purple-50">
+                  <Info className="h-4 w-4 text-purple-700 mt-1" />
+                  <p className="text-sm text-purple-800">
+                    <strong>O-Level to A-Level Transition:</strong> Students will need to choose between Sciences and Arts.
                     {availableNextClasses.length > 1 && (
-                      <span className="block mt-1">
-                        Available options: {availableNextClasses.map(c => c.name).join(", ")}
-                      </span>
+                      <span className="block mt-1">Available options: {availableNextClasses.map(c => c.name).join(", ")}</span>
                     )}
-                  </AlertDescription>
-                </Alert>
+                  </p>
+                </div>
+
               )}
 
-              {!nextAcademicYear && selectedYear && (
+              {/* {!nextAcademicYear && selectedYear && (
                 <Alert>
                   <AlertTriangle className="h-4 w-4" />
                   <AlertDescription>
@@ -669,32 +622,27 @@ export default function PromotionsPage() {
                       Create Academic Year
                     </Button>
                   </AlertDescription>
-                </Alert>
-              )}
+                </Alert> */}
+              {/* )} */}
 
               {availableNextClasses.length === 0 && !isGraduatingClass && selectedClassId && (
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>
-                    No classes available at the next level. Please create the next level class first.
-                    <Button
-                      variant="link"
-                      className="px-2"
-                      onClick={() => router.push("/classes/new")}
-                    >
-                      Create Class
-                    </Button>
-                  </AlertDescription>
-                </Alert>
+               <div className="flex items-start gap-3 p-4 border border-red-300 bg-red-50 rounded-md">
+                <AlertCircle className="h-4 w-4 text-red-600 mt-1" />
+                <p className="text-sm text-red-700">
+                  No classes available at the next level. Please create the next level class first.
+                  <Button variant="link" className="px-2" onClick={() => router.push("/classes/new")}>
+                    Create Class
+                  </Button>
+                </p>
+              </div>
               )}
-
               {isGraduatingClass && (
-                <Alert>
-                  <Info className="h-4 w-4" />
-                  <AlertDescription>
+                <div className="flex items-start gap-3 p-4 border rounded-md bg-blue-50">
+                  <Info className="h-4 w-4 text-blue-700 mt-1" />
+                  <p className="text-sm text-blue-800">
                     This is a graduating class (S6). Students completing this class will graduate.
-                  </AlertDescription>
-                </Alert>
+                  </p>
+                </div>
               )}
             </CardContent>
           </Card>
@@ -959,21 +907,18 @@ export default function PromotionsPage() {
               </DialogHeader>
 
               <div className="space-y-4 py-4">
-                <Alert>
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>
+                <div className="flex items-start gap-3 p-4 border border-blue-300 bg-blue-50 rounded-md">
+                  <AlertCircle className="h-4 w-4 text-blue-700 mt-1" />
+                  <div className="text-sm text-blue-800">
                     <strong>This action will:</strong>
                     <ul className="list-disc list-inside mt-2 space-y-1">
-                      <li>
-                        Enroll promoted students in <strong>{suggestedClassName || nextLevelInfo?.nextLevelDisplay || 'next class'}</strong> for {nextAcademicYear?.year}
-                      </li>
-                      <li>
-                        Enroll repeated students in <strong>{currentClassName}</strong> for {nextAcademicYear?.year}
-                      </li>
+                      <li>Enroll promoted students in <strong>{suggestedClassName || nextLevelInfo?.nextLevelDisplay || 'next class'}</strong></li>
+                      <li>Enroll repeated students in <strong>{currentClassName}</strong></li>
                       <li>Create enrollments for all terms (T1, T2, T3)</li>
                     </ul>
-                  </AlertDescription>
-                </Alert>
+                  </div>
+                </div>
+
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="p-4 border rounded-lg bg-green-50 dark:bg-green-950">

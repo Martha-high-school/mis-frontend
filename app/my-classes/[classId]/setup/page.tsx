@@ -11,11 +11,10 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Loader2, Save, Plus, Trash2, BookOpen, AlertCircle } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "react-toastify"
 
 // Predefined subject list
 const AVAILABLE_SUBJECTS = [
@@ -71,7 +70,6 @@ function generateInitials(fullName: string): string {
 export default function ClassSetupPage() {
   const { user } = useAuth()
   const router = useRouter()
-  const { toast } = useToast()
   const { classId } = useParams()
   const searchParams = useSearchParams()
 
@@ -101,11 +99,7 @@ export default function ClassSetupPage() {
       const classData = await classService.getClassById(classId as string)
       setClassInfo(classData)
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to load data",
-        variant: "destructive",
-      })
+      toast.error(error.message || "Failed to load data")
     } finally {
       setLoading(false)
     }
@@ -192,22 +186,14 @@ export default function ClassSetupPage() {
   const validateForm = (): boolean => {
     // Check if at least one subject is added
     if (subjects.length === 0) {
-      toast({
-        title: "Validation Error",
-        description: "Please add at least one subject",
-        variant: "destructive",
-      })
+     toast.error("Please add at least one subject")
       return false
     }
 
     // Check if all subjects have names
     const emptySubjects = subjects.filter((s) => !s.subjectName.trim())
     if (emptySubjects.length > 0) {
-      toast({
-        title: "Validation Error",
-        description: "Please select a subject for all entries",
-        variant: "destructive",
-      })
+      toast.error("Please select a subject for all entries")
       return false
     }
 
@@ -215,22 +201,14 @@ export default function ClassSetupPage() {
     const subjectNames = subjects.map((s) => s.subjectName.toLowerCase())
     const hasDuplicates = subjectNames.some((name, idx) => subjectNames.indexOf(name) !== idx)
     if (hasDuplicates) {
-      toast({
-        title: "Validation Error",
-        description: "Duplicate subjects are not allowed",
-        variant: "destructive",
-      })
+      toast.error("Duplicate subjects are not allowed")
       return false
     }
 
     // Check if at least one core subject exists
     const coreSubjects = subjects.filter((s) => s.isCore)
     if (coreSubjects.length === 0) {
-      toast({
-        title: "Validation Error",
-        description: "At least one core subject is required",
-        variant: "destructive",
-      })
+      toast.error("At least one core subject is required")
       return false
     }
 
@@ -238,22 +216,14 @@ export default function ClassSetupPage() {
     for (const subject of subjects) {
       const validCompetences = subject.competences.filter((c) => c.name.trim())
       if (validCompetences.length === 0) {
-        toast({
-          title: "Validation Error",
-          description: `Please add at least one competence for ${subject.subjectName}`,
-          variant: "destructive",
-        })
+      toast.error( `Please add at least one competence for ${subject.subjectName}`)
         return false
       }
     }
 
     // Check year is valid
     if (!year || isNaN(year)) {
-      toast({
-        title: "Validation Error",
-        description: "Invalid academic year. Please add ?year=XXXX to the URL",
-        variant: "destructive",
-      })
+      toast.error("Invalid academic year.")
       return false
     }
 
@@ -272,28 +242,21 @@ export default function ClassSetupPage() {
         instructorName: s.instructorName?.trim(),
         instructorInitials: s.instructorInitials?.trim(),
         competences: s.competences
-          .filter((c) => c.name.trim()) // Only include non-empty competences
+          .filter((c) => c.name.trim())
           .map((c) => ({
             name: c.name.trim(),
-            maxScore: COMPETENCE_MAX_SCORE, // Fixed at 3
+            maxScore: COMPETENCE_MAX_SCORE,
           })),
       }))
 
       // Pass year from URL to the service
       await classService.setupClassSubjects(classId as string, year, setupData)
 
-      toast({
-        title: "Success",
-        description: `Class subjects configured successfully for ${year}`,
-      })
+      toast.success(`Class subjects configured successfully for ${year}`)
 
       router.push("/my-classes")
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to save subjects",
-        variant: "destructive",
-      })
+      toast.error(error.message || "Failed to save subjects")
     } finally {
       setSaving(false)
     }
@@ -340,13 +303,14 @@ export default function ClassSetupPage() {
 
           {/* Year Warning if not provided */}
           {!urlYear && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                No year specified in URL. Using current year ({year}). 
-                Add <code className="bg-muted px-1 rounded">?year=2025</code> to the URL to specify the academic year.
-              </AlertDescription>
-            </Alert>
+            <div className="flex items-start gap-3 p-4 border border-red-300 bg-red-50 rounded-md">
+              <AlertCircle className="h-4 w-4 text-red-600 mt-1" />
+              <p className="text-sm text-red-700">
+                No year specified in the URL. Using current year ({year}).  
+                Add <code className="px-1 bg-muted rounded">?year=2025</code> to specify an academic year.
+              </p>
+            </div>
+
           )}
 
           {/* Class Info Card */}
@@ -517,14 +481,15 @@ export default function ClassSetupPage() {
               ))}
 
               {/* Summary */}
-              <Alert>
-                <BookOpen className="h-4 w-4" />
-                <AlertDescription>
-                  <strong>{subjects.length}</strong> subject{subjects.length !== 1 ? "s" : ""} configured • 
-                  <strong> {subjects.filter((s) => s.isCore).length}</strong> core • 
-                  <strong> {subjects.filter((s) => !s.isCore).length}</strong> elective
-                </AlertDescription>
-              </Alert>
+              <div className="flex items-start gap-3 p-4 border border-blue-200 bg-blue-50 rounded-md">
+                <BookOpen className="h-4 w-4 text-blue-700 mt-1" />
+                <p className="text-sm text-blue-800">
+                  <strong>{subjects.length}</strong> subject{subjects.length !== 1 ? "s" : ""} configured •  
+                  <strong> {subjects.filter(s => s.isCore).length}</strong> core •  
+                  <strong> {subjects.filter(s => !s.isCore).length}</strong> elective
+                </p>
+              </div>
+
             </CardContent>
           </Card>
 

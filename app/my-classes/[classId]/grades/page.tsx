@@ -10,13 +10,11 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/com
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2, Save, BookOpen, Users, AlertCircle, CheckCircle, ChevronLeft, ChevronRight } from "lucide-react"
 import { classService, type SaveAssessmentsPayload, type AssessmentData } from "@/services/class.service"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "react-toastify"
 
 interface Student {
   id: string
@@ -55,7 +53,6 @@ interface GradeData {
 export default function GradesPage() {
   const { user } = useAuth()
   const router = useRouter()
-  const { toast } = useToast()
   const { classId } = useParams()
   const searchParams = useSearchParams()
   const { year: contextYear, term: contextTerm, termName } = useAcademicContext()
@@ -193,11 +190,7 @@ export default function GradesPage() {
       setGrades(initialGrades)
 
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to load grades data",
-        variant: "destructive"
-      })
+      toast.error(error.message || "Something went wrong")
       console.error("Error loading data:", error)
     } finally {
       setLoading(false)
@@ -309,11 +302,7 @@ export default function GradesPage() {
 
   const handleSave = async () => {
     if (!selectedSubject) {
-      toast({
-        title: "Error",
-        description: "Please select a subject first",
-        variant: "destructive"
-      })
+      toast.warning("Please select a subject first")
       return
     }
 
@@ -345,20 +334,10 @@ export default function GradesPage() {
 
       await classService.saveAssessments(classId as string, payload)
 
-      toast({
-        title: "Success",
-        description: `Grades saved successfully for ${selectedSubject.subject.name}`,
-        duration: 3000,
-      })
+      toast.success("Grades saved successfully!")
 
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to save grades",
-        variant: "destructive",
-        duration: 5000,
-      })
-      console.error("Error saving grades:", error)
+      toast.error(error.message || "Failed to load grades data")
     } finally {
       setSaving(false)
     }
@@ -404,27 +383,15 @@ export default function GradesPage() {
       }
 
       if (errorCount === 0) {
-        toast({
-          title: "Success",
-          description: `All grades saved successfully (${successCount} subjects)`,
-          duration: 3000,
-        })
+        toast.success(`All grades saved successfully, (${successCount} subjects)`)
+
       } else {
-        toast({
-          title: "Partial Success",
-          description: `Saved ${successCount} subjects, ${errorCount} failed`,
-          variant: "destructive",
-          duration: 5000,
-        })
+        toast.error(`Saved ${successCount} subjects, ${errorCount} failed`)
       }
 
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to save grades",
-        variant: "destructive",
-        duration: 5000,
-      })
+      toast.error(error.message || "Failed to save grades")
+
     } finally {
       setSaving(false)
     }
@@ -444,12 +411,13 @@ export default function GradesPage() {
   if (!year || !term) {
     return (
       <MainLayout userRole={user?.role} userName={user?.name}>
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
+        <div className="flex items-start gap-3 p-4 rounded-md border border-red-300 bg-red-50">
+          <AlertCircle className="h-4 w-4 text-red-600 mt-1" />
+          <p className="text-sm text-red-700">
             No academic year or term is configured. Please contact the administrator.
-          </AlertDescription>
-        </Alert>
+          </p>
+        </div>
+
       </MainLayout>
     )
   }
@@ -503,13 +471,13 @@ export default function GradesPage() {
       >
         <div className="space-y-6">
           {/* Viewing Period Alert */}
-          <Alert className="bg-blue-50 border-blue-200 dark:bg-blue-900/20">
-            <AlertCircle className="h-4 w-4 text-blue-600" />
-            <AlertDescription className="text-blue-800 dark:text-blue-200">
+          <div className="flex items-start gap-3 p-4 rounded-md border border-blue-200 bg-blue-50">
+            <AlertCircle className="h-4 w-4 text-blue-700 mt-1" />
+            <p className="text-sm text-blue-800">
               <strong>Viewing Grades For:</strong> {year} - {getTermDisplayName(term)}
               {contextYear && contextTerm && year === contextYear && term === contextTerm && " (Current Period)"}
-            </AlertDescription>
-          </Alert>
+            </p>
+          </div>
 
           {/* Header Card */}
           <Card>
@@ -625,17 +593,13 @@ export default function GradesPage() {
                   <TabsContent key={subject.id} value={subject.id} className="mt-6">
                     {/* Competences Info with Grading Explanation */}
                     {subject.competences && subject.competences.length > 0 && (
-                      <Alert className="mb-4 bg-blue-50 border-blue-200">
-                        <CheckCircle className="h-4 w-4 text-blue-600" />
-                        <AlertDescription className="text-blue-900">
-                          <div className="space-y-2">
-                            <div>
-                              <strong>Competences for {subject.subject.name}:</strong>{" "}
-                              {subject.competences.map(c => `${c.name} (${c.maxScore} pts)`).join(", ")}
-                            </div>
-                          </div>
-                        </AlertDescription>
-                      </Alert>
+                      <div className="flex items-start gap-3 p-4 mb-4 rounded-md border border-blue-200 bg-blue-50">
+                        <CheckCircle className="h-4 w-4 text-blue-700 mt-1" />
+                        <p className="text-sm text-blue-800">
+                          <strong>Competences for {subject.subject.name}:</strong>{" "}
+                          {subject.competences.map(c => `${c.name} (${c.maxScore} pts)`).join(", ")}
+                        </p>
+                      </div>
                     )}
 
                     {/* Grading Table */}

@@ -8,12 +8,11 @@ import { ProtectedRoute } from "@/components/auth/protected-route"
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Loader2, BookOpen, Edit, AlertCircle, ChevronLeft, Calendar, GraduationCap, Plus, Trash2 } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "react-toastify"
 import { classService } from "@/services/class.service"
 import { academicYearService } from "@/services/accademic-year.service"
 import { competencyService, type Subject } from "@/services/competency.service"
@@ -23,7 +22,6 @@ import { AddSubjectDialog } from "@/components/competence/add-subject-dialo"
 export default function EditSubjectsPage() {
   const { user } = useAuth()
   const router = useRouter()
-  const { toast } = useToast()
   const { classId } = useParams()
 
   const [loading, setLoading] = useState(true)
@@ -73,11 +71,7 @@ export default function EditSubjectsPage() {
       setAvailableYears(yearNumbers)
 
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to load data",
-        variant: "destructive"
-      })
+      toast.error(error.message || "Failed to load data")
     } finally {
       setLoading(false)
     }
@@ -94,11 +88,7 @@ export default function EditSubjectsPage() {
       )
       setSubjects(subjectsData)
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to load subjects",
-        variant: "destructive"
-      })
+      toast.error(error.message || "Failed to load subjects")
     } finally {
       setLoading(false)
     }
@@ -111,18 +101,12 @@ export default function EditSubjectsPage() {
 
   const handleCompetenciesSaved = () => {
     loadSubjects()
-    toast({
-      title: "Success",
-      description: "Competencies updated successfully",
-    })
+    toast.success("Competencies updated successfully")
   }
 
   const handleSubjectAdded = () => {
     loadSubjects()
-    toast({
-      title: "Success",
-      description: "Subject added successfully",
-    })
+    toast.success("Subject added successfully")
   }
 
   const getTermName = (term: string) => {
@@ -237,13 +221,14 @@ export default function EditSubjectsPage() {
                 </div>
               </div>
 
-              <Alert className="mt-4">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>
+              <div className="flex items-start gap-2 bg-blue-50 border border-blue-200 p-3 rounded-md mt-4">
+                <AlertCircle className="h-4 w-4 text-blue-600 mt-0.5" />
+                <p className="text-sm text-blue-800">
                   Viewing subjects for <strong>{getTermName(selectedTerm)} {selectedYear}</strong>.
-                  When you add a subject, it will be available for all terms. You can then customize competencies per term.
-                </AlertDescription>
-              </Alert>
+                  When you add a subject, it will be available for all terms.
+                </p>
+              </div>
+
             </CardContent>
           </Card>
 
@@ -268,12 +253,12 @@ export default function EditSubjectsPage() {
                   <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                 </div>
               ) : subjects.length === 0 ? (
-                <Alert>
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>
-                    No subjects configured for this class yet. Click "Add Subject" to get started.
-                  </AlertDescription>
-                </Alert>
+                <div className="flex items-start gap-3 p-4 border border-yellow-300 bg-yellow-50 rounded-md">
+                  <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5" />
+                  <p className="text-sm text-yellow-700">
+                    No subjects configured for this class yet. Click <strong>"Add Subject"</strong> to get started.
+                  </p>
+                </div>
               ) : (
                 <div className="rounded-md border">
                   <Table>

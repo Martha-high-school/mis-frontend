@@ -18,7 +18,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+import { toast } from "react-toastify"
 import { 
   Mail, 
   Search, 
@@ -28,8 +28,6 @@ import {
   Trash2, 
   UserX, 
   UserCheck, 
-  AlertCircle,
-  CheckCircle2,
   RefreshCw
 } from "lucide-react"
 import { userService, type User } from "@/services/user.service"
@@ -41,8 +39,6 @@ function UserManagementContent() {
   const { user } = useAuth()
   const [users, setUsers] = useState<User[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState("")
-  const [success, setSuccess] = useState("")
   const [searchTerm, setSearchTerm] = useState("")
   const [roleFilter, setRoleFilter] = useState("All Roles")
   const [statusFilter, setStatusFilter] = useState("All Statuses")
@@ -58,11 +54,11 @@ function UserManagementContent() {
   const loadUsers = async () => {
     try {
       setIsLoading(true)
-      setError("")
+      toast.error("")
       const data = await userService.getAllUsers()
       setUsers(data.users)
     } catch (err: any) {
-      setError(err.message)
+      toast.error(err.message || "Failed to load users")
     } finally {
       setIsLoading(false)
     }
@@ -73,44 +69,39 @@ function UserManagementContent() {
   }, [])
 
   const handleInviteSuccess = () => {
-    setSuccess("Invitation sent successfully! The user will receive an email with setup instructions.")
+    toast.success("Invitation sent successfully! The user will receive an email with setup instructions.")
     loadUsers()
-    setTimeout(() => setSuccess(""), 5000)
   }
 
   const handleEditSuccess = () => {
-    setSuccess("User updated successfully!")
+    toast.success("User updated successfully!")
     loadUsers()
-    setTimeout(() => setSuccess(""), 5000)
   }
 
   const handleDeleteSuccess = () => {
-    setSuccess("User deleted successfully!")
+    toast.success("User deleted successfully!")
     loadUsers()
-    setTimeout(() => setSuccess(""), 5000)
   }
 
   const handleSuspend = async (userId: string) => {
     try {
       await userService.suspendUser(userId)
-      setSuccess("User suspended successfully!")
+      toast.success("User suspended successfully!")
       loadUsers()
-      setTimeout(() => setSuccess(""), 5000)
+
     } catch (err: any) {
-      setError(err.message)
-      setTimeout(() => setError(""), 5000)
+      toast.error(err.message || "Failed to suspend users")
     }
   }
 
   const handleActivate = async (userId: string) => {
     try {
       await userService.activateUser(userId)
-      setSuccess("User activated successfully!")
+      toast.success("User activated successfully!")
       loadUsers()
-      setTimeout(() => setSuccess(""), 5000)
+
     } catch (err: any) {
-      setError(err.message)
-      setTimeout(() => setError(""), 5000)
+      toast.error(err.message || "Failed to load users")
     }
   }
 
@@ -172,21 +163,6 @@ function UserManagementContent() {
   return (
     <MainLayout userRole={user.role}  userName={user.name} breadcrumbs={breadcrumbs}>
       <div className="space-y-6">
-        {/* Success/Error Messages */}
-        {success && (
-          <Alert className="border-green-200 bg-green-50">
-            <CheckCircle2 className="h-4 w-4 text-green-600" />
-            <AlertDescription className="text-green-800">{success}</AlertDescription>
-          </Alert>
-        )}
-        
-        {error && (
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-
         {/* Header Actions */}
         <div className="flex flex-col sm:flex-row gap-4 justify-between">
           <div className="relative flex-1 max-w-md">

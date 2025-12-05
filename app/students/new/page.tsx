@@ -10,8 +10,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { CheckCircle, AlertCircle, Loader2 } from "lucide-react"
+import { toast } from "react-toastify"
 import Link from "next/link"
 import { useAcademicContext } from "@/contexts/use-academic-contex"
 import { useRouter } from "next/navigation"
@@ -76,8 +76,6 @@ function NewStudentContent() {
 
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(false)
-  const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle")
-  const [errorMessage, setErrorMessage] = useState("")
 
   // Fetch classes on mount
   useEffect(() => {
@@ -141,8 +139,6 @@ function NewStudentContent() {
     }
 
     setLoading(true)
-    setSubmitStatus("idle")
-    setErrorMessage("")
 
     try {
       // Prepare payload matching backend expectations
@@ -165,18 +161,14 @@ function NewStudentContent() {
 
       // Use studentService instead of direct fetch
       const result = await studentService.addStudent(payload)
-
-      console.log("Student created successfully:", result)
-      setSubmitStatus("success")
+      toast.success("Student created successfully")
 
       // Redirect to students list after 2 seconds
       setTimeout(() => {
         router.push("/students")
       }, 2000)
     } catch (error: any) {
-      console.error("Error creating student:", error)
-      setSubmitStatus("error")
-      setErrorMessage(error.message || error.response?.data?.error || "An error occurred while registering the student")
+      toast.success("An error occurred while registering the student")
     } finally {
       setLoading(false)
     }
@@ -234,29 +226,20 @@ function NewStudentContent() {
         </div>
 
         {submitStatus === "success" && (
-          <Alert className="mb-6 border-green-200 bg-green-50">
-            <CheckCircle className="h-4 w-4 text-green-600" />
-            <AlertDescription className="text-green-800">
-              Student registered successfully! Redirecting to students list...
-            </AlertDescription>
-          </Alert>
+          toast.success("Student registered successfully! Redirecting…")
         )}
 
         {submitStatus === "error" && (
-          <Alert variant="destructive" className="mb-6">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              {errorMessage || "Failed to register student. Please check your information and try again."}
-            </AlertDescription>
-          </Alert>
+          toast.error("Failed to register student. Please check your information and try again.")
         )}
 
         {errors.classes && (
-          <Alert variant="destructive" className="mb-6">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{errors.classes}</AlertDescription>
-          </Alert>
+          <div className="flex items-start gap-2 mb-6 p-4 border border-red-300 bg-red-50 rounded-md">
+            <AlertCircle className="h-5 w-5 text-red-700 mt-0.5" />
+            <p className="text-sm text-red-700">{errors.classes}</p>
+          </div>
         )}
+
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
