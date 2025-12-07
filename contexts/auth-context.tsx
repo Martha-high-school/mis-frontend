@@ -5,7 +5,7 @@ import { authService, type User } from "@/services/auth.service"
 
 interface AuthContextType {
   user: User | null
-  login: (email: string, password: string) => Promise<void>
+  login: (email: string, password: string) => Promise<User>  
   logout: () => Promise<void>
   isLoading: boolean
   isAuthenticated: boolean
@@ -38,13 +38,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string): Promise<User> => {
     try {
       const { user: userData } = await authService.login({ email, password })
       setUser(userData)
       setIsAuthenticated(true)
+      return userData 
     } catch (error) {
-      // Re-throw error to be handled by the component
       throw error
     }
   }

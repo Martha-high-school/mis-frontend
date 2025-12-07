@@ -15,7 +15,15 @@ import {
   ArrowDownRight,
   Download,
   RefreshCw,
-  Loader2
+  Loader2,
+  Sparkles,
+  Calendar,
+  Clock,
+  ChevronRight,
+  BarChart3,
+  Award,
+  BookOpen,
+  Settings,
 } from "lucide-react"
 import {
   BarChart,
@@ -30,11 +38,15 @@ import {
   PolarAngleAxis,
   PolarRadiusAxis,
   Radar,
-  Legend
+  Legend,
+  AreaChart,
+  Area,
 } from "recharts"
 import { dashboardService, HeadTeacherDashboardData } from "@/services/dashbaord.service"
 
-// COMPONENTS
+// ============================================================================
+// ENHANCED COMPONENTS
+// ============================================================================
 
 const MetricCard = ({
   title,
@@ -44,7 +56,8 @@ const MetricCard = ({
   trend,
   trendValue,
   color = "blue",
-  loading = false
+  loading = false,
+  delay = 0
 }: {
   title: string
   value: string | number
@@ -54,50 +67,92 @@ const MetricCard = ({
   trendValue?: string
   color?: "blue" | "green" | "amber" | "red" | "purple" | "pink"
   loading?: boolean
+  delay?: number
 }) => {
-  const colorClasses = {
-    blue: "from-blue-500 to-blue-600 shadow-blue-500/25",
-    green: "from-emerald-500 to-emerald-600 shadow-emerald-500/25",
-    amber: "from-amber-500 to-amber-600 shadow-amber-500/25",
-    red: "from-red-500 to-red-600 shadow-red-500/25",
-    purple: "from-purple-500 to-purple-600 shadow-purple-500/25",
-    pink: "from-pink-500 to-pink-600 shadow-pink-500/25"
+  const colorConfig = {
+    blue: {
+      gradient: "from-blue-500 to-blue-600",
+      bg: "bg-gradient-to-br from-blue-50 to-blue-100/50",
+      border: "border-blue-200/60",
+      iconBg: "bg-blue-500",
+      ring: "ring-blue-500/20"
+    },
+    green: {
+      gradient: "from-emerald-500 to-emerald-600",
+      bg: "bg-gradient-to-br from-emerald-50 to-emerald-100/50",
+      border: "border-emerald-200/60",
+      iconBg: "bg-emerald-500",
+      ring: "ring-emerald-500/20"
+    },
+    amber: {
+      gradient: "from-amber-500 to-amber-600",
+      bg: "bg-gradient-to-br from-amber-50 to-amber-100/50",
+      border: "border-amber-200/60",
+      iconBg: "bg-amber-500",
+      ring: "ring-amber-500/20"
+    },
+    red: {
+      gradient: "from-red-500 to-red-600",
+      bg: "bg-gradient-to-br from-red-50 to-red-100/50",
+      border: "border-red-200/60",
+      iconBg: "bg-red-500",
+      ring: "ring-red-500/20"
+    },
+    purple: {
+      gradient: "from-violet-500 to-violet-600",
+      bg: "bg-gradient-to-br from-violet-50 to-violet-100/50",
+      border: "border-violet-200/60",
+      iconBg: "bg-violet-500",
+      ring: "ring-violet-500/20"
+    },
+    pink: {
+      gradient: "from-pink-500 to-pink-600",
+      bg: "bg-gradient-to-br from-pink-50 to-pink-100/50",
+      border: "border-pink-200/60",
+      iconBg: "bg-pink-500",
+      ring: "ring-pink-500/20"
+    }
   }
 
-  const bgColorClasses = {
-    blue: "bg-blue-50 border-blue-100",
-    green: "bg-emerald-50 border-emerald-100",
-    amber: "bg-amber-50 border-amber-100",
-    red: "bg-red-50 border-red-100",
-    purple: "bg-purple-50 border-purple-100",
-    pink: "bg-pink-50 border-pink-100"
-  }
+  const config = colorConfig[color]
 
   return (
-    <div className={`relative overflow-hidden rounded-2xl border ${bgColorClasses[color]} p-5 transition-all duration-300 hover:shadow-lg cursor-pointer group`}>
-      <div className="flex items-start justify-between">
-        <div className="space-y-2">
-          <p className="text-sm font-medium text-gray-500">{title}</p>
+    <div 
+      className={`group relative overflow-hidden rounded-2xl border ${config.border} ${config.bg} p-5 transition-all duration-500 hover:shadow-xl hover:-translate-y-1`}
+      style={{ animationDelay: `${delay}ms` }}
+    >
+      {/* Decorative elements */}
+      <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-gradient-to-br from-white/40 to-transparent opacity-60" />
+      <div className="absolute -bottom-4 -left-4 h-24 w-24 rounded-full bg-gradient-to-tr from-white/30 to-transparent opacity-40" />
+      
+      <div className="relative flex items-start justify-between">
+        <div className="space-y-3">
+          <p className="text-sm font-medium text-gray-600 tracking-wide">{title}</p>
           {loading ? (
-            <div className="h-8 w-24 bg-gray-200 animate-pulse rounded" />
+            <div className="h-9 w-28 bg-gray-200/80 animate-pulse rounded-lg" />
           ) : (
-            <p className="text-2xl font-bold text-gray-900">{value}</p>
+            <p className="text-3xl font-bold text-gray-900 tracking-tight">{value}</p>
           )}
-          {subtitle && <p className="text-xs text-gray-500">{subtitle}</p>}
+          {subtitle && (
+            <p className="text-xs text-gray-500 flex items-center gap-1">
+              <Clock className="h-3 w-3" />
+              {subtitle}
+            </p>
+          )}
           {trend && trendValue && !loading && (
-            <div className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
-              trend === "up" ? "bg-emerald-100 text-emerald-700" :
-              trend === "down" ? "bg-red-100 text-red-700" :
-              "bg-gray-100 text-gray-700"
+            <div className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold transition-transform group-hover:scale-105 ${
+              trend === "up" ? "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200" :
+              trend === "down" ? "bg-red-100 text-red-700 ring-1 ring-red-200" :
+              "bg-gray-100 text-gray-700 ring-1 ring-gray-200"
             }`}>
-              {trend === "up" ? <ArrowUpRight className="h-3 w-3" /> :
-               trend === "down" ? <ArrowDownRight className="h-3 w-3" /> : null}
+              {trend === "up" ? <ArrowUpRight className="h-3.5 w-3.5" /> :
+               trend === "down" ? <ArrowDownRight className="h-3.5 w-3.5" /> : null}
               {trendValue}
             </div>
           )}
         </div>
-        <div className={`rounded-xl bg-gradient-to-br ${colorClasses[color]} p-3 shadow-lg`}>
-          <Icon className="h-5 w-5 text-white" />
+        <div className={`rounded-2xl ${config.iconBg} p-3.5 shadow-lg ring-4 ${config.ring} transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3`}>
+          <Icon className="h-6 w-6 text-white" />
         </div>
       </div>
     </div>
@@ -110,7 +165,8 @@ const ChartCard = ({
   children,
   action,
   className = "",
-  loading = false
+  loading = false,
+  icon: Icon
 }: {
   title: string
   subtitle?: string
@@ -118,21 +174,36 @@ const ChartCard = ({
   action?: React.ReactNode
   className?: string
   loading?: boolean
+  icon?: any
 }) => (
-  <div className={`rounded-2xl border border-gray-100 bg-white p-5 shadow-sm ${className}`}>
-    <div className="mb-4 flex items-center justify-between">
-      <div>
-        <h3 className="text-base font-semibold text-gray-900">{title}</h3>
-        {subtitle && <p className="text-sm text-gray-500">{subtitle}</p>}
+  <div className={`group relative overflow-hidden rounded-2xl border border-gray-200/60 bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-lg hover:border-gray-300/60 ${className}`}>
+    {/* Subtle gradient overlay */}
+    <div className="absolute inset-0 bg-gradient-to-br from-gray-50/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+    
+    <div className="relative mb-5 flex items-center justify-between">
+      <div className="flex items-center gap-3">
+        {Icon && (
+          <div className="rounded-xl bg-gradient-to-br from-gray-100 to-gray-50 p-2.5 ring-1 ring-gray-200/50">
+            <Icon className="h-4 w-4 text-gray-600" />
+          </div>
+        )}
+        <div>
+          <h3 className="text-base font-semibold text-gray-900">{title}</h3>
+          {subtitle && <p className="text-sm text-gray-500 mt-0.5">{subtitle}</p>}
+        </div>
       </div>
       {action}
     </div>
     {loading ? (
-      <div className="flex items-center justify-center h-[280px]">
-        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+      <div className="flex flex-col items-center justify-center h-[280px] gap-3">
+        <div className="relative">
+          <div className="h-12 w-12 rounded-full border-4 border-gray-100" />
+          <div className="absolute inset-0 h-12 w-12 rounded-full border-4 border-violet-500 border-t-transparent animate-spin" />
+        </div>
+        <p className="text-sm text-gray-400">Loading data...</p>
       </div>
     ) : (
-      children
+      <div className="relative">{children}</div>
     )}
   </div>
 )
@@ -140,12 +211,14 @@ const ChartCard = ({
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="rounded-lg border border-gray-100 bg-white p-3 shadow-lg">
-        <p className="mb-2 font-medium text-gray-900">{label}</p>
+      <div className="rounded-xl border border-gray-200 bg-white/95 backdrop-blur-sm p-4 shadow-xl">
+        <p className="mb-2 font-semibold text-gray-900 text-sm">{label}</p>
         {payload.map((entry: any, index: number) => (
-          <p key={index} className="text-sm" style={{ color: entry.color }}>
-            {entry.name}: {entry.value}%
-          </p>
+          <div key={index} className="flex items-center gap-2 text-sm">
+            <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: entry.color }} />
+            <span className="text-gray-600">{entry.name}:</span>
+            <span className="font-semibold" style={{ color: entry.color }}>{entry.value}%</span>
+          </div>
         ))}
       </div>
     )
@@ -153,7 +226,108 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null
 }
 
+const WelcomeHeader = ({ 
+  userName, 
+  context, 
+  onRefresh, 
+  loading,
+}: { 
+  userName: string
+  context?: { year: string; term: string }
+  onRefresh: () => void
+  loading: boolean
+}) => {
+  const getGreeting = () => {
+    const hour = new Date().getHours()
+    if (hour < 12) return "Good morning"
+    if (hour < 17) return "Good afternoon"
+    return "Good evening"
+  }
+
+  return (
+    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-700 p-6 text-white shadow-xl shadow-purple-500/30">
+
+      {/* ========================================================= */}
+      {/* Decorative Layer (NOW STRONG & VISIBLE)                   */}
+      {/* ========================================================= */}
+      <div className="absolute inset-0 pointer-events-none">
+
+        {/* Bright circles */}
+        <div className="absolute -right-28 -top-28 h-80 w-80 rounded-full bg-white/30 blur-2xl mix-blend-overlay" />
+        <div className="absolute -left-24 -bottom-24 h-64 w-64 rounded-full bg-white/25 blur-xl mix-blend-overlay" />
+        <div className="absolute right-1/3 top-1/3 h-48 w-48 rounded-full bg-white/20 blur-lg mix-blend-overlay" />
+
+        {/* Abstract glowing shapes */}
+        <div className="absolute top-14 left-1/4 h-32 w-32 rotate-45 bg-fuchsia-300/25 blur-md rounded-xl mix-blend-soft-light" />
+        <div className="absolute bottom-10 right-1/4 h-28 w-28 -rotate-12 bg-indigo-300/20 blur-md rounded-lg mix-blend-soft-light" />
+
+        {/* Dot pattern (more visible) */}
+        <svg className="absolute inset-0 h-full w-full mix-blend-soft-light opacity-40">
+          <pattern id="purple-dots" width="40" height="40" patternUnits="userSpaceOnUse">
+            <circle cx="20" cy="20" r="2" fill="white" opacity="0.45" />
+          </pattern>
+          <rect width="100%" height="100%" fill="url(#purple-dots)" />
+        </svg>
+      </div>
+
+      {/* ========================================================= */}
+      {/* Main Content                                              */}
+      {/* ========================================================= */}
+      <div className="relative flex flex-wrap items-center justify-between gap-4">
+        <div className="space-y-2">
+
+          {/* Sparkles + Greeting */}
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-purple-200" />
+            <span className="text-sm font-medium text-purple-100">
+              {getGreeting()}
+            </span>
+          </div>
+
+          {/* Welcome message */}
+          <h1 className="text-2xl font-bold tracking-tight">
+            Welcome back, {userName}!
+          </h1>
+
+          {/* Academic Info */}
+          <p className="flex items-center gap-2 text-purple-100">
+            <Calendar className="h-4 w-4" />
+            {context
+              ? `${context.year} Academic Year - Term ${context.term.charAt(1)}`
+              : "Loading..."}
+          </p>
+        </div>
+
+        {/* Buttons */}
+        <div className="flex items-center gap-3">
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={onRefresh}
+            disabled={loading}
+            className="h-10 bg-white/15 hover:bg-white/25 border-0 text-white backdrop-blur-sm"
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
+            Refresh
+          </Button>
+
+          <Button
+            variant="secondary"
+            size="sm"
+            className="h-10 bg-white/15 hover:bg-white/25 border-0 text-white backdrop-blur-sm"
+          >
+            <Download className="h-4 w-4 mr-2" />
+            Export
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ============================================================================
 // HEAD TEACHER DASHBOARD CONTENT
+// ============================================================================
 
 function HeadTeacherDashboardContent() {
   const { user } = useAuth()
@@ -171,8 +345,7 @@ function HeadTeacherDashboardContent() {
       const msg = err.message || "Failed to load dashboard data"
       setError(msg)
       toast.error(msg)
-    }
- finally {
+    } finally {
       setLoading(false)
     }
   }, [])
@@ -186,29 +359,18 @@ function HeadTeacherDashboardContent() {
   const breadcrumbs = [{ label: "Dashboard" }]
 
   return (
-    <MainLayout userRole={user.role} userName={user.name} breadcrumbs={breadcrumbs}>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">Head Teacher Dashboard</h2>
-            <p className="text-sm text-gray-500">
-              Monitor academic performance and teacher activities.
-              {data?.context && ` (${data.context.year} - Term ${data.context.term.charAt(1)})`}
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="sm" onClick={fetchDashboard} disabled={loading}>
-              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-            </Button>
-            <Button variant="outline" size="sm">
-              <Download className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
+    <MainLayout userRole={user.role} userName={user.name} breadcrumbs={breadcrumbs} pageTitle="Dashboard">
+      <div className="space-y-6 pb-8">
+        {/* Welcome Header */}
+        <WelcomeHeader 
+          userName={user.name}
+          context={data?.context}
+          onRefresh={fetchDashboard}
+          loading={loading}
+        />
 
-        {/* Row 1: Key Metrics (4 cards) */}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {/* Key Metrics */}
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           <MetricCard
             title="Total Classes"
             value={data?.metrics.totalClasses.value || "-"}
@@ -218,6 +380,7 @@ function HeadTeacherDashboardContent() {
             trendValue={data?.metrics.totalClasses.trendValue}
             color="blue"
             loading={loading}
+            delay={0}
           />
           <MetricCard
             title="Teaching Staff"
@@ -228,6 +391,7 @@ function HeadTeacherDashboardContent() {
             trendValue={data?.metrics.teachingStaff.trendValue}
             color="green"
             loading={loading}
+            delay={100}
           />
           <MetricCard
             title="School Average"
@@ -238,6 +402,7 @@ function HeadTeacherDashboardContent() {
             trendValue={data?.metrics.schoolAverage.trendValue}
             color="purple"
             loading={loading}
+            delay={200}
           />
           <MetricCard
             title="Pending Reports"
@@ -248,50 +413,126 @@ function HeadTeacherDashboardContent() {
             trendValue={data?.metrics.pendingReports.trendValue}
             color="amber"
             loading={loading}
+            delay={300}
           />
         </div>
 
-        {/* Row 2: Charts (Class Performance + Subject Performance) */}
+        {/* Charts Row */}
         <div className="grid gap-6 lg:grid-cols-2">
+          {/* Class Performance Comparison */}
           <ChartCard 
             title="Class Performance Comparison" 
-            subtitle="Average scores and pass rates"
+            subtitle="Average scores and pass rates by class"
             loading={loading}
+            icon={BarChart3}
           >
-            <ResponsiveContainer width="100%" height={280}>
-              <BarChart data={data?.charts.classPerformance || []}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                <XAxis dataKey="class" stroke="#94a3b8" fontSize={12} />
-                <YAxis stroke="#94a3b8" fontSize={12} domain={[0, 100]} />
-                <Tooltip content={<CustomTooltip />} />
-                <Legend />
-                <Bar dataKey="average" fill="#3b82f6" radius={[4, 4, 0, 0]} name="Average Score" />
-                <Bar dataKey="passRate" fill="#10b981" radius={[4, 4, 0, 0]} name="Pass Rate %" />
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={data?.charts.classPerformance || []} margin={{ top: 10 }}>
+                <defs>
+                  <linearGradient id="barGradientBlue" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#3b82f6" />
+                    <stop offset="100%" stopColor="#6366f1" />
+                  </linearGradient>
+                  <linearGradient id="barGradientGreen" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#10b981" />
+                    <stop offset="100%" stopColor="#059669" />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                <XAxis dataKey="class" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
+                <YAxis stroke="#94a3b8" fontSize={11} domain={[0, 100]} tickLine={false} axisLine={false} />
+                <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(139, 92, 246, 0.1)' }} />
+                <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '16px' }} />
+                <Bar dataKey="average" fill="url(#barGradientBlue)" radius={[6, 6, 0, 0]} name="Average Score" />
+                <Bar dataKey="passRate" fill="url(#barGradientGreen)" radius={[6, 6, 0, 0]} name="Pass Rate %" />
               </BarChart>
             </ResponsiveContainer>
           </ChartCard>
 
+          {/* Subject Performance Radar */}
           <ChartCard 
             title="Subject Performance" 
-            subtitle="School-wide averages"
+            subtitle="School-wide subject averages"
             loading={loading}
+            icon={Award}
           >
-            <ResponsiveContainer width="100%" height={280}>
+            <ResponsiveContainer width="100%" height={300}>
               <RadarChart data={data?.charts.subjectPerformance || []}>
+                <defs>
+                  <linearGradient id="radarGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#8b5cf6" stopOpacity={0.8} />
+                    <stop offset="100%" stopColor="#8b5cf6" stopOpacity={0.2} />
+                  </linearGradient>
+                </defs>
                 <PolarGrid stroke="#e2e8f0" />
-                <PolarAngleAxis dataKey="subject" tick={{ fontSize: 11, fill: '#64748b' }} />
-                <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fontSize: 10 }} />
-                <Radar name="Score" dataKey="score" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.4} strokeWidth={2} />
-                <Tooltip />
+                <PolarAngleAxis 
+                  dataKey="subject" 
+                  tick={{ fontSize: 11, fill: '#64748b', fontWeight: 500 }} 
+                />
+                <PolarRadiusAxis 
+                  angle={90} 
+                  domain={[0, 100]} 
+                  tick={{ fontSize: 10, fill: '#94a3b8' }}
+                  axisLine={false}
+                />
+                <Radar 
+                  name="Score" 
+                  dataKey="score" 
+                  stroke="#8b5cf6" 
+                  fill="url(#radarGradient)" 
+                  strokeWidth={2.5}
+                  dot={{ r: 4, fill: '#8b5cf6', strokeWidth: 2, stroke: '#fff' }}
+                />
+                <Tooltip 
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      return (
+                        <div className="rounded-xl border border-gray-200 bg-white/95 backdrop-blur-sm p-3 shadow-xl">
+                          <p className="font-semibold text-gray-900 text-sm">{payload[0].payload.subject}</p>
+                          <p className="text-sm text-violet-600 font-medium">{payload[0].value}%</p>
+                        </div>
+                      )
+                    }
+                    return null
+                  }}
+                />
               </RadarChart>
             </ResponsiveContainer>
           </ChartCard>
         </div>
+
+        {/* Quick Actions */}
+        {/* <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            { label: "Manage Classes", icon: GraduationCap, href: "/classes", color: "blue", description: "View and organize classes" },
+            { label: "View Students", icon: Users, href: "/students", color: "green", description: "Student records" },
+            { label: "Assessments", icon: BookOpen, href: "/assessments", color: "purple", description: "Manage assessments" },
+            { label: "Report Settings", icon: Settings, href: "/settings/report-settings", color: "amber", description: "Configure reports" }
+          ].map((action, idx) => (
+            <button
+              key={idx}
+              className="group flex flex-col items-start rounded-2xl border border-gray-200 bg-white p-5 text-left transition-all duration-300 hover:shadow-xl hover:border-gray-300 hover:-translate-y-1"
+            >
+              <div className={`rounded-xl bg-gradient-to-br from-${action.color}-100 to-${action.color}-50 p-3 mb-4 ring-1 ring-${action.color}-200/50`}>
+                <action.icon className={`h-5 w-5 text-${action.color}-600`} />
+              </div>
+              <span className="font-semibold text-gray-900 mb-1">{action.label}</span>
+              <span className="text-xs text-gray-500 mb-3">{action.description}</span>
+              <div className="flex items-center gap-1 text-sm font-medium text-gray-400 group-hover:text-gray-600 mt-auto">
+                <span>Open</span>
+                <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </div>
+            </button>
+          ))}
+        </div> */}
       </div>
     </MainLayout>
   )
 }
 
+// ============================================================================
+// EXPORT
+// ============================================================================
 
 export default function HeadTeacherDashboardPage() {
   return (

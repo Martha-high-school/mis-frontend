@@ -168,7 +168,7 @@ function NewStudentContent() {
         router.push("/students")
       }, 2000)
     } catch (error: any) {
-      toast.success("An error occurred while registering the student")
+      toast.error("An error occurred while registering the student")
     } finally {
       setLoading(false)
     }
@@ -224,14 +224,6 @@ function NewStudentContent() {
             Add a new student to the system. Student number will be generated automatically.
           </p>
         </div>
-
-        {submitStatus === "success" && (
-          toast.success("Student registered successfully! Redirecting…")
-        )}
-
-        {submitStatus === "error" && (
-          toast.error("Failed to register student. Please check your information and try again.")
-        )}
 
         {errors.classes && (
           <div className="flex items-start gap-2 mb-6 p-4 border border-red-300 bg-red-50 rounded-md">

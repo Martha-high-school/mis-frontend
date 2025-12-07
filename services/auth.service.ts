@@ -159,10 +159,7 @@ class AuthService {
     try {
       await apiClient.post("/auth/forgot-password", { email })
     } catch (error: any) {
-      if (error.response?.status === 404) {
-        throw new Error("No account found with this email address")
-      }
-      throw new Error(error.response?.data?.message || "Failed to send reset email")
+      throw new Error("If an account exists, a reset email has been sent.")
     }
   }
 

@@ -7,10 +7,9 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Loader2, Plus, Trash2, Info } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "react-toastify"
 import { classService } from "@/services/class.service"
 import type { Competence } from "@/services/competency.service"
 
@@ -29,7 +28,7 @@ export function AddSubjectDialog({
   year,
   onAdded
 }: AddSubjectDialogProps) {
-  const { toast } = useToast()
+
   
   const [loading, setLoading] = useState(false)
   
@@ -90,11 +89,7 @@ export function AddSubjectDialog({
 
   const handleRemoveCompetency = (index: number) => {
     if (competencies.length <= 1) {
-      toast({
-        title: "Cannot remove",
-        description: "A subject must have at least one competency",
-        variant: "destructive"
-      })
+      toast.info("A subject must have at least one competency")
       return
     }
 
@@ -118,51 +113,31 @@ export function AddSubjectDialog({
 
   const validateForm = (): boolean => {
     if (!subjectName.trim()) {
-      toast({
-        title: "Validation Error",
-        description: "Please enter a subject name",
-        variant: "destructive"
-      })
+      toast.error("Please enter a subject name")
       return false
     }
 
     if (!instructorName.trim()) {
-      toast({
-        title: "Validation Error",
-        description: "Please enter instructor name",
-        variant: "destructive"
-      })
+      toast.error("Please enter instructor name")
       return false
     }
 
     if (!instructorInitials.trim()) {
-      toast({
-        title: "Validation Error",
-        description: "Instructor initials could not be generated",
-        variant: "destructive"
-      })
+      toast.error("Instructor initials could not be generated")
       return false
     }
 
     // Check if all competencies have names
     const emptyCompetencies = competencies.filter(c => !c.name.trim())
     if (emptyCompetencies.length > 0) {
-      toast({
-        title: "Validation Error",
-        description: "All competencies must have a name",
-        variant: "destructive"
-      })
+      toast.error("All competencies must have a name")
       return false
     }
 
     // Check if all max scores are valid
     const invalidScores = competencies.filter(c => c.maxScore <= 0 || c.maxScore > 100)
     if (invalidScores.length > 0) {
-      toast({
-        title: "Validation Error",
-        description: "All max scores must be between 1 and 100",
-        variant: "destructive"
-      })
+      toast.error("All max scores must be between 1 and 100")
       return false
     }
 
@@ -190,26 +165,16 @@ export function AddSubjectDialog({
       ]
 
       await classService.setupClassSubjects(classId, payloadSubjects)
+      toast.success("Subject added successfully with competencies for all terms")
 
-      toast({
-        title: "Success",
-        description: "Subject added successfully with competencies for all terms",
-      })
-
-      // Refresh the page list
       onAdded()
 
-      // Close dialog after slight delay for smooth toast display
       setTimeout(() => {
         onOpenChange(false)
       }, 400)
 
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to add subject",
-        variant: "destructive"
-      })
+      toast.error("Failed to add subject")
     } finally {
       setLoading(false)
     }
@@ -359,13 +324,14 @@ export function AddSubjectDialog({
                 Add Another Competency
               </Button>
 
-              <Alert>
-                <Info className="h-4 w-4" />
-                <AlertDescription>
-                  These competencies will be automatically applied to all three terms (T1, T2, T3). 
+              <div className="flex items-start gap-3 p-3 rounded-md border border-blue-200 bg-blue-50">
+                <Info className="h-4 w-4 text-blue-700 mt-0.5" />
+                <p className="text-sm text-blue-800">
+                  These competencies will be automatically applied to all three terms (T1, T2, T3).  
                   You can customize them for each term later by editing.
-                </AlertDescription>
-              </Alert>
+                </p>
+              </div>
+
             </CardContent>
           </Card>
         </div>

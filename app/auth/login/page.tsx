@@ -35,19 +35,15 @@ export default function LoginPage() {
     setIsLoading(true)
 
     try {
-      await login(formData.email, formData.password)
+      const loggedInUser = await login(formData.email, formData.password)
       toast.success("Login successful!")
 
-      setTimeout(() => {
-        const role = user?.role
-        const route = dashboardRoutes[role ?? ""] || "/auth/login"
-        router.push(route)
-      }, 200)
+      const role = loggedInUser?.role
+      const route = dashboardRoutes[role ?? ""] || "/auth/login"
+      router.push(route)
 
     } catch (err: any) {
-      const message = err.message || "Login failed. Please try again."
-      toast.error(message)
-
+      toast.error(err.message || "Login failed. Please try again.")
     } finally {
       setIsLoading(false)
     }

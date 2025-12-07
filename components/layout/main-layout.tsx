@@ -28,12 +28,12 @@ export function MainLayout({
   showBackButton = false,
 }: MainLayoutProps) {
   return (
-    <div className="flex h-screen bg-background">
+    <div className="flex h-screen bg-background overflow-hidden">
       <Sidebar userRole={userRole} />
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0">
         <Header title={pageTitle} userName={userName} userRole={userRole} />
         {breadcrumbs && <Breadcrumb items={breadcrumbs} showBackButton={showBackButton} />}
-        <main className="flex-1 overflow-auto p-6">{children}</main>
+        <main className="flex-1 overflow-auto p-6 bg-muted/30">{children}</main>
       </div>
     </div>
   )
