@@ -358,7 +358,6 @@ function TeacherReportsContent() {
     if (!selectedClass || !selectedYear || !selectedTerm) return
 
     setLoading(prev => ({ ...prev, fetchingComments: true }))
-    toast.error("")
     try {
       const termNumber = termToNumber(selectedTerm)
       const comments = await reportService.getClassComments(
@@ -472,7 +471,6 @@ function TeacherReportsContent() {
     }
 
     setLoading(prev => ({ ...prev, savingComments: true }))
-    toast.error("")
     try {
       const termNumber = termToNumber(selectedTerm)
       const result = await reportService.saveGeneralComment({
@@ -555,7 +553,6 @@ function TeacherReportsContent() {
       return
     }
     setLoading(prev => ({ ...prev, generating: true }))
-    toast.error("")
     try {
       const termNumber = termToNumber(selectedTerm)
       const results = await reportService.autoGenerateComments(
@@ -881,7 +878,8 @@ function TeacherReportsContent() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-muted-foreground mt-1">
+            {/* <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Report Settings</h1> */}
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
               Manage teacher comments and report display settings
             </p>
           </div>
@@ -892,12 +890,12 @@ function TeacherReportsContent() {
 
         {/* Tabs */}
         <Tabs defaultValue="comments" className="space-y-6">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
-            <TabsTrigger value="comments" className="gap-2">
+          <TabsList className="grid w-full max-w-md grid-cols-2 h-10">
+            <TabsTrigger value="comments" className="gap-2 h-9">
               <MessageSquare className="h-4 w-4" />
               Teacher Comments
             </TabsTrigger>
-            <TabsTrigger value="display" className="gap-2">
+            <TabsTrigger value="display" className="gap-2 h-9">
               <Eye className="h-4 w-4" />
               Report Display
             </TabsTrigger>
@@ -906,27 +904,18 @@ function TeacherReportsContent() {
           {/* ===================== TEACHER COMMENTS ===================== */}
           <TabsContent value="comments" className="space-y-6">
             {/* Filters */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base flex items-center gap-2">
-                  <GraduationCap className="h-4 w-4" />
-                  Select Academic Period & Class
-                </CardTitle>
-                <CardDescription>
-                  Choose the academic year and term to manage teacher comments
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Card className="border-slate-200 dark:border-slate-700">
+              <CardContent className="py-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 items-end">
                   {/* Year */}
-                  <div className="space-y-2">
-                    <Label htmlFor="year">Academic Year</Label>
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-slate-600 dark:text-slate-400">Academic Year</label>
                     <Select
                       value={selectedYear}
                       onValueChange={handleYearChange}
                       disabled={loading.fetchingYears || availableYears.length === 0}
                     >
-                      <SelectTrigger id="year">
+                      <SelectTrigger className="h-9 border-2 border-slate-200 dark:border-slate-700">
                         <SelectValue placeholder="Select year" />
                       </SelectTrigger>
                       <SelectContent>
@@ -940,14 +929,14 @@ function TeacherReportsContent() {
                   </div>
 
                   {/* Term */}
-                  <div className="space-y-2">
-                    <Label htmlFor="term">Term</Label>
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-slate-600 dark:text-slate-400">Term</label>
                     <Select
                       value={selectedTerm}
                       onValueChange={setSelectedTerm}
                       disabled={!selectedYear || loading.fetchingTerms || availableTerms.length === 0}
                     >
-                      <SelectTrigger id="term">
+                      <SelectTrigger className="h-9 border-2 border-slate-200 dark:border-slate-700">
                         <SelectValue placeholder={loading.fetchingTerms ? "Loading..." : "Select term"} />
                       </SelectTrigger>
                       <SelectContent>
@@ -959,13 +948,13 @@ function TeacherReportsContent() {
                       </SelectContent>
                     </Select>
                     {selectedYear && availableTerms.length === 0 && !loading.fetchingTerms && (
-                      <p className="text-xs text-amber-600">No terms configured for this year</p>
+                      <p className="text-xs text-amber-600">No terms configured</p>
                     )}
                   </div>
 
                   {/* Class */}
-                  <div className="space-y-2">
-                    <Label htmlFor="class">Class</Label>
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-slate-600 dark:text-slate-400">Class</label>
                     <Select
                       value={selectedClass}
                       onValueChange={setSelectedClass}
@@ -976,7 +965,7 @@ function TeacherReportsContent() {
                         (isClassTeacher && classes.length === 1)
                       }
                     >
-                      <SelectTrigger id="class">
+                      <SelectTrigger className="h-9 border-2 border-slate-200 dark:border-slate-700">
                         <SelectValue placeholder="Select class" />
                       </SelectTrigger>
                       <SelectContent>
@@ -988,13 +977,12 @@ function TeacherReportsContent() {
                       </SelectContent>
                     </Select>
                     {isClassTeacher && classes.length === 1 && (
-                      <p className="text-xs text-muted-foreground">Your assigned class</p>
+                      <p className="text-xs text-slate-500">Your assigned class</p>
                     )}
                   </div>
 
                   {/* Refresh */}
-                  <div className="space-y-2">
-                    <Label>&nbsp;</Label>
+                  <div>
                     <Button
                       onClick={() => {
                         if (selectedClass) {
@@ -1004,7 +992,7 @@ function TeacherReportsContent() {
                         }
                       }}
                       variant="outline"
-                      className="w-full"
+                      className="w-full h-9"
                       disabled={!selectedClass || loading.fetchingComments}
                     >
                       <RefreshCw className={cn("h-4 w-4 mr-2", loading.fetchingComments && "animate-spin")} />
@@ -1019,16 +1007,16 @@ function TeacherReportsContent() {
             {selectedClass && students.length > 0 ? (
               <>
                 {/* General Comment */}
-                <Card className="border-blue-200">
-                  <CardHeader>
+                <Card className="border-blue-200 dark:border-blue-800">
+                  <CardHeader className="pb-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <FileText className="h-5 w-5 text-blue-600" />
-                        <CardTitle>General Comment</CardTitle>
+                        <CardTitle className="text-base">General Comment</CardTitle>
                       </div>
                       {generalComment && (
                         <div className="flex items-center gap-2">
-                          <Label htmlFor="general-active" className="text-sm">
+                          <Label htmlFor="general-active" className="text-sm text-slate-600 dark:text-slate-400">
                             Apply to all
                           </Label>
                           <Switch
@@ -1051,12 +1039,13 @@ function TeacherReportsContent() {
                       placeholder="Enter a general comment that applies to all students in this class..."
                       rows={4}
                       disabled={loading.savingComments}
-                      className="resize-none"
+                      className="resize-none border-2 border-slate-200 dark:border-slate-700 focus:border-primary"
                     />
                     <Button
                       onClick={handleSaveGeneralComment}
                       disabled={!generalCommentText.trim() || loading.savingComments}
                       size="sm"
+                      className="h-9"
                     >
                       {loading.savingComments ? (
                         <>
@@ -1072,9 +1061,9 @@ function TeacherReportsContent() {
                     </Button>
 
                     {generalCommentActive && (
-                      <div className="flex items-start gap-3 p-3 border border-blue-300 bg-blue-50 rounded-md">
-                        <Info className="h-4 w-4 text-blue-700 mt-1" />
-                        <p className="text-sm text-blue-800">
+                      <div className="flex items-start gap-3 p-3 border-2 border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
+                        <Info className="h-4 w-4 text-blue-600 mt-0.5" />
+                        <p className="text-sm text-blue-700 dark:text-blue-300">
                           This general comment is active and will apply to {studentsWithGeneralOnly} student
                           {studentsWithGeneralOnly !== 1 ? "s" : ""} without specific comments.
                         </p>
@@ -1084,12 +1073,12 @@ function TeacherReportsContent() {
                 </Card>
 
                 {/* Specific Comments */}
-                <Card>
-                  <CardHeader>
+                <Card className="border-slate-200 dark:border-slate-700">
+                  <CardHeader className="pb-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <Users className="h-5 w-5" />
-                        <CardTitle>Specific Comments</CardTitle>
+                        <Users className="h-5 w-5 text-primary" />
+                        <CardTitle className="text-base">Specific Comments</CardTitle>
                       </div>
                       <div className="flex items-center gap-2">
                         <Badge variant="outline">{studentsWithSpecificComments} specific</Badge>
@@ -1104,12 +1093,12 @@ function TeacherReportsContent() {
                   <CardContent className="space-y-4">
                     {/* Search */}
                     <div className="relative">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
                       <Input
                         placeholder="Search students by name..."
                         value={searchQuery}
                         onChange={e => setSearchQuery(e.target.value)}
-                        className="pl-9"
+                        className="pl-9 h-10 border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900"
                       />
                     </div>
 
@@ -1158,9 +1147,9 @@ function TeacherReportsContent() {
                     </div>
 
                     {hasCommentChanges && (
-                      <div className="flex items-start gap-2 p-3 border border-amber-300 bg-amber-50 rounded-md">
-                        <AlertCircle className="h-4 w-4 text-amber-600 mt-1" />
-                        <p className="text-sm text-amber-800">
+                      <div className="flex items-start gap-2 p-3 border-2 border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 rounded-lg">
+                        <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5" />
+                        <p className="text-sm text-amber-700 dark:text-amber-300">
                           You have unsaved changes. Click “Save Specific Comments” to update.
                         </p>
                       </div>
@@ -1168,7 +1157,7 @@ function TeacherReportsContent() {
 
 
                     {/* Students List */}
-                    <ScrollArea className="h-[450px] pr-4 border rounded-lg p-4">
+                    <ScrollArea className="h-[450px] pr-4 border-2 border-slate-200 dark:border-slate-700 rounded-lg p-4">
                       {visibleStudents.length > 0 ? (
                         <div className="space-y-4">
                           {visibleStudents.map((student, idx) => {
@@ -1273,22 +1262,22 @@ function TeacherReportsContent() {
                 </Card>
               </>
             ) : selectedClass ? (
-              <Card>
+              <Card className="border-slate-200 dark:border-slate-700">
                 <CardContent className="py-12">
                   <div className="text-center space-y-2">
-                    <Users className="h-12 w-12 mx-auto text-muted-foreground opacity-50" />
-                    <h3 className="text-lg font-medium">No Students</h3>
-                    <p className="text-muted-foreground">No students found in this class for the selected term</p>
+                    <Users className="h-12 w-12 mx-auto text-slate-400 opacity-50" />
+                    <h3 className="text-lg font-medium text-slate-900 dark:text-white">No Students</h3>
+                    <p className="text-slate-500">No students found in this class for the selected term</p>
                   </div>
                 </CardContent>
               </Card>
             ) : (
-              <Card>
+              <Card className="border-slate-200 dark:border-slate-700">
                 <CardContent className="py-12">
                   <div className="text-center space-y-2">
-                    <GraduationCap className="h-12 w-12 mx-auto text-muted-foreground opacity-50" />
-                    <h3 className="text-lg font-medium">Select Academic Period</h3>
-                    <p className="text-muted-foreground">
+                    <GraduationCap className="h-12 w-12 mx-auto text-slate-400 opacity-50" />
+                    <h3 className="text-lg font-medium text-slate-900 dark:text-white">Select Academic Period</h3>
+                    <p className="text-slate-500">
                       Please select year and term above to begin managing teacher comments
                     </p>
                   </div>
@@ -1320,8 +1309,8 @@ function TeacherReportsContent() {
                   </Button>
                 </div>
                 {validationErrors.length > 0 && (
-                  <div className="p-4 border border-red-300 bg-red-50 rounded-md">
-                    <div className="flex items-start gap-2 text-red-700">
+                  <div className="p-4 border-2 border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30 rounded-lg">
+                    <div className="flex items-start gap-2 text-red-700 dark:text-red-300">
                       <AlertCircle className="h-4 w-4 mt-1" />
                       <div className="space-y-1">
                         <p className="font-medium">Validation Errors:</p>
@@ -1335,17 +1324,17 @@ function TeacherReportsContent() {
                   </div>
                 )}
 
-                <Card>
-                  <CardHeader>
+                <Card className="border-slate-200 dark:border-slate-700">
+                  <CardHeader className="pb-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <CardTitle className="flex items-center gap-2">
-                          <GraduationCap className="h-5 w-5" />
+                        <CardTitle className="flex items-center gap-2 text-base">
+                          <GraduationCap className="h-5 w-5 text-primary" />
                           Grade Ranges
                         </CardTitle>
                         <CardDescription>Define mark ranges and default comments for auto-generation</CardDescription>
                       </div>
-                      <Badge variant="outline">
+                      <Badge variant="outline" className="border-slate-300">
                         {markRanges.length} range{markRanges.length !== 1 ? "s" : ""}
                       </Badge>
                     </div>
@@ -1353,12 +1342,12 @@ function TeacherReportsContent() {
                   <CardContent>
                     {loading.fetching ? (
                       <div className="flex justify-center py-8">
-                        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                        <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
                       </div>
                     ) : (
                       <div className="space-y-4">
                         {markRanges.map(range => (
-                          <div key={range.id} className="p-4 border rounded-lg space-y-4 bg-card">
+                          <div key={range.id} className="p-4 border-2 border-slate-200 dark:border-slate-700 rounded-lg space-y-4 bg-white dark:bg-slate-900">
                             <div className="flex items-center justify-between">
                               <div className="h-6 w-6 rounded" style={{ backgroundColor: range.color }} />
                               <Button

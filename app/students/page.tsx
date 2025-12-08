@@ -20,7 +20,7 @@ import { toast } from "sonner"
 // Simple SVG icon components
 const SearchIcon = () => (
   <svg
-    className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground"
+    className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-500"
     fill="none"
     stroke="currentColor"
     viewBox="0 0 24 24"
@@ -276,21 +276,21 @@ function StudentsContent() {
               placeholder="Search by name or ID..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+              className="pl-10 h-10 border-2 border-slate-200 dark:border-slate-700 focus:border-primary bg-white dark:bg-slate-900"
             />
           </div>
           <div className="flex gap-2">
-            <Button variant="outline">
+            <Button variant="outline" className="h-10">
               <DownloadIcon />
               <span className="ml-2">Export</span>
             </Button>
-            <Button variant="outline">
+            <Button variant="outline" className="h-10">
               <UploadIcon />
               <span className="ml-2">Import</span>
             </Button>
             {user.role === "head_teacher" && (
               <Link href="/students/new">
-                <Button>
+                <Button className="h-10">
                   <PlusIcon />
                   <span className="ml-2">Add Student</span>
                 </Button>
@@ -299,18 +299,13 @@ function StudentsContent() {
           </div>
         </div>
 
+        {/* Filters - Compact layout */}
         <Card>
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <FilterIcon />
-              Filters
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <CardContent className="py-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
               {/* Year Filter */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Academic Year</label>
+              <div className="space-y-1">
+                <label className="text-xs font-medium">Academic Year</label>
                 <Select
                   value={selectedYear?.toString() || ""}
                   onValueChange={(value) => {
@@ -318,7 +313,7 @@ function StudentsContent() {
                     setSelectedTerm(null) // Reset term when year changes
                   }}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="h-9">
                     <SelectValue placeholder="Select Year" />
                   </SelectTrigger>
                   <SelectContent>
@@ -332,14 +327,14 @@ function StudentsContent() {
               </div>
 
               {/* Term Filter */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Term</label>
+              <div className="space-y-1">
+                <label className="text-xs font-medium">Term</label>
                 <Select
                   value={selectedTerm || ""}
                   onValueChange={setSelectedTerm}
                   disabled={!selectedYear || terms.length === 0}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="h-9">
                     <SelectValue placeholder="Select Term" />
                   </SelectTrigger>
                   <SelectContent>
@@ -353,10 +348,10 @@ function StudentsContent() {
               </div>
 
               {/* Class Filter */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Class</label>
+              <div className="space-y-1">
+                <label className="text-xs font-medium">Class</label>
                 <Select value={classFilter} onValueChange={setClassFilter} disabled={!selectedYear || !selectedTerm}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-9">
                     <SelectValue placeholder="All Classes" />
                   </SelectTrigger>
                   <SelectContent>
@@ -371,10 +366,10 @@ function StudentsContent() {
               </div>
 
               {/* Gender Filter */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Gender</label>
+              <div className="space-y-1">
+                <label className="text-xs font-medium">Gender</label>
                 <Select value={genderFilter} onValueChange={setGenderFilter}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-9">
                     <SelectValue placeholder="All Genders" />
                   </SelectTrigger>
                   <SelectContent>
@@ -387,10 +382,10 @@ function StudentsContent() {
               </div>
 
               {/* Status Filter */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Status</label>
+              <div className="space-y-1">
+                <label className="text-xs font-medium">Status</label>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-9">
                     <SelectValue placeholder="All Statuses" />
                   </SelectTrigger>
                   <SelectContent>
@@ -403,10 +398,10 @@ function StudentsContent() {
               </div>
 
               {/* Fee Status Filter */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Fee Status</label>
+              <div className="space-y-1">
+                <label className="text-xs font-medium">Fee Status</label>
                 <Select value={feeStatusFilter} onValueChange={setFeeStatusFilter}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-9">
                     <SelectValue placeholder="All Fee Statuses" />
                   </SelectTrigger>
                   <SelectContent>
@@ -420,8 +415,8 @@ function StudentsContent() {
               </div>
             </div>
             {hasActiveFilters && (
-              <div className="mt-4">
-                <Button variant="outline" size="sm" onClick={handleClearFilters}>
+              <div className="mt-3">
+                <Button variant="outline" size="sm" className="h-8" onClick={handleClearFilters}>
                   Clear Filters
                 </Button>
               </div>
@@ -430,25 +425,25 @@ function StudentsContent() {
         </Card>
 
         {/* Students Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              Students ({totalCount} total)
+        <Card className="overflow-visible">
+          <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-700">
+            <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
+              Students <span className="text-slate-500">({totalCount})</span>
               {selectedYear && selectedTerm && (
-                <span className="text-sm font-normal text-muted-foreground ml-2">
+                <span className="text-slate-400 ml-2">
                   • Year {selectedYear} • {academicYearService.formatTermName(selectedTerm as any)}
                 </span>
               )}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+            </p>
+          </div>
+          <CardContent className="p-0">
             {loading ? (
               <div className="flex items-center justify-center h-64">
-                <p>Loading students...</p>
+                <p className="text-slate-500">Loading students...</p>
               </div>
             ) : students.length === 0 ? (
               <div className="flex items-center justify-center h-64">
-                <p className="text-muted-foreground">
+                <p className="text-slate-500">
                   {!selectedYear || !selectedTerm
                     ? "Please select a year and term to view students"
                     : "No students found"}
@@ -456,49 +451,51 @@ function StudentsContent() {
               </div>
             ) : (
               <>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Student ID</TableHead>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Class</TableHead>
-                      <TableHead>Gender</TableHead>
-                      <TableHead>Guardian Phone</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Fee Status</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {students.map((student) => (
-                      <TableRow key={student.id}>
-                        <TableCell className="font-medium">{student.id}</TableCell>
-                        <TableCell>{student.name}</TableCell>
-                        <TableCell>{student.class}</TableCell>
-                        <TableCell>{student.gender}</TableCell>
-                        <TableCell>{student.guardianPhone}</TableCell>
-                        <TableCell>{getStatusBadge(student.status)}</TableCell>
-                        <TableCell>{getFeeStatusBadge(student.feeStatus)}</TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
-                            {user.role === "head_teacher" && (
-                              <Link href={`/students/${student.id}/edit`}>
-                                <Button variant="ghost" size="sm">
-                                  <EditIcon />
-                                </Button>
-                              </Link>
-                            )}
-                          </div>
-                        </TableCell>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-slate-100 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800/50 border-b-2 border-slate-200 dark:border-slate-700">
+                        <TableHead className="font-semibold text-slate-700 dark:text-slate-200 py-4 text-center">Student ID</TableHead>
+                        <TableHead className="font-semibold text-slate-700 dark:text-slate-200 py-4 text-center">Name</TableHead>
+                        <TableHead className="font-semibold text-slate-700 dark:text-slate-200 py-4 text-center">Class</TableHead>
+                        <TableHead className="font-semibold text-slate-700 dark:text-slate-200 py-4 text-center">Gender</TableHead>
+                        <TableHead className="font-semibold text-slate-700 dark:text-slate-200 py-4 text-center">Guardian Phone</TableHead>
+                        <TableHead className="font-semibold text-slate-700 dark:text-slate-200 py-4 text-center">Status</TableHead>
+                        <TableHead className="font-semibold text-slate-700 dark:text-slate-200 py-4 text-center">Fee Status</TableHead>
+                        <TableHead className="font-semibold text-slate-700 dark:text-slate-200 py-4 text-center">Actions</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {students.map((student) => (
+                        <TableRow key={student.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 border-b border-slate-100 dark:border-slate-800">
+                          <TableCell className="font-medium text-center">{student.id}</TableCell>
+                          <TableCell className="text-center">{student.name}</TableCell>
+                          <TableCell className="text-center">{student.class}</TableCell>
+                          <TableCell className="text-center">{student.gender}</TableCell>
+                          <TableCell className="text-center">{student.guardianPhone}</TableCell>
+                          <TableCell className="text-center">{getStatusBadge(student.status)}</TableCell>
+                          <TableCell className="text-center">{getFeeStatusBadge(student.feeStatus)}</TableCell>
+                          <TableCell className="text-center">
+                            <div className="flex gap-2 justify-center">
+                              {user.role === "head_teacher" && (
+                                <Link href={`/students/${student.id}/edit`}>
+                                  <Button variant="ghost" size="sm">
+                                    <EditIcon />
+                                  </Button>
+                                </Link>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
 
                 {/* Pagination */}
                 {totalPages > 1 && (
-                  <div className="flex items-center justify-between mt-4">
-                    <p className="text-sm text-muted-foreground">
+                  <div className="flex items-center justify-between px-4 py-3 border-t border-slate-200 dark:border-slate-700">
+                    <p className="text-sm text-slate-500">
                       Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, totalCount)} of{" "}
                       {totalCount} students
                     </p>

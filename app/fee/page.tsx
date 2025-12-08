@@ -116,6 +116,11 @@ function FeeManagementContent() {
   const [studentHistory, setStudentHistory] = useState<any[]>([])
   const [loadingHistory, setLoadingHistory] = useState(false)
 
+  // Form submission loading states
+  const [settingFee, setSettingFee] = useState(false)
+  const [recordingPayment, setRecordingPayment] = useState(false)
+  const [settingBulkFees, setSettingBulkFees] = useState(false)
+
   // Breadcrumbs
   const breadcrumbs = [
     { label: "Dashboard", href: "/dashboard" },
@@ -233,6 +238,7 @@ function FeeManagementContent() {
       return
     }
 
+    setSettingFee(true)
     try {
       if (feeTermType === "current") {
         await feeService.setStudentFee({
@@ -263,6 +269,8 @@ function FeeManagementContent() {
       fetchStudents()
     } catch (error: any) {
       toast.error(error.response?.data?.error || "Failed to set fee")
+    } finally {
+      setSettingFee(false)
     }
   }
 
@@ -272,6 +280,7 @@ function FeeManagementContent() {
       return
     }
 
+    setRecordingPayment(true)
     try {
       const result = await feeService.recordPayment({
         studentId: selectedStudent.id,
@@ -293,6 +302,8 @@ function FeeManagementContent() {
       fetchStudents()
     } catch (error: any) {
       toast.error(error.response?.data?.error || "Failed to record payment")
+    } finally {
+      setRecordingPayment(false)
     }
   }
 
@@ -303,6 +314,7 @@ function FeeManagementContent() {
       return
     }
 
+    setSettingBulkFees(true)
     try {
       if (bulkFeeTermType === "current") {
         const params: any = {
@@ -342,6 +354,8 @@ function FeeManagementContent() {
       fetchStudents()
     } catch (error: any) {
       toast.error( error.response?.data?.error || "Failed to set bulk fees")
+    } finally {
+      setSettingBulkFees(false)
     }
   }
 
@@ -391,9 +405,9 @@ function FeeManagementContent() {
     <MainLayout breadcrumbs={breadcrumbs}>
       <div className="space-y-6">
 
-        {/* Summary Cards */}
+        {/* Summary Cards - with subtle fill backgrounds */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
-          <Card>
+          <Card className="bg-slate-50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Total Students</CardTitle>
             </CardHeader>
@@ -406,70 +420,67 @@ function FeeManagementContent() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-900/50">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Carry Forward</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-orange-600">{formatCurrency(totalCarryForward)}</div>
+              <div className="text-lg font-bold text-orange-600">{formatCurrency(totalCarryForward)}</div>
               <p className="text-xs text-muted-foreground mt-1">From previous terms</p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900/50">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Current Term Fees</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{formatCurrency(totalExpected - totalCarryForward)}</div>
+              <div className="text-lg font-bold text-blue-600">{formatCurrency(totalExpected - totalCarryForward)}</div>
               <p className="text-xs text-muted-foreground mt-1">Term {selectedTerm} fees</p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-slate-50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Total Expected</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{formatCurrency(totalExpected)}</div>
+              <div className="text-lg font-bold">{formatCurrency(totalExpected)}</div>
               <p className="text-xs text-muted-foreground mt-1">Including carry forward</p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900/50">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Collected</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">{formatCurrency(totalPaid)}</div>
+              <div className="text-lg font-bold text-green-600">{formatCurrency(totalPaid)}</div>
               <p className="text-xs text-muted-foreground mt-1">
                 {totalExpected > 0 ? ((totalPaid / totalExpected) * 100).toFixed(1) : 0}% collected
               </p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900/50">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Outstanding</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-red-600">{formatCurrency(totalOutstanding)}</div>
+              <div className="text-lg font-bold text-red-600">{formatCurrency(totalOutstanding)}</div>
               <p className="text-xs text-muted-foreground mt-1">Total balance due</p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Filters */}
+        {/* Filters - Compact single row */}
         <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Filters</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-              <div className="space-y-2">
-                <Label>Academic Year</Label>
+          <CardContent className="py-4">
+            <div className="flex flex-wrap items-end gap-3">
+              <div className="space-y-1 min-w-[140px]">
+                <Label className="text-xs">Academic Year</Label>
                 <Select value={selectedYear} onValueChange={setSelectedYear}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-9">
                     <SelectValue placeholder="Select year" />
                   </SelectTrigger>
                   <SelectContent>
@@ -482,10 +493,10 @@ function FeeManagementContent() {
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <Label>Term</Label>
+              <div className="space-y-1 min-w-[120px]">
+                <Label className="text-xs">Term</Label>
                 <Select value={selectedTerm} onValueChange={setSelectedTerm}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-9">
                     <SelectValue placeholder="Select term" />
                   </SelectTrigger>
                   <SelectContent>
@@ -496,10 +507,10 @@ function FeeManagementContent() {
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <Label>Class</Label>
+              <div className="space-y-1 min-w-[140px]">
+                <Label className="text-xs">Class</Label>
                 <Select value={selectedClass} onValueChange={setSelectedClass}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-9">
                     <SelectValue placeholder="All Classes" />
                   </SelectTrigger>
                   <SelectContent>
@@ -513,10 +524,10 @@ function FeeManagementContent() {
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <Label>Status</Label>
+              <div className="space-y-1 min-w-[120px]">
+                <Label className="text-xs">Status</Label>
                 <Select value={statusFilter} onValueChange={(val: any) => setStatusFilter(val)}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-9">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -527,23 +538,21 @@ function FeeManagementContent() {
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <Label>Search</Label>
+              <div className="space-y-1 flex-1 min-w-[180px]">
+                <Label className="text-xs">Search</Label>
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     placeholder="Search student..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && fetchStudents()}
-                    className="pl-9"
+                    className="pl-8 h-9"
                   />
                 </div>
               </div>
-            </div>
 
-            <div className="flex gap-2 mt-4">
-              <Button onClick={fetchStudents} disabled={loading}>
+              <Button onClick={fetchStudents} disabled={loading} size="sm" className="h-9">
                 {loading ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -557,7 +566,7 @@ function FeeManagementContent() {
                 )}
               </Button>
 
-              <Button variant="outline" onClick={() => setShowBulkSetDialog(true)}>
+              <Button variant="outline" size="sm" className="h-9" onClick={() => setShowBulkSetDialog(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Bulk Set Fees
               </Button>
@@ -566,22 +575,22 @@ function FeeManagementContent() {
         </Card>
 
         {/* Students Table with Pagination */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>Students ({students.length})</CardTitle>
-              <div className="text-sm text-muted-foreground">
-                Page {currentPage} of {totalPages || 1}
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
+        <Card className="border-slate-200 dark:border-slate-700">
+          <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+            <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              Students ({students.length})
+            </p>
+            <p className="text-xs text-slate-500">
+              Page {currentPage} of {totalPages || 1}
+            </p>
+          </div>
+          <CardContent className="p-0">
             {loading ? (
-              <div className="text-center py-8">
-                <Loader2 className="h-8 w-8 animate-spin mx-auto" />
+              <div className="text-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin mx-auto text-slate-400" />
               </div>
             ) : students.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
+              <div className="text-center py-12 text-slate-500">
                 <Users className="h-12 w-12 mx-auto mb-2 opacity-50" />
                 <p>No students found</p>
               </div>
@@ -590,10 +599,10 @@ function FeeManagementContent() {
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
-                      <TableRow>
-                        <TableHead>Student Name</TableHead>
-                        <TableHead>Class</TableHead>
-                        <TableHead className="text-right">
+                      <TableRow className="bg-slate-100 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800/50 border-b-2 border-slate-200 dark:border-slate-700">
+                        <TableHead className="font-semibold text-slate-700 dark:text-slate-200 py-4">Student Name</TableHead>
+                        <TableHead className="font-semibold text-slate-700 dark:text-slate-200 py-4">Class</TableHead>
+                        <TableHead className="text-right font-semibold text-slate-700 dark:text-slate-200 py-4">
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger className="flex items-center gap-1 ml-auto">
@@ -606,17 +615,17 @@ function FeeManagementContent() {
                             </Tooltip>
                           </TooltipProvider>
                         </TableHead>
-                        <TableHead className="text-right">Term Fees</TableHead>
-                        <TableHead className="text-right">Total Expected</TableHead>
-                        <TableHead className="text-right">Paid</TableHead>
-                        <TableHead className="text-right">Balance</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
+                        <TableHead className="text-right font-semibold text-slate-700 dark:text-slate-200 py-4">Term Fees</TableHead>
+                        <TableHead className="text-right font-semibold text-slate-700 dark:text-slate-200 py-4">Total Expected</TableHead>
+                        <TableHead className="text-right font-semibold text-slate-700 dark:text-slate-200 py-4">Paid</TableHead>
+                        <TableHead className="text-right font-semibold text-slate-700 dark:text-slate-200 py-4">Balance</TableHead>
+                        <TableHead className="font-semibold text-slate-700 dark:text-slate-200 py-4">Status</TableHead>
+                        <TableHead className="text-right font-semibold text-slate-700 dark:text-slate-200 py-4">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {paginatedStudents.map((student) => (
-                        <TableRow key={student.id}>
+                        <TableRow key={student.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 border-b border-slate-100 dark:border-slate-800">
                           <TableCell className="font-medium">
                             {student.firstName} {student.lastName}
                           </TableCell>
@@ -714,7 +723,7 @@ function FeeManagementContent() {
 
                 {/* Pagination */}
                 {totalPages > 1 && (
-                  <div className="mt-4">
+                  <div className="mt-4 px-6 pb-4">
                     <Pagination>
                       <PaginationContent>
                         <PaginationItem>
@@ -767,85 +776,98 @@ function FeeManagementContent() {
         <Dialog open={showSetFeeDialog} onOpenChange={setShowSetFeeDialog}>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>Set Fee Structure</DialogTitle>
+              <DialogTitle className="text-slate-900 dark:text-white">Set Fee Structure</DialogTitle>
               <DialogDescription>
                 Set fees for {selectedStudent?.firstName} {selectedStudent?.lastName}
               </DialogDescription>
             </DialogHeader>
 
             <Tabs value={feeTermType} onValueChange={(v) => setFeeTermType(v as "current" | "next")}>
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="current">
+              <TabsList className="grid w-full grid-cols-2 h-10">
+                <TabsTrigger value="current" className="h-9">
                   <Calendar className="h-4 w-4 mr-2" />
                   Current Term
                 </TabsTrigger>
-                <TabsTrigger value="next">
+                <TabsTrigger value="next" className="h-9">
                   <ArrowRight className="h-4 w-4 mr-2" />
                   Next Term
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="current" className="space-y-4 mt-4">
-                <Alert>
-                  <Info className="h-4 w-4" />
-                  <AlertDescription>
-                    Setting fees for <strong>{selectedYear} Term {selectedTerm}</strong>
-                  </AlertDescription>
-                </Alert>
+              <TabsContent value="current" className="mt-4">
+                <div className="p-3 border-2 border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
+                  <div className="flex items-start gap-2">
+                    <Info className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <p className="text-sm text-blue-700 dark:text-blue-300">
+                      Setting fees for <strong>{selectedYear} Term {selectedTerm}</strong>
+                    </p>
+                  </div>
+                </div>
               </TabsContent>
 
-              <TabsContent value="next" className="space-y-4 mt-4">
-                <Alert>
-                  <Info className="h-4 w-4" />
-                  <AlertDescription>
-                    Setting fees for <strong>{getNextTermInfo().year} Term {getNextTermInfo().term}</strong>
-                    <br />
-                    <span className="text-xs">This will appear as "Next Term Fees" on report cards</span>
-                  </AlertDescription>
-                </Alert>
+              <TabsContent value="next" className="mt-4">
+                <div className="p-3 border-2 border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-950/30 rounded-lg">
+                  <div className="flex items-start gap-2">
+                    <Info className="h-4 w-4 text-purple-600 mt-0.5 flex-shrink-0" />
+                    <div className="text-sm text-purple-700 dark:text-purple-300">
+                      <p>Setting fees for <strong>{getNextTermInfo().year} Term {getNextTermInfo().term}</strong></p>
+                      <p className="text-xs mt-1 opacity-80">This will appear as "Next Term Fees" on report cards</p>
+                    </div>
+                  </div>
+                </div>
               </TabsContent>
             </Tabs>
 
             <div className="space-y-4 mt-4">
               <div className="space-y-2">
-                <Label>Tuition Fee *</Label>
+                <Label className="text-slate-700 dark:text-slate-300">Tuition Fee *</Label>
                 <Input
                   type="number"
                   placeholder="Enter tuition fee"
                   value={feeData.tuitionFee}
                   onChange={(e) => setFeeData({ ...feeData, tuitionFee: e.target.value })}
+                  className="h-10 border-2 border-slate-200 dark:border-slate-700 focus:border-primary"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label>Other Fees</Label>
+                <Label className="text-slate-700 dark:text-slate-300">Other Fees</Label>
                 <Input
                   type="number"
                   placeholder="Enter other fees (optional)"
                   value={feeData.otherFees}
                   onChange={(e) => setFeeData({ ...feeData, otherFees: e.target.value })}
+                  className="h-10 border-2 border-slate-200 dark:border-slate-700 focus:border-primary"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label>Notes</Label>
+                <Label className="text-slate-700 dark:text-slate-300">Notes</Label>
                 <Textarea
                   placeholder="Enter any notes (optional)"
                   value={feeData.notes}
                   onChange={(e) => setFeeData({ ...feeData, notes: e.target.value })}
+                  className="border-2 border-slate-200 dark:border-slate-700 focus:border-primary"
                 />
               </div>
             </div>
 
-            <DialogFooter>
-              <Button variant="outline" onClick={() => {
+            <DialogFooter className="gap-3 mt-2">
+              <Button variant="outline" className="h-10" onClick={() => {
                 setShowSetFeeDialog(false)
                 setFeeTermType("current")
-              }}>
+              }} disabled={settingFee}>
                 Cancel
               </Button>
-              <Button onClick={handleSetFee}>
-                Set {feeTermType === "next" ? "Next Term " : ""}Fee
+              <Button className="h-10" onClick={handleSetFee} disabled={settingFee}>
+                {settingFee ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Setting Fee...
+                  </>
+                ) : (
+                  <>Set {feeTermType === "next" ? "Next Term " : ""}Fee</>
+                )}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -855,44 +877,54 @@ function FeeManagementContent() {
         <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Record Payment</DialogTitle>
+              <DialogTitle className="text-slate-900 dark:text-white">Record Payment</DialogTitle>
               <DialogDescription>
                 Record a payment for {selectedStudent?.firstName} {selectedStudent?.lastName}
               </DialogDescription>
             </DialogHeader>
 
             {selectedStudent && (
-              <Alert className="mb-4">
-                <Info className="h-4 w-4" />
-                <AlertDescription>
-                  <div className="grid grid-cols-2 gap-2 text-sm">
-                    <div>Carry Forward: <span className="text-orange-600 font-medium">{formatCurrency(selectedStudent.carryForwardBalance || 0)}</span></div>
-                    <div>Current Term: <span className="font-medium">{formatCurrency(selectedStudent.currentTermExpected || 0)}</span></div>
-                    <div>Total Due: <span className="font-medium">{formatCurrency(selectedStudent.totalExpected || 0)}</span></div>
-                    <div>Balance: <span className="text-red-600 font-medium">{formatCurrency(selectedStudent.balance || 0)}</span></div>
+              <div className="p-4 border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 rounded-lg mb-4">
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <p className="text-slate-500 text-xs">Carry Forward</p>
+                    <p className="text-orange-600 font-medium">{formatCurrency(selectedStudent.carryForwardBalance || 0)}</p>
                   </div>
-                </AlertDescription>
-              </Alert>
+                  <div>
+                    <p className="text-slate-500 text-xs">Current Term</p>
+                    <p className="font-medium text-slate-700 dark:text-slate-300">{formatCurrency(selectedStudent.currentTermExpected || 0)}</p>
+                  </div>
+                  <div>
+                    <p className="text-slate-500 text-xs">Total Due</p>
+                    <p className="font-medium text-slate-700 dark:text-slate-300">{formatCurrency(selectedStudent.totalExpected || 0)}</p>
+                  </div>
+                  <div>
+                    <p className="text-slate-500 text-xs">Balance</p>
+                    <p className="text-red-600 font-semibold">{formatCurrency(selectedStudent.balance || 0)}</p>
+                  </div>
+                </div>
+              </div>
             )}
 
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label>Amount *</Label>
+                <Label className="text-slate-700 dark:text-slate-300">Amount *</Label>
                 <Input
                   type="number"
                   placeholder="Enter payment amount"
                   value={paymentData.amount}
                   onChange={(e) => setPaymentData({ ...paymentData, amount: e.target.value })}
+                  className="h-10 border-2 border-slate-200 dark:border-slate-700 focus:border-primary"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label>Payment Method</Label>
+                <Label className="text-slate-700 dark:text-slate-300">Payment Method</Label>
                 <Select
                   value={paymentData.paymentMethod}
                   onValueChange={(val: any) => setPaymentData({ ...paymentData, paymentMethod: val })}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="h-10 border-2 border-slate-200 dark:border-slate-700">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -905,29 +937,40 @@ function FeeManagementContent() {
               </div>
 
               <div className="space-y-2">
-                <Label>Reference Number</Label>
+                <Label className="text-slate-700 dark:text-slate-300">Reference Number</Label>
                 <Input
                   placeholder="Enter reference number (optional)"
                   value={paymentData.referenceNumber}
                   onChange={(e) => setPaymentData({ ...paymentData, referenceNumber: e.target.value })}
+                  className="h-10 border-2 border-slate-200 dark:border-slate-700 focus:border-primary"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label>Notes</Label>
+                <Label className="text-slate-700 dark:text-slate-300">Notes</Label>
                 <Textarea
                   placeholder="Enter any notes (optional)"
                   value={paymentData.notes}
                   onChange={(e) => setPaymentData({ ...paymentData, notes: e.target.value })}
+                  className="border-2 border-slate-200 dark:border-slate-700 focus:border-primary"
                 />
               </div>
             </div>
 
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setShowPaymentDialog(false)}>
+            <DialogFooter className="gap-3 mt-2">
+              <Button variant="outline" className="h-10" onClick={() => setShowPaymentDialog(false)} disabled={recordingPayment}>
                 Cancel
               </Button>
-              <Button onClick={handleRecordPayment}>Record Payment</Button>
+              <Button className="h-10" onClick={handleRecordPayment} disabled={recordingPayment}>
+                {recordingPayment ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Recording...
+                  </>
+                ) : (
+                  "Record Payment"
+                )}
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -936,7 +979,7 @@ function FeeManagementContent() {
         <Dialog open={showBulkSetDialog} onOpenChange={setShowBulkSetDialog}>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>Bulk Set Fees</DialogTitle>
+              <DialogTitle className="text-slate-900 dark:text-white">Bulk Set Fees</DialogTitle>
               <DialogDescription>
                 Set fees for{" "}
                 {selectedClass === "ALL"
@@ -946,80 +989,92 @@ function FeeManagementContent() {
             </DialogHeader>
 
             <Tabs value={bulkFeeTermType} onValueChange={(v) => setBulkFeeTermType(v as "current" | "next")}>
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="current">
+              <TabsList className="grid w-full grid-cols-2 h-10">
+                <TabsTrigger value="current" className="h-9">
                   <Calendar className="h-4 w-4 mr-2" />
                   Current Term
                 </TabsTrigger>
-                <TabsTrigger value="next">
+                <TabsTrigger value="next" className="h-9">
                   <ArrowRight className="h-4 w-4 mr-2" />
                   Next Term
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="current" className="space-y-4 mt-4">
-                <Alert>
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>
-                    Setting fees for <strong>{selectedYear} Term {selectedTerm}</strong>
-                    <br />
-                    <span className="text-xs text-muted-foreground">This will update fees for multiple students. Existing fees will be overwritten.</span>
-                  </AlertDescription>
-                </Alert>
+              <TabsContent value="current" className="mt-4">
+                <div className="p-3 border-2 border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 rounded-lg">
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                    <div className="text-sm text-amber-700 dark:text-amber-300">
+                      <p>Setting fees for <strong>{selectedYear} Term {selectedTerm}</strong></p>
+                      <p className="text-xs mt-1 opacity-80">This will update fees for multiple students. Existing fees will be overwritten.</p>
+                    </div>
+                  </div>
+                </div>
               </TabsContent>
 
-              <TabsContent value="next" className="space-y-4 mt-4">
-                <Alert>
-                  <Info className="h-4 w-4" />
-                  <AlertDescription>
-                    Setting fees for <strong>{getNextTermInfo().year} Term {getNextTermInfo().term}</strong>
-                    <br />
-                    <span className="text-xs">These will appear as "Next Term Fees" on all report cards</span>
-                  </AlertDescription>
-                </Alert>
+              <TabsContent value="next" className="mt-4">
+                <div className="p-3 border-2 border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-950/30 rounded-lg">
+                  <div className="flex items-start gap-2">
+                    <Info className="h-4 w-4 text-purple-600 mt-0.5 flex-shrink-0" />
+                    <div className="text-sm text-purple-700 dark:text-purple-300">
+                      <p>Setting fees for <strong>{getNextTermInfo().year} Term {getNextTermInfo().term}</strong></p>
+                      <p className="text-xs mt-1 opacity-80">These will appear as "Next Term Fees" on all report cards</p>
+                    </div>
+                  </div>
+                </div>
               </TabsContent>
             </Tabs>
 
             <div className="space-y-4 mt-4">
               <div className="space-y-2">
-                <Label>Tuition Fee *</Label>
+                <Label className="text-slate-700 dark:text-slate-300">Tuition Fee *</Label>
                 <Input
                   type="number"
                   placeholder="Enter tuition fee"
                   value={bulkFeeData.tuitionFee}
                   onChange={(e) => setBulkFeeData({ ...bulkFeeData, tuitionFee: e.target.value })}
+                  className="h-10 border-2 border-slate-200 dark:border-slate-700 focus:border-primary"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label>Other Fees</Label>
+                <Label className="text-slate-700 dark:text-slate-300">Other Fees</Label>
                 <Input
                   type="number"
                   placeholder="Enter other fees (optional)"
                   value={bulkFeeData.otherFees}
                   onChange={(e) => setBulkFeeData({ ...bulkFeeData, otherFees: e.target.value })}
+                  className="h-10 border-2 border-slate-200 dark:border-slate-700 focus:border-primary"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label>Notes</Label>
+                <Label className="text-slate-700 dark:text-slate-300">Notes</Label>
                 <Textarea
                   placeholder="Enter any notes (optional)"
                   value={bulkFeeData.notes}
                   onChange={(e) => setBulkFeeData({ ...bulkFeeData, notes: e.target.value })}
+                  className="border-2 border-slate-200 dark:border-slate-700 focus:border-primary"
                 />
               </div>
             </div>
 
-            <DialogFooter>
-              <Button variant="outline" onClick={() => {
+            <DialogFooter className="gap-3 mt-2">
+              <Button variant="outline" className="h-10" onClick={() => {
                 setShowBulkSetDialog(false)
                 setBulkFeeTermType("current")
-              }}>
+              }} disabled={settingBulkFees}>
                 Cancel
               </Button>
-              <Button onClick={handleBulkSetFees}>
-                Set {bulkFeeTermType === "next" ? "Next Term " : ""}Fees
+              <Button className="h-10" onClick={handleBulkSetFees} disabled={settingBulkFees}>
+                {settingBulkFees ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Setting Fees...
+                  </>
+                ) : (
+                  <>Set {bulkFeeTermType === "next" ? "Next Term " : ""}Fees</>
+                )}
               </Button>
             </DialogFooter>
           </DialogContent>

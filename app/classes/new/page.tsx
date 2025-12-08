@@ -173,13 +173,13 @@ function NewClassContent() {
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-3 bg-primary/10 rounded-lg">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2 bg-primary/10 rounded-xl">
               <GraduationCap className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold">Create New Class</h1>
-              <p className="text-muted-foreground">Add a new class to the school system</p>
+              {/* <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Create New Class</h1> */}
+              <p className="text-sm text-slate-500 dark:text-slate-400">Add a new class to the school system</p>
             </div>
           </div>
         </div>
@@ -187,10 +187,10 @@ function NewClassContent() {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Left Column - Class Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <GraduationCap className="h-5 w-5" />
+            <Card className="border-slate-200 dark:border-slate-700">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <GraduationCap className="h-5 w-5 text-primary" />
                   Class Information
                 </CardTitle>
                 <CardDescription>Select the class rank and stream</CardDescription>
@@ -282,16 +282,16 @@ function NewClassContent() {
 
                 {/* Preview Name */}
                 {previewName && (
-                  <div className="p-4 bg-muted/50 rounded-lg">
-                    <Label className="text-xs text-muted-foreground">Class Name (Auto-generated)</Label>
-                    <div className="text-lg font-semibold mt-1">{previewName}</div>
+                  <div className="p-4 bg-slate-100 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
+                    <Label className="text-xs text-slate-500 dark:text-slate-400">Class Name (Auto-generated)</Label>
+                    <div className="text-lg font-semibold mt-1 text-slate-900 dark:text-white">{previewName}</div>
                   </div>
                 )}
 
                 {/* Promotion Path Preview */}
                 {formData.rank && (
-                  <div className="p-4 border rounded-lg bg-blue-50/50">
-                    <Label className="text-xs text-muted-foreground mb-2 block">Promotion Path</Label>
+                  <div className="p-4 border-2 border-blue-200 dark:border-blue-900 rounded-lg bg-blue-50 dark:bg-blue-950/30">
+                    <Label className="text-xs text-blue-600 dark:text-blue-400 mb-2 block">Promotion Path</Label>
                     <div className="flex items-center gap-2 text-sm">
                       <Badge variant="default">{previewName || formData.rank}</Badge>
                       <ArrowRight className="h-4 w-4 text-muted-foreground" />
@@ -317,10 +317,10 @@ function NewClassContent() {
             </Card>
 
             {/* Right Column - Class Teacher Assignment */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <User className="h-5 w-5" />
+            <Card className="border-slate-200 dark:border-slate-700">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <User className="h-5 w-5 text-primary" />
                   Class Teacher Assignment
                 </CardTitle>
                 <CardDescription>Search and assign a class teacher</CardDescription>
@@ -330,16 +330,16 @@ function NewClassContent() {
                 <div className="space-y-2">
                   <Label htmlFor="teacherSearch">Search Teachers</Label>
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-500" />
                     <Input
                       id="teacherSearch"
                       value={teacherSearch}
                       onChange={(e) => setTeacherSearch(e.target.value)}
                       placeholder="Search by name or email..."
-                      className="pl-10"
+                      className="pl-10 h-10 border-2 border-slate-200 dark:border-slate-700 focus:border-primary bg-white dark:bg-slate-900"
                     />
                   </div>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-slate-500">
                     {filteredTeachers.length} teacher{filteredTeachers.length !== 1 ? "s" : ""} found
                   </p>
                 </div>
@@ -347,9 +347,9 @@ function NewClassContent() {
                 {/* Teacher List */}
                 <div className="space-y-2">
                   <Label>Select Class Teacher *</Label>
-                  <div className="border rounded-lg max-h-64 overflow-y-auto">
+                  <div className="border-2 border-slate-200 dark:border-slate-700 rounded-lg max-h-64 overflow-y-auto">
                     {filteredTeachers.length === 0 ? (
-                      <div className="p-4 text-center text-muted-foreground">
+                      <div className="p-4 text-center text-slate-500">
                         No teachers found matching your search
                       </div>
                     ) : (
@@ -358,10 +358,10 @@ function NewClassContent() {
                           <div
                             key={teacher.id}
                             onClick={() => updateFormData("classTeacher", teacher.id.toString())}
-                            className={`p-3 rounded-md cursor-pointer transition-colors ${
+                            className={`p-3 rounded-lg cursor-pointer transition-all ${
                               formData.classTeacher === teacher.id.toString()
-                                ? "bg-primary/10 border border-primary/20"
-                                : "hover:bg-muted/50"
+                                ? "bg-primary/10 border-2 border-primary/30"
+                                : "hover:bg-slate-50 dark:hover:bg-slate-800/50 border-2 border-transparent"
                             }`}
                           >
                             <div className="flex items-center gap-3">
@@ -397,9 +397,9 @@ function NewClassContent() {
 
           {/* Summary */}
           {(formData.rank || formData.classTeacher) && (
-            <Card className="bg-muted/20">
-              <CardHeader>
-                <CardTitle className="text-lg">Class Summary</CardTitle>
+            <Card className="bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">Class Summary</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3 text-sm">
@@ -447,14 +447,14 @@ function NewClassContent() {
           )}
 
           {/* Actions */}
-          <div className="flex gap-4 pt-6">
-            <Button type="submit" disabled={loading} className="min-w-32">
+          <div className="flex gap-4 pt-4">
+            <Button type="submit" disabled={loading} className="min-w-32 h-10">
               {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
               {loading ? "Creating..." : "Create Class"}
             </Button>
 
             <Link href="/classes">
-              <Button type="button" variant="outline" disabled={loading}>
+              <Button type="button" variant="outline" disabled={loading} className="h-10">
                 Cancel
               </Button>
             </Link>

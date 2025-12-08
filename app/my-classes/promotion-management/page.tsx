@@ -492,39 +492,38 @@ export default function PromotionsPage() {
     )
   }
 
+  const breadcrumbs = [
+    { label: "Dashboard", href: "/dashboard" },
+    { label: "My Classes", href: "/my-classes" },
+    { label: "Promotions" }
+  ]
+
   return (
     <ProtectedRoute allowedRoles={["director", "head_teacher", "class_teacher"]}>
-      <MainLayout>
+      <MainLayout breadcrumbs={breadcrumbs}>
         <div className="space-y-6">
           {/* Header */}
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-              <GraduationCap className="h-8 w-8" />
-              Student Promotions
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              Review Term 3 results and make promotion decisions
-            </p>
+          <div className="flex items-center justify-between">
+            <div>
+              {/* <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Student Promotions</h1> */}
+              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                Review Term 3 results and make promotion decisions
+              </p>
+            </div>
           </div>
 
           {/* Filters Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Select Year & Class</CardTitle>
-              <CardDescription>
-                Filter by any academic year to view or process Term 3 promotions
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid md:grid-cols-3 gap-4">
+          <Card className="border-slate-200 dark:border-slate-700">
+            <CardContent className="py-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 items-end">
                 {/* Year Selection */}
-                <div>
-                  <Label>Academic Year (Term 3)</Label>
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-slate-600 dark:text-slate-400">Academic Year (Term 3)</label>
                   <Select
                     value={selectedYear?.toString() || ""}
                     onValueChange={(val) => setSelectedYear(parseInt(val))}
                   >
-                    <SelectTrigger className="mt-2">
+                    <SelectTrigger className="h-9 border-2 border-slate-200 dark:border-slate-700">
                       <SelectValue placeholder="Select year" />
                     </SelectTrigger>
                     <SelectContent>
@@ -538,13 +537,13 @@ export default function PromotionsPage() {
                 </div>
 
                 {/* Class Selection */}
-                <div>
-                  <Label>Class</Label>
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-slate-600 dark:text-slate-400">Class</label>
                   <Select
                     value={selectedClassId}
                     onValueChange={setSelectedClassId}
                   >
-                    <SelectTrigger className="mt-2">
+                    <SelectTrigger className="h-9 border-2 border-slate-200 dark:border-slate-700">
                       <SelectValue placeholder="Select class" />
                     </SelectTrigger>
                     <SelectContent>
@@ -558,18 +557,18 @@ export default function PromotionsPage() {
                 </div>
 
                 {/* Promote To Year */}
-                <div>
-                  <Label>Promote To Year</Label>
-                  <div className="mt-2 p-3 bg-muted rounded-md">
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-slate-600 dark:text-slate-400">Promote To Year</label>
+                  <div className="h-9 px-3 flex items-center bg-slate-100 dark:bg-slate-800 rounded-md border-2 border-slate-200 dark:border-slate-700">
                     {nextAcademicYear ? (
                       <div className="flex items-center gap-2">
                         <CheckCircle className="h-4 w-4 text-green-600" />
-                        <span className="font-medium">{nextAcademicYear.year} - Term 1</span>
+                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{nextAcademicYear.year} - Term 1</span>
                       </div>
                     ) : (
                       <div className="flex items-center gap-2">
                         <AlertTriangle className="h-4 w-4 text-amber-600" />
-                        <span className="text-sm text-muted-foreground">
+                        <span className="text-xs text-slate-500">
                           Year {(selectedYear || 0) + 1} not created
                         </span>
                       </div>
@@ -578,16 +577,16 @@ export default function PromotionsPage() {
                 </div>
               </div>
 
-              {/* Promotion Path Info - Updated to use proper class names */}
+              {/* Promotion Path Info */}
               {selectedClassId && nextLevelInfo && !isGraduatingClass && (
-                <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-950 rounded-md">
-                  <Info className="h-4 w-4 text-blue-600" />
-                  <span className="text-sm">
+                <div className="flex items-center gap-2 mt-4 p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <Info className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                  <span className="text-sm text-blue-700 dark:text-blue-300">
                     Promotion path: <strong>{currentClassName}</strong>
                     <ArrowRight className="h-4 w-4 inline mx-2" />
                     <strong>{nextLevelInfo.nextLevelDisplay}</strong>
                     {suggestedClassName && (
-                      <span className="text-muted-foreground ml-2">
+                      <span className="text-blue-600 dark:text-blue-400 ml-2">
                         (Suggested: <strong>{suggestedClassName}</strong>)
                       </span>
                     )}
@@ -597,49 +596,33 @@ export default function PromotionsPage() {
 
               {/* O-Level to A-Level transition info */}
               {isOLevelToALevel && (
-                <div className="flex items-start gap-3 p-4 rounded-md border border-purple-300 bg-purple-50">
-                  <Info className="h-4 w-4 text-purple-700 mt-1" />
-                  <p className="text-sm text-purple-800">
+                <div className="flex items-start gap-3 mt-4 p-3 rounded-lg border-2 border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-950/30">
+                  <Info className="h-4 w-4 text-purple-600 mt-0.5" />
+                  <p className="text-sm text-purple-700 dark:text-purple-300">
                     <strong>O-Level to A-Level Transition:</strong> Students will need to choose between Sciences and Arts.
                     {availableNextClasses.length > 1 && (
                       <span className="block mt-1">Available options: {availableNextClasses.map(c => c.name).join(", ")}</span>
                     )}
                   </p>
                 </div>
-
               )}
-
-              {/* {!nextAcademicYear && selectedYear && (
-                <Alert>
-                  <AlertTriangle className="h-4 w-4" />
-                  <AlertDescription>
-                    Create academic year {(selectedYear || 0) + 1} to process promotions.
-                    <Button
-                      variant="link"
-                      className="px-2"
-                      onClick={() => router.push("/academic-year")}
-                    >
-                      Create Academic Year
-                    </Button>
-                  </AlertDescription>
-                </Alert> */}
-              {/* )} */}
 
               {availableNextClasses.length === 0 && !isGraduatingClass && selectedClassId && (
-               <div className="flex items-start gap-3 p-4 border border-red-300 bg-red-50 rounded-md">
-                <AlertCircle className="h-4 w-4 text-red-600 mt-1" />
-                <p className="text-sm text-red-700">
-                  No classes available at the next level. Please create the next level class first.
-                  <Button variant="link" className="px-2" onClick={() => router.push("/classes/new")}>
-                    Create Class
-                  </Button>
-                </p>
-              </div>
+                <div className="flex items-start gap-3 mt-4 p-3 border-2 border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30 rounded-lg">
+                  <AlertCircle className="h-4 w-4 text-red-600 mt-0.5" />
+                  <p className="text-sm text-red-700 dark:text-red-300">
+                    No classes available at the next level. Please create the next level class first.
+                    <Button variant="link" className="px-2 h-auto" onClick={() => router.push("/classes/new")}>
+                      Create Class
+                    </Button>
+                  </p>
+                </div>
               )}
+              
               {isGraduatingClass && (
-                <div className="flex items-start gap-3 p-4 border rounded-md bg-blue-50">
-                  <Info className="h-4 w-4 text-blue-700 mt-1" />
-                  <p className="text-sm text-blue-800">
+                <div className="flex items-start gap-3 mt-4 p-3 rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/30">
+                  <Info className="h-4 w-4 text-blue-600 mt-0.5" />
+                  <p className="text-sm text-blue-700 dark:text-blue-300">
                     This is a graduating class (S6). Students completing this class will graduate.
                   </p>
                 </div>
@@ -649,68 +632,58 @@ export default function PromotionsPage() {
 
           {/* Stats Cards */}
           {selectedClassId && (
-            <div className="grid md:grid-cols-5 gap-4">
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium flex items-center gap-2">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              <Card className="border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+                <CardContent className="pt-4 pb-4">
+                  <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 mb-1">
                     <Users className="h-4 w-4" />
-                    Total
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stats.totalStudents}</div>
+                    <span className="text-xs font-medium">Total</span>
+                  </div>
+                  <div className="text-xl font-bold text-slate-900 dark:text-white">{stats.totalStudents}</div>
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium flex items-center gap-2 text-green-600">
+              <Card className="border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950/30">
+                <CardContent className="pt-4 pb-4">
+                  <div className="flex items-center gap-2 text-green-600 dark:text-green-400 mb-1">
                     <CheckCircle className="h-4 w-4" />
-                    Qualifying
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-green-600">
+                    <span className="text-xs font-medium">Qualifying</span>
+                  </div>
+                  <div className="text-xl font-bold text-green-700 dark:text-green-300">
                     {students.filter(s => s.qualifiesForPromotion).length}
                   </div>
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium flex items-center gap-2 text-red-600">
+              <Card className="border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30">
+                <CardContent className="pt-4 pb-4">
+                  <div className="flex items-center gap-2 text-red-600 dark:text-red-400 mb-1">
                     <AlertCircle className="h-4 w-4" />
-                    Not Qualifying
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-red-600">
+                    <span className="text-xs font-medium">Not Qualifying</span>
+                  </div>
+                  <div className="text-xl font-bold text-red-700 dark:text-red-300">
                     {students.filter(s => !s.qualifiesForPromotion).length}
                   </div>
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium flex items-center gap-2 text-green-600">
+              <Card className="border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/30">
+                <CardContent className="pt-4 pb-4">
+                  <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400 mb-1">
                     <TrendingUp className="h-4 w-4" />
-                    Already Promoted
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-green-600">{stats.promoted}</div>
+                    <span className="text-xs font-medium">Already Promoted</span>
+                  </div>
+                  <div className="text-xl font-bold text-blue-700 dark:text-blue-300">{stats.promoted}</div>
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium flex items-center gap-2 text-amber-600">
+              <Card className="border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30">
+                <CardContent className="pt-4 pb-4">
+                  <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 mb-1">
                     <RefreshCw className="h-4 w-4" />
-                    Already Repeating
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-amber-600">{stats.repeated}</div>
+                    <span className="text-xs font-medium">Already Repeating</span>
+                  </div>
+                  <div className="text-xl font-bold text-amber-700 dark:text-amber-300">{stats.repeated}</div>
                 </CardContent>
               </Card>
             </div>
@@ -718,53 +691,55 @@ export default function PromotionsPage() {
 
           {/* Students Table */}
           {selectedClassId && (
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle>
-                      {currentClassName} - Term 3 Results ({selectedYear})
-                    </CardTitle>
-                    <CardDescription>
-                      {students.length} students • {subjects.length} subjects
-                    </CardDescription>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handlePromoteAllQualifying}
-                      disabled={loading || pendingCount === 0}
-                    >
-                      <ArrowUp className="h-4 w-4 mr-1" />
-                      Promote All Qualifying
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleRepeatAllNonQualifying}
-                      disabled={loading || pendingCount === 0}
-                    >
-                      <RotateCcw className="h-4 w-4 mr-1" />
-                      Repeat All Non-Qualifying
-                    </Button>
-                    <Button
-                      onClick={() => setShowConfirmDialog(true)}
-                      disabled={!canProcess || processing}
-                    >
-                      <CheckCircle className="h-4 w-4 mr-2" />
-                      Process Promotions ({pendingCount})
-                    </Button>
-                  </div>
+            <Card className="border-slate-200 dark:border-slate-700 overflow-visible">
+              <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                    {currentClassName} - Term 3 Results ({selectedYear})
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    {students.length} students • {subjects.length} subjects
+                  </p>
                 </div>
-              </CardHeader>
-              <CardContent>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8"
+                    onClick={handlePromoteAllQualifying}
+                    disabled={loading || pendingCount === 0}
+                  >
+                    <ArrowUp className="h-4 w-4 mr-1" />
+                    Promote All Qualifying
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8"
+                    onClick={handleRepeatAllNonQualifying}
+                    disabled={loading || pendingCount === 0}
+                  >
+                    <RotateCcw className="h-4 w-4 mr-1" />
+                    Repeat All Non-Qualifying
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="h-8"
+                    onClick={() => setShowConfirmDialog(true)}
+                    disabled={!canProcess || processing}
+                  >
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    Process ({pendingCount})
+                  </Button>
+                </div>
+              </div>
+              <CardContent className="p-0">
                 {loading ? (
-                  <div className="flex items-center justify-center py-8">
-                    <Loader2 className="h-8 w-8 animate-spin" />
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
                   </div>
                 ) : students.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
+                  <div className="text-center py-12 text-slate-500">
                     No students found for this class in Term 3
                   </div>
                 ) : (
@@ -772,18 +747,18 @@ export default function PromotionsPage() {
                     <div className="min-w-max">
                       <Table>
                         <TableHeader>
-                          <TableRow>
-                            <TableHead className="w-10">#</TableHead>
-                            <TableHead className="min-w-[200px]">Student</TableHead>
+                          <TableRow className="bg-slate-100 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800/50 border-b-2 border-slate-200 dark:border-slate-700">
+                            <TableHead className="font-semibold text-slate-700 dark:text-slate-200 py-4 w-10 text-center">#</TableHead>
+                            <TableHead className="font-semibold text-slate-700 dark:text-slate-200 py-4 min-w-[200px]">Student</TableHead>
                             {subjects.map(subj => (
-                              <TableHead key={subj.id} className="text-center min-w-[80px]">
+                              <TableHead key={subj.id} className="font-semibold text-slate-700 dark:text-slate-200 py-4 text-center min-w-[80px]">
                                 {subj.name}
                               </TableHead>
                             ))}
-                            <TableHead className="text-center">Avg</TableHead>
-                            <TableHead className="text-center">Status</TableHead>
-                            <TableHead className="text-center">Decision</TableHead>
-                            <TableHead className="min-w-[200px]">Action</TableHead>
+                            <TableHead className="font-semibold text-slate-700 dark:text-slate-200 py-4 text-center">Avg</TableHead>
+                            <TableHead className="font-semibold text-slate-700 dark:text-slate-200 py-4 text-center">Status</TableHead>
+                            <TableHead className="font-semibold text-slate-700 dark:text-slate-200 py-4 text-center">Decision</TableHead>
+                            <TableHead className="font-semibold text-slate-700 dark:text-slate-200 py-4 min-w-[200px]">Action</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -795,15 +770,16 @@ export default function PromotionsPage() {
                               <TableRow 
                                 key={student.id}
                                 className={cn(
+                                  "hover:bg-slate-50 dark:hover:bg-slate-800/30 border-b border-slate-100 dark:border-slate-800",
                                   isFailingStudent && !student.isAlreadyProcessed && 
                                   "bg-red-50 dark:bg-red-950/30 border-l-4 border-l-red-400"
                                 )}
                               >
-                                <TableCell className="font-medium">{idx + 1}</TableCell>
+                                <TableCell className="font-medium text-center">{idx + 1}</TableCell>
                                 <TableCell>
                                   <div>
-                                    <div className="font-medium">{student.fullName}</div>
-                                    <div className="text-xs text-muted-foreground">
+                                    <div className="font-medium text-slate-700 dark:text-slate-300">{student.fullName}</div>
+                                    <div className="text-xs text-slate-500">
                                       {student.passedSubjects}/{student.subjectCount} subjects passed
                                     </div>
                                   </div>
@@ -850,7 +826,7 @@ export default function PromotionsPage() {
                                           handleDecisionChange(student.id, val)
                                         }
                                       >
-                                        <SelectTrigger className="w-[110px]">
+                                        <SelectTrigger className="w-[110px] h-8 border-2 border-slate-200 dark:border-slate-700">
                                           <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -864,7 +840,7 @@ export default function PromotionsPage() {
                                           value={decision.toClassId || ''}
                                           onValueChange={(val) => handleToClassChange(student.id, val)}
                                         >
-                                          <SelectTrigger className="w-[140px]">
+                                          <SelectTrigger className="w-[140px] h-8 border-2 border-slate-200 dark:border-slate-700">
                                             <SelectValue placeholder="Select class" />
                                           </SelectTrigger>
                                           <SelectContent>
@@ -878,7 +854,7 @@ export default function PromotionsPage() {
                                       )}
                                     </div>
                                   ) : (
-                                    <span className="text-xs text-muted-foreground">
+                                    <span className="text-xs text-slate-500">
                                       Already processed
                                     </span>
                                   )}
@@ -900,16 +876,16 @@ export default function PromotionsPage() {
           <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Confirm Promotions</DialogTitle>
+                <DialogTitle className="text-slate-900 dark:text-white">Confirm Promotions</DialogTitle>
                 <DialogDescription>
                   Process promotion decisions for {pendingCount} students?
                 </DialogDescription>
               </DialogHeader>
 
               <div className="space-y-4 py-4">
-                <div className="flex items-start gap-3 p-4 border border-blue-300 bg-blue-50 rounded-md">
-                  <AlertCircle className="h-4 w-4 text-blue-700 mt-1" />
-                  <div className="text-sm text-blue-800">
+                <div className="flex items-start gap-3 p-4 border-2 border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
+                  <AlertCircle className="h-4 w-4 text-blue-600 mt-1" />
+                  <div className="text-sm text-blue-700 dark:text-blue-300">
                     <strong>This action will:</strong>
                     <ul className="list-disc list-inside mt-2 space-y-1">
                       <li>Enroll promoted students in <strong>{suggestedClassName || nextLevelInfo?.nextLevelDisplay || 'next class'}</strong></li>
@@ -921,21 +897,21 @@ export default function PromotionsPage() {
 
 
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="p-4 border rounded-lg bg-green-50 dark:bg-green-950">
-                    <div className="text-sm text-muted-foreground">To Promote</div>
-                    <div className="text-2xl font-bold text-green-600">
+                  <div className="p-4 border-2 border-green-200 dark:border-green-800 rounded-lg bg-green-50 dark:bg-green-950/30">
+                    <div className="text-sm text-slate-600 dark:text-slate-400">To Promote</div>
+                    <div className="text-2xl font-bold text-green-600 dark:text-green-400">
                       {Array.from(decisions.values()).filter(d => d.action === 'PROMOTE' && !students.find(s => s.id === d.studentId)?.isAlreadyProcessed).length}
                     </div>
-                    <div className="text-xs text-muted-foreground mt-1">
+                    <div className="text-xs text-slate-500 mt-1">
                       → {suggestedClassName || nextLevelInfo?.nextLevelDisplay} ({nextAcademicYear?.year})
                     </div>
                   </div>
-                  <div className="p-4 border rounded-lg bg-amber-50 dark:bg-amber-950">
-                    <div className="text-sm text-muted-foreground">To Repeat</div>
-                    <div className="text-2xl font-bold text-amber-600">
+                  <div className="p-4 border-2 border-amber-200 dark:border-amber-800 rounded-lg bg-amber-50 dark:bg-amber-950/30">
+                    <div className="text-sm text-slate-600 dark:text-slate-400">To Repeat</div>
+                    <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">
                       {Array.from(decisions.values()).filter(d => d.action === 'REPEAT' && !students.find(s => s.id === d.studentId)?.isAlreadyProcessed).length}
                     </div>
-                    <div className="text-xs text-muted-foreground mt-1">
+                    <div className="text-xs text-slate-500 mt-1">
                       → {currentClassName} ({nextAcademicYear?.year})
                     </div>
                   </div>
@@ -945,12 +921,13 @@ export default function PromotionsPage() {
               <DialogFooter>
                 <Button
                   variant="outline"
+                  className="h-10"
                   onClick={() => setShowConfirmDialog(false)}
                   disabled={processing}
                 >
                   Cancel
                 </Button>
-                <Button onClick={handleProcessPromotions} disabled={processing}>
+                <Button className="h-10" onClick={handleProcessPromotions} disabled={processing}>
                   {processing ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -968,7 +945,7 @@ export default function PromotionsPage() {
           <Dialog open={overrideDialog.open} onOpenChange={(open) => setOverrideDialog({ ...overrideDialog, open })}>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Teacher Override</DialogTitle>
+                <DialogTitle className="text-slate-900 dark:text-white">Teacher Override</DialogTitle>
                 <DialogDescription>
                   Override decision for {overrideDialog.studentName}
                 </DialogDescription>
@@ -976,7 +953,7 @@ export default function PromotionsPage() {
 
               <div className="space-y-4 py-4">
                 <div>
-                  <Label>Current Status</Label>
+                  <Label className="text-slate-700 dark:text-slate-300">Current Status</Label>
                   <div className="mt-2">
                     <Badge variant={overrideDialog.currentStatus === 'PASS' ? 'default' : 'destructive'}>
                       {overrideDialog.currentStatus === 'PASS' ? 'Qualifies for Promotion' : 'Does Not Qualify'}
@@ -985,14 +962,14 @@ export default function PromotionsPage() {
                 </div>
 
                 <div>
-                  <Label>Override To</Label>
+                  <Label className="text-slate-700 dark:text-slate-300">Override To</Label>
                   <Select
                     value={overrideDialog.action}
                     onValueChange={(value: 'PROMOTE' | 'REPEAT') => 
                       setOverrideDialog({ ...overrideDialog, action: value })
                     }
                   >
-                    <SelectTrigger className="mt-2">
+                    <SelectTrigger className="mt-2 h-10 border-2 border-slate-200 dark:border-slate-700">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -1007,15 +984,15 @@ export default function PromotionsPage() {
                 </div>
 
                 <div>
-                  <Label>Reason (min 10 characters)</Label>
+                  <Label className="text-slate-700 dark:text-slate-300">Reason (min 10 characters)</Label>
                   <Textarea
-                    className="mt-2"
+                    className="mt-2 border-2 border-slate-200 dark:border-slate-700 focus:border-primary"
                     placeholder="Explain why you are overriding the automatic decision..."
                     value={overrideDialog.reason}
                     onChange={(e) => setOverrideDialog({ ...overrideDialog, reason: e.target.value })}
                     rows={3}
                   />
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <p className="text-xs text-slate-500 mt-1">
                     {overrideDialog.reason.length}/10 characters minimum
                   </p>
                 </div>
@@ -1024,11 +1001,13 @@ export default function PromotionsPage() {
               <DialogFooter>
                 <Button
                   variant="outline"
+                  className="h-10"
                   onClick={() => setOverrideDialog({ ...overrideDialog, open: false, reason: '' })}
                 >
                   Cancel
                 </Button>
                 <Button
+                  className="h-10"
                   onClick={handleOverrideSubmit}
                   disabled={overrideDialog.reason.length < 10}
                 >

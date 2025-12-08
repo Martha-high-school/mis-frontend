@@ -217,18 +217,18 @@ function NewStudentContent() {
       breadcrumbs={breadcrumbs}
       showBackButton={true}
     >
-      <div className="max-w-4xl">
+      <div className="max-w-4xl mx-auto">
         <div className="mb-6">
-          {/* <h1 className="text-2xl font-bold">Register New Student</h1> */}
-          <p className="text-muted-foreground">
+          {/* <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Register New Student</h1> */}
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
             Add a new student to the system. Student number will be generated automatically.
           </p>
         </div>
 
         {errors.classes && (
-          <div className="flex items-start gap-2 mb-6 p-4 border border-red-300 bg-red-50 rounded-md">
-            <AlertCircle className="h-5 w-5 text-red-700 mt-0.5" />
-            <p className="text-sm text-red-700">{errors.classes}</p>
+          <div className="flex items-start gap-2 mb-6 p-4 border-2 border-red-300 bg-red-50 dark:bg-red-950/20 rounded-lg">
+            <AlertCircle className="h-5 w-5 text-red-600 mt-0.5" />
+            <p className="text-sm text-red-600">{errors.classes}</p>
           </div>
         )}
 
@@ -236,9 +236,9 @@ function NewStudentContent() {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Student Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Student Information</CardTitle>
+            <Card className="border-slate-200 dark:border-slate-700">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-base">Student Information</CardTitle>
                 <CardDescription>Enter the student's personal details</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -250,7 +250,7 @@ function NewStudentContent() {
                       placeholder="Enter first name"
                       value={formData.student.firstName}
                       onChange={(e) => updateStudentField("firstName", e.target.value)}
-                      className={errors.firstName ? "border-red-300" : ""}
+                      className={`h-10 border-2 ${errors.firstName ? "border-red-300" : "border-slate-200 dark:border-slate-700"} focus:border-primary bg-white dark:bg-slate-900`}
                       required
                     />
                     {errors.firstName && <p className="text-sm text-red-600">{errors.firstName}</p>}
@@ -262,7 +262,7 @@ function NewStudentContent() {
                       placeholder="Enter last name"
                       value={formData.student.lastName}
                       onChange={(e) => updateStudentField("lastName", e.target.value)}
-                      className={errors.lastName ? "border-red-300" : ""}
+                      className={`h-10 border-2 ${errors.lastName ? "border-red-300" : "border-slate-200 dark:border-slate-700"} focus:border-primary bg-white dark:bg-slate-900`}
                       required
                     />
                     {errors.lastName && <p className="text-sm text-red-600">{errors.lastName}</p>}
@@ -277,7 +277,7 @@ function NewStudentContent() {
                       onValueChange={(value) => updateStudentField("gender", value)}
                       required
                     >
-                      <SelectTrigger className={errors.gender ? "border-red-300" : ""}>
+                      <SelectTrigger className={`h-10 border-2 ${errors.gender ? "border-red-300" : "border-slate-200 dark:border-slate-700"} focus:border-primary`}>
                         <SelectValue placeholder="Select gender" />
                       </SelectTrigger>
                       <SelectContent>
@@ -295,6 +295,7 @@ function NewStudentContent() {
                       type="date"
                       value={formData.student.date}
                       onChange={(e) => updateStudentField("date", e.target.value)}
+                      className="h-10 border-2 border-slate-200 dark:border-slate-700 focus:border-primary bg-white dark:bg-slate-900"
                     />
                   </div>
                 </div>
@@ -312,12 +313,12 @@ function NewStudentContent() {
                     required
                     disabled={loadingClasses}
                   >
-                    <SelectTrigger className={errors.initialClass ? "border-red-300" : ""}>
+                    <SelectTrigger className={`h-10 border-2 ${errors.initialClass ? "border-red-300" : "border-slate-200 dark:border-slate-700"} focus:border-primary`}>
                       <SelectValue placeholder={loadingClasses ? "Loading classes..." : "Select initial class"} />
                     </SelectTrigger>
                     <SelectContent>
                       {classes.length === 0 && !loadingClasses ? (
-                        <div className="px-2 py-6 text-center text-sm text-muted-foreground">
+                        <div className="px-2 py-6 text-center text-sm text-slate-500">
                           No classes available
                         </div>
                       ) : (
@@ -338,9 +339,9 @@ function NewStudentContent() {
             </Card>
 
             {/* Guardian Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Guardian Information</CardTitle>
+            <Card className="border-slate-200 dark:border-slate-700">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-base">Guardian Information</CardTitle>
                 <CardDescription>Enter the primary guardian's contact details</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -352,7 +353,7 @@ function NewStudentContent() {
                     placeholder="+256 700 000 000"
                     value={formData.student.guardian.phone}
                     onChange={(e) => updateGuardianField("phone", e.target.value)}
-                    className={errors.guardianPhone ? "border-red-300" : ""}
+                    className={`h-10 border-2 ${errors.guardianPhone ? "border-red-300" : "border-slate-200 dark:border-slate-700"} focus:border-primary bg-white dark:bg-slate-900`}
                     required
                   />
                   {errors.guardianPhone && <p className="text-sm text-red-600">{errors.guardianPhone}</p>}
@@ -365,7 +366,7 @@ function NewStudentContent() {
                     onValueChange={(value) => updateGuardianField("relationship", value)}
                     required
                   >
-                    <SelectTrigger className={errors.relationship ? "border-red-300" : ""}>
+                    <SelectTrigger className={`h-10 border-2 ${errors.relationship ? "border-red-300" : "border-slate-200 dark:border-slate-700"} focus:border-primary`}>
                       <SelectValue placeholder="Select relationship" />
                     </SelectTrigger>
                     <SelectContent>
@@ -382,8 +383,8 @@ function NewStudentContent() {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-4 pt-4">
-            <Button type="submit" className="flex items-center gap-2" disabled={loading || loadingClasses}>
+          <div className="flex gap-3 pt-2">
+            <Button type="submit" className="h-10 flex items-center gap-2" disabled={loading || loadingClasses}>
               {loading ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -397,7 +398,7 @@ function NewStudentContent() {
               )}
             </Button>
             <Link href="/students">
-              <Button type="button" variant="outline" disabled={loading}>
+              <Button type="button" variant="outline" className="h-10" disabled={loading}>
                 Cancel
               </Button>
             </Link>

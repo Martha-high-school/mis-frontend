@@ -386,9 +386,15 @@ function AcademicYearSettings() {
     ? terms.reduce((acc, term) => acc + term.progress, 0) / terms.length
     : 0
 
+  const breadcrumbs = [
+    { label: "Dashboard", href: "/dashboard" },
+    { label: "Settings", href: "/settings" },
+    { label: "Academic Year" }
+  ]
+
   if (loading) {
     return (
-      <MainLayout>
+      <MainLayout breadcrumbs={breadcrumbs}>
         <div className="flex items-center justify-center min-h-[400px]">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
@@ -397,33 +403,33 @@ function AcademicYearSettings() {
   }
 
   return (
-    <MainLayout>
+    <MainLayout breadcrumbs={breadcrumbs}>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Academic Year Settings</h1>
-            <p className="text-muted-foreground mt-1">
+            {/* <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Academic Year Settings</h1> */}
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
               Manage academic years and configure term dates
             </p>
           </div>
           <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
             <DialogTrigger asChild>
-              <Button>
+              <Button className="h-10">
                 <Plus className="h-4 w-4 mr-2" />
                 New Academic Year
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[500px]">
               <DialogHeader>
-                <DialogTitle>Create New Academic Year</DialogTitle>
+                <DialogTitle className="text-slate-900 dark:text-white">Create New Academic Year</DialogTitle>
                 <DialogDescription>
                   Set up a new academic year with start and end dates. You can configure term dates later.
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label htmlFor="new-year">Academic Year</Label>
+                  <Label htmlFor="new-year" className="text-slate-700 dark:text-slate-300">Academic Year</Label>
                   <Input
                     id="new-year"
                     type="number"
@@ -432,37 +438,46 @@ function AcademicYearSettings() {
                     min={2020}
                     max={2100}
                     placeholder="2025"
+                    className="h-10 border-2 border-slate-200 dark:border-slate-700 focus:border-primary"
                   />
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-slate-500">
                     Enter the calendar year (e.g., 2025 for the 2025 academic year)
                   </p>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="new-start-date">Academic Year Start Date</Label>
+                  <Label htmlFor="new-start-date" className="text-slate-700 dark:text-slate-300">Academic Year Start Date</Label>
                   <Input
                     id="new-start-date"
                     type="date"
                     value={newYearData.startDate}
                     onChange={(e) => setNewYearData(prev => ({ ...prev, startDate: e.target.value }))}
+                    className="h-10 border-2 border-slate-200 dark:border-slate-700 focus:border-primary"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="new-end-date">Academic Year End Date</Label>
+                  <Label htmlFor="new-end-date" className="text-slate-700 dark:text-slate-300">Academic Year End Date</Label>
                   <Input
                     id="new-end-date"
                     type="date"
                     value={newYearData.endDate}
                     onChange={(e) => setNewYearData(prev => ({ ...prev, endDate: e.target.value }))}
+                    className="h-10 border-2 border-slate-200 dark:border-slate-700 focus:border-primary"
                   />
                 </div>
               </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setShowCreateDialog(false)} disabled={saving}>
+              <DialogFooter className="gap-3">
+                <Button variant="outline" className="h-10" onClick={() => setShowCreateDialog(false)} disabled={saving}>
                   Cancel
                 </Button>
-                <Button onClick={handleCreateAcademicYear} disabled={saving}>
-                  {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                  Create Academic Year
+                <Button className="h-10" onClick={handleCreateAcademicYear} disabled={saving}>
+                  {saving ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Creating...
+                    </>
+                  ) : (
+                    "Create Academic Year"
+                  )}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -470,17 +485,17 @@ function AcademicYearSettings() {
         </div>
 
         {!academicYear && (
-          <Card>
+          <Card className="border-slate-200 dark:border-slate-700">
             <CardContent className="py-12">
               <div className="text-center space-y-4">
-                <Calendar className="h-12 w-12 mx-auto text-muted-foreground" />
+                <Calendar className="h-12 w-12 mx-auto text-slate-400" />
                 <div>
-                  <h3 className="text-lg font-semibold">No Academic Year Found</h3>
-                  <p className="text-sm text-muted-foreground mt-1">
+                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white">No Academic Year Found</h3>
+                  <p className="text-sm text-slate-500 mt-1">
                     Create your first academic year to get started
                   </p>
                 </div>
-                <Button onClick={() => setShowCreateDialog(true)}>
+                <Button className="h-10" onClick={() => setShowCreateDialog(true)}>
                   <Plus className="h-4 w-4 mr-2" />
                   Create Academic Year
                 </Button>
@@ -493,20 +508,20 @@ function AcademicYearSettings() {
           <>
             {/* Academic Year Selector and All Years List */}
             <div className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Select Academic Year</CardTitle>
+              <Card className="border-slate-200 dark:border-slate-700">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-base">Select Academic Year</CardTitle>
                   <CardDescription>Choose which academic year to view and configure</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex gap-4">
                     <div className="flex-1">
-                      <Label htmlFor="year-select">Academic Year</Label>
+                      <Label htmlFor="year-select" className="text-xs font-medium text-slate-600 dark:text-slate-400">Academic Year</Label>
                       <Select
                         value={academicYear.id}
                         onValueChange={handleSwitchAcademicYear}
                       >
-                        <SelectTrigger id="year-select" className="mt-2">
+                        <SelectTrigger id="year-select" className="mt-2 h-10 border-2 border-slate-200 dark:border-slate-700">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -519,9 +534,10 @@ function AcademicYearSettings() {
                       </Select>
                     </div>
                     {!academicYear.isCurrent && (
-                      <div className="pt-8">
+                      <div className="pt-7">
                         <Button
                           variant="outline"
+                          className="h-10"
                           onClick={() => handleSetCurrentYear(academicYear.id)}
                           disabled={saving}
                         >
@@ -535,8 +551,8 @@ function AcademicYearSettings() {
                   {allAcademicYears.length > 1 && (
                     <Collapsible open={showAllYears} onOpenChange={setShowAllYears}>
                       <CollapsibleTrigger asChild>
-                        <Button variant="ghost" size="sm" className="w-full justify-between">
-                          <span>View All Academic Years ({allAcademicYears.length})</span>
+                        <Button variant="ghost" size="sm" className="w-full justify-between h-9">
+                          <span className="text-slate-600 dark:text-slate-400">View All Academic Years ({allAcademicYears.length})</span>
                           <ChevronDown className={`h-4 w-4 transition-transform ${showAllYears ? 'rotate-180' : ''}`} />
                         </Button>
                       </CollapsibleTrigger>
@@ -544,11 +560,11 @@ function AcademicYearSettings() {
                         {allAcademicYears.map((year) => (
                           <div
                             key={year.id}
-                            className="flex items-center justify-between p-3 rounded-lg border bg-muted/30"
+                            className="flex items-center justify-between p-3 rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/30"
                           >
                             <div>
-                              <div className="font-medium">{year.year}</div>
-                              <div className="text-xs text-muted-foreground">
+                              <div className="font-medium text-slate-700 dark:text-slate-300">{year.year}</div>
+                              <div className="text-xs text-slate-500">
                                 {academicYearService.formatDate(year.startDate)} - {academicYearService.formatDate(year.endDate)}
                               </div>
                             </div>
@@ -561,6 +577,7 @@ function AcademicYearSettings() {
                               <Button
                                 variant="outline"
                                 size="sm"
+                                className="h-8"
                                 onClick={() => handleSwitchAcademicYear(year.id)}
                                 disabled={year.id === academicYear.id}
                               >
@@ -577,12 +594,12 @@ function AcademicYearSettings() {
             </div>
 
             {/* Current Year Overview */}
-            <Card>
-              <CardHeader>
+            <Card className="border-slate-200 dark:border-slate-700">
+              <CardHeader className="pb-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle className="flex items-center gap-2">
-                      <Calendar className="h-5 w-5" />
+                    <CardTitle className="flex items-center gap-2 text-base">
+                      <Calendar className="h-5 w-5 text-primary" />
                       Academic Year {academicYear.year}
                       {academicYear.isCurrent && (
                         <Badge className="ml-2 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
@@ -599,15 +616,15 @@ function AcademicYearSettings() {
               <CardContent className="space-y-4">
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <Label className="text-sm font-medium">Overall Year Progress</Label>
-                    <span className="text-sm font-semibold text-muted-foreground">{Math.round(overallProgress)}%</span>
+                    <Label className="text-sm font-medium text-slate-600 dark:text-slate-400">Overall Year Progress</Label>
+                    <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">{Math.round(overallProgress)}%</span>
                   </div>
                   <Progress value={overallProgress} className="h-3" />
                 </div>
-                <div className="flex items-start gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                <div className="flex items-start gap-2 p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg border-2 border-blue-200 dark:border-blue-800">
                   <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5" />
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-blue-900 dark:text-blue-100">Sequential Term Progression</p>
+                    <p className="text-sm font-medium text-blue-800 dark:text-blue-200">Sequential Term Progression</p>
                     <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
                       Terms must be completed in order. Complete the first term before starting the second term.
                     </p>
@@ -617,21 +634,21 @@ function AcademicYearSettings() {
             </Card>
 
             {/* Current Term Selector */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Set Current Term</CardTitle>
+            <Card className="border-slate-200 dark:border-slate-700">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-base">Set Current Term</CardTitle>
                 <CardDescription>Select which term is currently active</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="flex items-end gap-4">
                   <div className="flex-1">
-                    <Label htmlFor="current-term">Current Term</Label>
+                    <Label htmlFor="current-term" className="text-xs font-medium text-slate-600 dark:text-slate-400">Current Term</Label>
                     <Select
                       value={terms.find((t) => t.isCurrent)?.term || ""}
                       onValueChange={(value) => handleSetCurrentTerm(value as "T1" | "T2" | "T3")}
                       disabled={saving}
                     >
-                      <SelectTrigger id="current-term" className="mt-2">
+                      <SelectTrigger id="current-term" className="mt-2 h-10 border-2 border-slate-200 dark:border-slate-700">
                         <SelectValue placeholder="Select current term" />
                       </SelectTrigger>
                       <SelectContent>
@@ -661,13 +678,13 @@ function AcademicYearSettings() {
             {/* Terms Configuration */}
             <div className="grid gap-4">
               {terms.map((term, index) => (
-                <Card key={term.term}>
-                  <CardHeader>
+                <Card key={term.term} className="border-slate-200 dark:border-slate-700">
+                  <CardHeader className="pb-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         {getStatusIcon(term.status)}
                         <div>
-                          <CardTitle className="text-lg">{term.name}</CardTitle>
+                          <CardTitle className="text-base">{term.name}</CardTitle>
                           {(term.startDate || term.endDate) && editingTermId !== term.id && (
                             <CardDescription className="text-xs mt-1">
                               {term.startDate && `Start: ${academicYearService.formatDate(term.startDate)}`}
@@ -702,37 +719,37 @@ function AcademicYearSettings() {
                   <CardContent className="space-y-4">
                     {/* Date Editing Form */}
                     {editingTermId === term.id && (
-                      <div className="space-y-4 p-4 bg-muted/30 rounded-lg border">
+                      <div className="space-y-4 p-4 bg-slate-50 dark:bg-slate-800/30 rounded-lg border-2 border-slate-200 dark:border-slate-700">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="space-y-2">
-                            <Label htmlFor={`start-date-${term.id}`}>Start Date</Label>
+                            <Label htmlFor={`start-date-${term.id}`} className="text-slate-700 dark:text-slate-300">Start Date</Label>
                             <Input
                               id={`start-date-${term.id}`}
                               type="date"
                               value={tempDates.startDate}
                               onChange={(e) => setTempDates((prev) => ({ ...prev, startDate: e.target.value }))}
-                              className="w-full"
+                              className="w-full h-10 border-2 border-slate-200 dark:border-slate-700 focus:border-primary"
                               disabled={saving}
                             />
                           </div>
                           <div className="space-y-2">
-                            <Label htmlFor={`end-date-${term.id}`}>End Date</Label>
+                            <Label htmlFor={`end-date-${term.id}`} className="text-slate-700 dark:text-slate-300">End Date</Label>
                             <Input
                               id={`end-date-${term.id}`}
                               type="date"
                               value={tempDates.endDate}
                               onChange={(e) => setTempDates((prev) => ({ ...prev, endDate: e.target.value }))}
-                              className="w-full"
+                              className="w-full h-10 border-2 border-slate-200 dark:border-slate-700 focus:border-primary"
                               disabled={saving}
                             />
                           </div>
                         </div>
                         <div className="flex gap-2 justify-end">
-                          <Button variant="outline" size="sm" onClick={handleCancelEdit} disabled={saving}>
+                          <Button variant="outline" size="sm" className="h-8" onClick={handleCancelEdit} disabled={saving}>
                             <X className="h-4 w-4 mr-1.5" />
                             Cancel
                           </Button>
-                          <Button size="sm" onClick={() => handleSaveDates(term)} disabled={saving}>
+                          <Button size="sm" className="h-8" onClick={() => handleSaveDates(term)} disabled={saving}>
                             {saving ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Save className="h-4 w-4 mr-1.5" />}
                             Save Dates
                           </Button>
@@ -742,8 +759,8 @@ function AcademicYearSettings() {
 
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <Label className="text-sm">Term Progress</Label>
-                        <span className="text-sm font-semibold text-muted-foreground">{term.progress}%</span>
+                        <Label className="text-sm text-slate-600 dark:text-slate-400">Term Progress</Label>
+                        <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">{term.progress}%</span>
                       </div>
                       <Progress value={term.progress} className="h-2" />
                     </div>
@@ -752,7 +769,7 @@ function AcademicYearSettings() {
                       <div className="flex gap-2">
                         <Button
                           onClick={() => handleCompleteTerm(term.id)}
-                          className="flex-1"
+                          className="flex-1 h-10"
                           variant="default"
                           disabled={saving || term.id.startsWith("temp-")}
                         >
@@ -763,8 +780,8 @@ function AcademicYearSettings() {
                     )}
 
                     {term.status === "not-started" && index > 0 && (
-                      <div className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
-                        <p className="text-xs text-amber-800 dark:text-amber-200">
+                      <div className="p-3 bg-amber-50 dark:bg-amber-950/30 rounded-lg border-2 border-amber-200 dark:border-amber-800">
+                        <p className="text-xs text-amber-700 dark:text-amber-300">
                           Complete {terms[index - 1].name} to unlock this term
                         </p>
                       </div>

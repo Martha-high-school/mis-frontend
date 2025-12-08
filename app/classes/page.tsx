@@ -74,63 +74,71 @@ function ClassesContent() {
   return (
     <MainLayout userRole={user.role} userName={user.name} breadcrumbs={breadcrumbs}>
       <div className="space-y-6">
-        <div className="flex justify-between gap-4">
-          <Input
-            placeholder="Search by class name, level, or stream"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="max-w-md"
-          />
+        {/* Header Actions */}
+        <div className="flex flex-col sm:flex-row gap-4 justify-between">
+          <div className="relative flex-1 max-w-md">
+            <Input
+              placeholder="Search by class name, level, or stream..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="h-10 border-2 border-slate-200 dark:border-slate-700 focus:border-primary bg-white dark:bg-slate-900"
+            />
+          </div>
           {user.role === "head_teacher" && (
             <Link href="/classes/new">
-              <Button>Create Class</Button>
+              <Button className="h-10">Create Class</Button>
             </Link>
           )}
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>All Classes ({filtered.length})</CardTitle>
-          </CardHeader>
-          <CardContent>
+        {/* Classes Table */}
+        <Card className="overflow-visible">
+          <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-700">
+            <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
+              All Classes <span className="text-slate-500">({filtered.length})</span>
+            </p>
+          </div>
+          <CardContent className="p-0 overflow-visible">
             {loading ? (
-              <p className="text-muted-foreground">Loading...</p>
+              <p className="text-muted-foreground p-4">Loading...</p>
             ) : filtered.length === 0 ? (
-              <p className="text-muted-foreground">No classes found.</p>
+              <p className="text-muted-foreground p-4">No classes found.</p>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Level</TableHead>
-                    <TableHead>Stream</TableHead>
-                    <TableHead>Teacher</TableHead>
-                    <TableHead>Students</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filtered.map((cls) => (
-                    <TableRow key={cls.id}>
-                      <TableCell>{cls.name}</TableCell>
-                      <TableCell>{cls.level}</TableCell>
-                      <TableCell>{cls.stream ?? "-"}</TableCell>
-                      <TableCell>
-                        {cls.classTeacher
-                          ? `${cls.classTeacher.firstName} ${cls.classTeacher.lastName}`
-                          : "-"}
-                      </TableCell>
-                      <TableCell>{cls.studentCount ?? 0}</TableCell>
-                      <TableCell>
-                        <Badge variant="default">{cls.status ?? "Active"}</Badge>
-                      </TableCell>
-                      <TableCell className="flex gap-2">
-                        <Link href={`/classes/${cls.id}/edit`}>
-                          <Button variant="outline" size="sm">
-                            <Edit className="h-4 w-4 mr-1" /> Edit
-                          </Button>
-                        </Link>
+              <div className="overflow-x-auto overflow-y-visible">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-slate-100 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800/50 border-b-2 border-slate-200 dark:border-slate-700">
+                      <TableHead className="font-semibold text-slate-700 dark:text-slate-200 py-4 text-center">Name</TableHead>
+                      <TableHead className="font-semibold text-slate-700 dark:text-slate-200 py-4 text-center">Level</TableHead>
+                      <TableHead className="font-semibold text-slate-700 dark:text-slate-200 py-4 text-center">Stream</TableHead>
+                      <TableHead className="font-semibold text-slate-700 dark:text-slate-200 py-4 text-center">Teacher</TableHead>
+                      <TableHead className="font-semibold text-slate-700 dark:text-slate-200 py-4 text-center">Students</TableHead>
+                      <TableHead className="font-semibold text-slate-700 dark:text-slate-200 py-4 text-center">Status</TableHead>
+                      <TableHead className="font-semibold text-slate-700 dark:text-slate-200 py-4 text-center">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filtered.map((cls) => (
+                      <TableRow key={cls.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 border-b border-slate-100 dark:border-slate-800">
+                        <TableCell className="text-center">{cls.name}</TableCell>
+                        <TableCell className="text-center">{cls.level}</TableCell>
+                        <TableCell className="text-center">{cls.stream ?? "-"}</TableCell>
+                        <TableCell className="text-center">
+                          {cls.classTeacher
+                            ? `${cls.classTeacher.firstName} ${cls.classTeacher.lastName}`
+                            : "-"}
+                        </TableCell>
+                        <TableCell className="text-center">{cls.studentCount ?? 0}</TableCell>
+                        <TableCell className="text-center">
+                          <Badge variant="default">{cls.status ?? "Active"}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-2 justify-center">
+                            <Link href={`/classes/${cls.id}/edit`}>
+                              <Button variant="outline" size="sm">
+                                <Edit className="h-4 w-4 mr-1" /> Edit
+                              </Button>
+                            </Link>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <Button
@@ -160,11 +168,13 @@ function ClassesContent() {
                             </AlertDialogFooter>
                           </AlertDialogContent>
                         </AlertDialog>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             )}
           </CardContent>
         </Card>

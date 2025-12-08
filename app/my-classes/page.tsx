@@ -190,34 +190,17 @@ export default function MyClassesPage() {
       >
         <div className="max-w-7xl mx-auto space-y-6">
           {/* Filters Card */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-primary/10 rounded-lg">
-                    <Filter className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle>Filter Classes</CardTitle>
-                    <CardDescription>Select academic year and term to view classes</CardDescription>
-                  </div>
-                </div>
-                <Button variant="outline" size="sm" onClick={handleRefresh} disabled={refreshing || loading}>
-                  <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? "animate-spin" : ""}`} />
-                  Refresh
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <Card className="border-slate-200 dark:border-slate-700">
+            <CardContent className="py-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 items-end">
                 {/* Academic Year */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Academic Year</label>
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-slate-600 dark:text-slate-400">Academic Year</label>
                   <Select
                     value={selectedYear}
                     onValueChange={setSelectedYear}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="h-9 border-2 border-slate-200 dark:border-slate-700">
                       <SelectValue placeholder="Select year" />
                     </SelectTrigger>
                     <SelectContent>
@@ -231,14 +214,14 @@ export default function MyClassesPage() {
                 </div>
 
                 {/* Term */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Term</label>
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-slate-600 dark:text-slate-400">Term</label>
                   <Select
                     value={selectedTerm}
                     onValueChange={setSelectedTerm}
                     disabled={!selectedYear}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="h-9 border-2 border-slate-200 dark:border-slate-700">
                       <SelectValue placeholder="Select term" />
                     </SelectTrigger>
                     <SelectContent>
@@ -253,13 +236,13 @@ export default function MyClassesPage() {
 
                 {/* Class Filter (only show if teacher has multiple classes) */}
                 {classes.length > 1 && (
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Class</label>
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-slate-600 dark:text-slate-400">Class</label>
                     <Select
                       value={selectedClassFilter}
                       onValueChange={setSelectedClassFilter}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="h-9 border-2 border-slate-200 dark:border-slate-700">
                         <SelectValue placeholder="All classes" />
                       </SelectTrigger>
                       <SelectContent>
@@ -274,17 +257,25 @@ export default function MyClassesPage() {
                   </div>
                 )}
 
-                {/* Current Selection Info */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Current Selection</label>
-                  <div className="flex items-center gap-2 h-10 px-3 py-2 bg-muted rounded-md">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">
+                {/* Current Selection Display */}
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-slate-600 dark:text-slate-400">Current Selection</label>
+                  <div className="flex items-center gap-2 h-9 px-3 bg-slate-100 dark:bg-slate-800 rounded-md border-2 border-slate-200 dark:border-slate-700">
+                    <Calendar className="h-4 w-4 text-slate-500" />
+                    <span className="text-sm text-slate-700 dark:text-slate-300">
                       {selectedYear && selectedTerm 
                         ? `${selectedYear} - ${getTermName(selectedTerm)}`
                         : "Select filters"}
                     </span>
                   </div>
+                </div>
+
+                {/* Refresh Button */}
+                <div className="flex justify-end">
+                  <Button variant="outline" size="sm" className="h-9" onClick={handleRefresh} disabled={refreshing || loading}>
+                    <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? "animate-spin" : ""}`} />
+                    Refresh
+                  </Button>
                 </div>
               </div>
             </CardContent>
@@ -292,9 +283,9 @@ export default function MyClassesPage() {
 
           {/* Info Alert */}
           {selectedYear && selectedTerm && (
-            <Alert className="bg-blue-50 border-blue-200 dark:bg-blue-900/20">
+            <Alert className="bg-blue-50 dark:bg-blue-950/30 border-2 border-blue-200 dark:border-blue-800">
               <AlertCircle className="h-4 w-4 text-blue-600" />
-              <AlertDescription className="text-blue-800 dark:text-blue-200">
+              <AlertDescription className="text-blue-700 dark:text-blue-300">
                 <strong>Viewing:</strong> {selectedYear} - {getTermName(selectedTerm)} 
                 {year && term && selectedYear === year.toString() && selectedTerm === term && " (Current Period)"}
               </AlertDescription>
@@ -303,41 +294,41 @@ export default function MyClassesPage() {
 
           {/* Classes Grid */}
           {loading ? (
-            <Card>
+            <Card className="border-slate-200 dark:border-slate-700">
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <Loader2 className="h-12 w-12 text-primary mb-4 animate-spin" />
-                <h3 className="text-lg font-medium mb-2">Loading classes...</h3>
-                <p className="text-muted-foreground text-center max-w-md">
+                <h3 className="text-lg font-medium mb-2 text-slate-900 dark:text-white">Loading classes...</h3>
+                <p className="text-slate-500 text-center max-w-md">
                   Please wait while we fetch your class data.
                 </p>
               </CardContent>
             </Card>
           ) : !selectedYear || !selectedTerm ? (
-            <Card>
+            <Card className="border-slate-200 dark:border-slate-700">
               <CardContent className="py-12 text-center">
-                <Filter className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Select Year and Term</h3>
-                <p className="text-muted-foreground">
+                <Filter className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2 text-slate-900 dark:text-white">Select Year and Term</h3>
+                <p className="text-slate-500">
                   Please select an academic year and term to view your classes.
                 </p>
               </CardContent>
             </Card>
           ) : classes.length === 0 ? (
-            <Card>
+            <Card className="border-slate-200 dark:border-slate-700">
               <CardContent className="py-12 text-center">
-                <GraduationCap className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No Classes Assigned</h3>
-                <p className="text-muted-foreground">
+                <GraduationCap className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2 text-slate-900 dark:text-white">No Classes Assigned</h3>
+                <p className="text-slate-500">
                   You don't have any classes assigned yet. Please contact your head teacher.
                 </p>
               </CardContent>
             </Card>
           ) : filteredClasses.length === 0 ? (
-            <Card>
+            <Card className="border-slate-200 dark:border-slate-700">
               <CardContent className="py-12 text-center">
-                <GraduationCap className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No Classes Match Filter</h3>
-                <p className="text-muted-foreground">
+                <GraduationCap className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2 text-slate-900 dark:text-white">No Classes Match Filter</h3>
+                <p className="text-slate-500">
                   No classes match the selected filter. Try selecting "All Classes".
                 </p>
               </CardContent>
@@ -351,14 +342,14 @@ export default function MyClassesPage() {
                 const hasInstructors = setupStatus?.hasInstructors
 
                 return (
-                  <Card key={cls.id} className="shadow-md hover:shadow-lg transition-all">
-                    <CardHeader>
+                  <Card key={cls.id} className="border-slate-200 dark:border-slate-700 hover:shadow-lg transition-all hover:border-slate-300 dark:hover:border-slate-600">
+                    <CardHeader className="pb-3">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <CardTitle className="text-xl">
+                          <CardTitle className="text-lg text-slate-900 dark:text-white">
                             {cls.name}
                             {cls.stream && (
-                              <span className="text-muted-foreground font-normal ml-2">({cls.stream})</span>
+                              <span className="text-slate-500 font-normal ml-2">({cls.stream})</span>
                             )}
                           </CardTitle>
                           <CardDescription className="mt-1">Level: {cls.level}</CardDescription>
@@ -384,9 +375,9 @@ export default function MyClassesPage() {
                       )}
 
                       {isSetup && !hasInstructors && (
-                        <Alert className="py-2 bg-amber-50 border-amber-200">
+                        <Alert className="py-2 bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800">
                           <AlertCircle className="h-4 w-4 text-amber-600" />
-                          <AlertDescription className="text-sm text-amber-800">
+                          <AlertDescription className="text-sm text-amber-700 dark:text-amber-300">
                             Some subjects missing instructors.
                           </AlertDescription>
                         </Alert>
@@ -395,16 +386,16 @@ export default function MyClassesPage() {
                       {/* Student Statistics */}
                       {summary && (
                         <div className="space-y-3">
-                          <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                          <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700">
                             <div className="flex items-center gap-2">
-                              <Users className="h-4 w-4 text-muted-foreground" />
-                              <span className="text-sm font-medium">Total Students</span>
+                              <Users className="h-4 w-4 text-slate-500" />
+                              <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Total Students</span>
                             </div>
-                            <span className="text-lg font-bold">{summary.totalStudents}</span>
+                            <span className="text-lg font-bold text-slate-900 dark:text-white">{summary.totalStudents}</span>
                           </div>
 
                           <div className="grid grid-cols-2 gap-2">
-                            <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded border border-blue-200">
+                            <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
                               <div className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400">
                                 <UserCheck className="h-3 w-3" />
                                 <span>Male</span>
@@ -414,7 +405,7 @@ export default function MyClassesPage() {
                               </p>
                             </div>
 
-                            <div className="p-2 bg-pink-50 dark:bg-pink-900/20 rounded border border-pink-200">
+                            <div className="p-2 bg-pink-50 dark:bg-pink-900/20 rounded-lg border border-pink-200 dark:border-pink-800">
                               <div className="flex items-center gap-1 text-xs text-pink-600 dark:text-pink-400">
                                 <UserX className="h-3 w-3" />
                                 <span>Female</span>
@@ -426,16 +417,16 @@ export default function MyClassesPage() {
                           </div>
 
                           {/* Status breakdown */}
-                          <div className="pt-2 border-t">
-                            <p className="text-xs text-muted-foreground mb-2">Status Distribution:</p>
-                            <div className="flex gap-2 text-xs">
-                              <Badge variant="outline" className="text-green-600 border-green-200">
+                          <div className="pt-2 border-t border-slate-200 dark:border-slate-700">
+                            <p className="text-xs text-slate-500 mb-2">Status Distribution:</p>
+                            <div className="flex gap-2 text-xs flex-wrap">
+                              <Badge variant="outline" className="text-green-600 border-green-200 dark:border-green-800">
                                 New: {summary.byStatus.initial}
                               </Badge>
-                              <Badge variant="outline" className="text-blue-600 border-blue-200">
+                              <Badge variant="outline" className="text-blue-600 border-blue-200 dark:border-blue-800">
                                 Promoted: {summary.byStatus.promoted}
                               </Badge>
-                              <Badge variant="outline" className="text-amber-600 border-amber-200">
+                              <Badge variant="outline" className="text-amber-600 border-amber-200 dark:border-amber-800">
                                 Repeated: {summary.byStatus.repeated}
                               </Badge>
                             </div>
@@ -445,16 +436,16 @@ export default function MyClassesPage() {
 
                       {/* Subject Info */}
                       {setupStatus && isSetup && (
-                        <div className="pt-3 border-t space-y-2">
+                        <div className="pt-3 border-t border-slate-200 dark:border-slate-700 space-y-2">
                           <div className="flex items-center gap-2 text-sm">
-                            <BookOpen className="h-4 w-4 text-muted-foreground" />
-                            <span className="font-medium">{setupStatus.totalSubjects} Subjects</span>
+                            <BookOpen className="h-4 w-4 text-slate-500" />
+                            <span className="font-medium text-slate-700 dark:text-slate-300">{setupStatus.totalSubjects} Subjects</span>
                           </div>
                           <div className="flex gap-2 text-xs">
-                            <Badge variant="outline" className="text-blue-600 border-blue-200">
+                            <Badge variant="outline" className="text-blue-600 border-blue-200 dark:border-blue-800">
                               Core: {setupStatus.coreSubjectsCount}
                             </Badge>
-                            <Badge variant="outline" className="text-green-600 border-green-200">
+                            <Badge variant="outline" className="text-green-600 border-green-200 dark:border-green-800">
                               Electives: {setupStatus.electiveSubjectsCount}
                             </Badge>
                           </div>
@@ -464,20 +455,20 @@ export default function MyClassesPage() {
                       {/* Action Buttons */}
                       <div className="flex flex-col gap-2 pt-3">
                         {!isSetup ? (
-                          <Button onClick={() => handleSetupClass(cls.id)} className="w-full" size="sm">
+                          <Button onClick={() => handleSetupClass(cls.id)} className="w-full h-9" size="sm">
                             <Settings className="h-4 w-4 mr-2" />
                             Setup Class
                           </Button>
                         ) : (
                           <>
-                            <Button onClick={() => handleViewGrades(cls.id)} className="w-full" size="sm">
+                            <Button onClick={() => handleViewGrades(cls.id)} className="w-full h-9" size="sm">
                               <GraduationCap className="h-4 w-4 mr-2" />
                               View Grades
                             </Button>
                             <Button
                               onClick={() => handleEditSubjects(cls.id)}
                               variant="outline"
-                              className="w-full"
+                              className="w-full h-9"
                               size="sm"
                             >
                               <BookOpen className="h-4 w-4 mr-2" />
