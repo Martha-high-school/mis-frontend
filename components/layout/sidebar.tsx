@@ -49,7 +49,7 @@ const navigationItems = {
     { name: "Dashboard", href: "/dashboard/headteacher", icon: Home },
     { name: "Classes", href: "/classes", icon: GraduationCap },
     { name: "Students", href: "/students", icon: Users },
-    { name: "Assessments", href: "/assessments", icon: BookOpen },
+    // { name: "Assessments", href: "/assessments", icon: BookOpen },
     { name: "Report Generator", href: "/reports", icon: BarChart3 },
     {
       name: "Settings",

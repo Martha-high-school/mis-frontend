@@ -529,36 +529,56 @@ function CommentModal({ reportCard, isOpen, onClose, onSave }: CommentModalProps
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Edit Comments & Fees - {reportCard?.name}</DialogTitle>
+          <DialogTitle className="text-slate-900 dark:text-white">Edit Comments & Fees - {reportCard?.name}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label>Class Teacher Comment</Label>
-            <Textarea value={classTeacherComment} onChange={(e) => setClassTeacherComment(e.target.value)} rows={3} />
+            <Label className="text-slate-700 dark:text-slate-300">Class Teacher Comment</Label>
+            <Textarea 
+              value={classTeacherComment} 
+              onChange={(e) => setClassTeacherComment(e.target.value)} 
+              rows={3} 
+              className="border-2 border-slate-200 dark:border-slate-700 focus:border-primary"
+            />
           </div>
 
           <div className="space-y-2">
-            <Label>Head Teacher Comment</Label>
-            <Textarea value={headTeacherComment} onChange={(e) => setHeadTeacherComment(e.target.value)} rows={3} />
+            <Label className="text-slate-700 dark:text-slate-300">Head Teacher Comment</Label>
+            <Textarea 
+              value={headTeacherComment} 
+              onChange={(e) => setHeadTeacherComment(e.target.value)} 
+              rows={3}
+              className="border-2 border-slate-200 dark:border-slate-700 focus:border-primary"
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Next Term Fees (UGX)</Label>
-              <Input type="number" value={nextTermFees} onChange={(e) => setNextTermFees(Number(e.target.value))} />
+              <Label className="text-slate-700 dark:text-slate-300">Next Term Fees (UGX)</Label>
+              <Input 
+                type="number" 
+                value={nextTermFees} 
+                onChange={(e) => setNextTermFees(Number(e.target.value))}
+                className="h-10 border-2 border-slate-200 dark:border-slate-700 focus:border-primary"
+              />
             </div>
 
             <div className="space-y-2">
-              <Label>Balance (UGX)</Label>
-              <Input type="number" value={balance} onChange={(e) => setBalance(Number(e.target.value))} />
+              <Label className="text-slate-700 dark:text-slate-300">Balance (UGX)</Label>
+              <Input 
+                type="number" 
+                value={balance} 
+                onChange={(e) => setBalance(Number(e.target.value))}
+                className="h-10 border-2 border-slate-200 dark:border-slate-700 focus:border-primary"
+              />
             </div>
           </div>
         </div>
 
-        <div className="flex justify-end gap-2 mt-6">
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button onClick={handleSave}>Save Changes</Button>
+        <div className="flex justify-end gap-3 mt-6">
+          <Button variant="outline" className="h-10" onClick={onClose}>Cancel</Button>
+          <Button className="h-10" onClick={handleSave}>Save Changes</Button>
         </div>
       </DialogContent>
     </Dialog>
@@ -889,31 +909,25 @@ function ReportsContent() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row gap-4 justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-foreground">Student Report Generator</h2>
-            <p className="text-sm text-muted-foreground">
+            {/* <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Report Generator</h1> */}
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
               Generate comprehensive PDF reports for students with academic assessments, teacher comments, and fees information
             </p>
           </div>
         </div>
 
         {/* Filters */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Filter className="h-5 w-5" />
-              Report Filters
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card className="border-slate-200 dark:border-slate-700">
+          <CardContent className="py-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 items-end">
               {/* Academic Year */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Academic Year</label>
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-slate-600 dark:text-slate-400">Academic Year</label>
                 <Select
                   value={selectedYear}
                   onValueChange={setSelectedYear}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="h-9 border-2 border-slate-200 dark:border-slate-700">
                     <SelectValue placeholder="Select year" />
                   </SelectTrigger>
                   <SelectContent>
@@ -927,14 +941,14 @@ function ReportsContent() {
               </div>
 
               {/* Term */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Term</label>
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-slate-600 dark:text-slate-400">Term</label>
                 <Select
                   value={selectedTerm}
                   onValueChange={(value) => setSelectedTerm(value as any)}
                   disabled={!selectedYear || terms.length === 0}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="h-9 border-2 border-slate-200 dark:border-slate-700">
                     <SelectValue placeholder="Select term" />
                   </SelectTrigger>
                   <SelectContent>
@@ -948,14 +962,14 @@ function ReportsContent() {
               </div>
 
               {/* Class */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Class</label>
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-slate-600 dark:text-slate-400">Class</label>
                 <Select
                   value={selectedClass}
                   onValueChange={setSelectedClass}
                   disabled={classes.length === 0}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="h-9 border-2 border-slate-200 dark:border-slate-700">
                     <SelectValue placeholder="Select class" />
                   </SelectTrigger>
                   <SelectContent>
@@ -969,11 +983,11 @@ function ReportsContent() {
               </div>
 
               {/* Bulk Download Button */}
-              <div className="flex items-end">
+              <div>
                 <Button
                   onClick={handleBulkGenerate}
                   disabled={!selectedClass || !selectedTerm || loadingStudents || downloadingBulk || students.length === 0}
-                  className="w-full"
+                  className="w-full h-9"
                 >
                   {downloadingBulk ? (
                     <>
@@ -994,29 +1008,31 @@ function ReportsContent() {
 
         {/* Students List */}
         {loadingStudents ? (
-          <Card>
+          <Card className="border-slate-200 dark:border-slate-700">
             <CardContent className="flex flex-col items-center justify-center py-12">
               <Loader2 className="h-12 w-12 text-primary mb-4 animate-spin" />
-              <h3 className="text-lg font-medium mb-2">Loading Students...</h3>
-              <p className="text-muted-foreground text-center max-w-md">
+              <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-2">Loading Students...</h3>
+              <p className="text-slate-500 text-center max-w-md">
                 Fetching student list. This should only take a moment...
               </p>
             </CardContent>
           </Card>
         ) : selectedClass && selectedTerm ? (
           students.length > 0 ? (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
-                  Students in Class {selectedClass} - {reportCardService.formatTermForDisplay(selectedTerm)} {selectedYear}
+            <Card className="border-slate-200 dark:border-slate-700">
+              <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Users className="h-5 w-5 text-primary" />
+                  <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                    Students in Class - {reportCardService.formatTermForDisplay(selectedTerm)} {selectedYear}
+                  </p>
                   <Badge variant="secondary" className="ml-2">{students.length} students</Badge>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
+                </div>
+              </div>
+              <CardContent className="p-0">
+                <div className="divide-y divide-slate-100 dark:divide-slate-800">
                   {students.map((student) => (
-                    <div key={student.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                    <div key={student.id} className="flex items-center justify-between p-4 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
                       <div className="flex items-center gap-4">
                         <Avatar>
                           <AvatarImage src={student.photo || "/placeholder.svg"} />
@@ -1027,10 +1043,10 @@ function ReportsContent() {
 
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
-                            <h3 className="font-medium">{student.name}</h3>
-                            <Badge variant="outline">{student.studentNumber}</Badge>
+                            <h3 className="font-medium text-slate-700 dark:text-slate-300">{student.name}</h3>
+                            <Badge variant="outline" className="border-slate-300">{student.studentNumber}</Badge>
                           </div>
-                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                          <div className="flex items-center gap-4 text-sm text-slate-500">
                             <span>Gender: {student.gender}</span>
                             {student.reportCard ? (
                               <>
@@ -1049,7 +1065,8 @@ function ReportsContent() {
                       <div className="flex items-center gap-2">
                         <Button 
                           variant="outline" 
-                          size="sm" 
+                          size="sm"
+                          className="h-8"
                           onClick={() => handleEditComments(student)}
                           disabled={loadingPreview === student.studentId}
                         >
@@ -1063,7 +1080,8 @@ function ReportsContent() {
 
                         <Button 
                           variant="outline" 
-                          size="sm" 
+                          size="sm"
+                          className="h-8"
                           onClick={() => handlePreview(student)}
                           disabled={loadingPreview === student.studentId}
                         >
@@ -1076,7 +1094,8 @@ function ReportsContent() {
                         </Button>
 
                         <Button 
-                          size="sm" 
+                          size="sm"
+                          className="h-8"
                           onClick={() => handleGenerateReport(student.studentId)}
                           disabled={downloadingPDF === student.studentId}
                         >
@@ -1094,22 +1113,22 @@ function ReportsContent() {
               </CardContent>
             </Card>
           ) : (
-            <Card>
+            <Card className="border-slate-200 dark:border-slate-700">
               <CardContent className="flex flex-col items-center justify-center py-12">
-                <FileText className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-medium mb-2">No Report Cards Found</h3>
-                <p className="text-muted-foreground text-center max-w-md">
+                <FileText className="h-12 w-12 text-slate-400 mb-4" />
+                <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-2">No Report Cards Found</h3>
+                <p className="text-slate-500 text-center max-w-md">
                   No report cards were found for the selected class and term. Please verify your selection or generate report cards first.
                 </p>
               </CardContent>
             </Card>
           )
         ) : (
-          <Card>
+          <Card className="border-slate-200 dark:border-slate-700">
             <CardContent className="flex flex-col items-center justify-center py-12">
-              <FileText className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium mb-2">Select Class and Term</h3>
-              <p className="text-muted-foreground text-center max-w-md">
+              <FileText className="h-12 w-12 text-slate-400 mb-4" />
+              <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-2">Select Class and Term</h3>
+              <p className="text-slate-500 text-center max-w-md">
                 Choose an academic year, term, and class to view students and generate their comprehensive PDF reports with grades, comments, and fees information.
               </p>
             </CardContent>

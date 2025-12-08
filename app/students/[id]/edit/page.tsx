@@ -334,13 +334,14 @@ function EditStudentContent() {
       breadcrumbs={breadcrumbs}
       // showBackButton={true}
     >
-      <div className="max-w-4xl">
+      <div className="max-w-5xl mx-auto">
         {/* Header */}
         
         <div className="mb-6">
-            <p className="text-muted-foreground">
-                Update student information and photo
-              </p>
+          {/* <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Edit Student</h1> */}
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+            Update student information and photo
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -348,10 +349,10 @@ function EditStudentContent() {
             {/* Left Column - Basic Info */}
             <div className="lg:col-span-2 space-y-6">
               {/* Personal Information */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <User className="h-5 w-5" />
+              <Card className="border-slate-200 dark:border-slate-700">
+                <CardHeader className="pb-4">
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <User className="h-5 w-5 text-primary" />
                     Personal Information
                   </CardTitle>
                   <CardDescription>
@@ -367,7 +368,7 @@ function EditStudentContent() {
                         value={formData.firstName}
                         onChange={(e) => updateFormData('firstName', e.target.value)}
                         placeholder="Enter first name"
-                        className={errors.firstName ? 'border-red-300' : ''}
+                        className={`h-10 border-2 ${errors.firstName ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'} focus:border-primary bg-white dark:bg-slate-900`}
                       />
                       {errors.firstName && (
                         <p className="text-sm text-red-600 flex items-center gap-1">
@@ -384,7 +385,7 @@ function EditStudentContent() {
                         value={formData.lastName}
                         onChange={(e) => updateFormData('lastName', e.target.value)}
                         placeholder="Enter last name"
-                        className={errors.lastName ? 'border-red-300' : ''}
+                        className={`h-10 border-2 ${errors.lastName ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'} focus:border-primary bg-white dark:bg-slate-900`}
                       />
                       {errors.lastName && (
                         <p className="text-sm text-red-600 flex items-center gap-1">
@@ -401,7 +402,7 @@ function EditStudentContent() {
                       value={formData.gender}
                       onValueChange={(value) => updateFormData('gender', value as "MALE" | "FEMALE" | "OTHER")}
                     >
-                      <SelectTrigger id="gender">
+                      <SelectTrigger id="gender" className="h-10 border-2 border-slate-200 dark:border-slate-700 focus:border-primary">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -414,7 +415,7 @@ function EditStudentContent() {
 
                   <div className="space-y-2">
                     <Label>Admission Date</Label>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
                       <Calendar className="h-4 w-4" />
                       {new Date(studentData.admissionDate).toLocaleDateString('en-US', {
                         year: 'numeric',
@@ -427,7 +428,7 @@ function EditStudentContent() {
                   {currentAge > 0 && (
                     <div className="space-y-2">
                       <Label>Estimated Age</Label>
-                      <div className="text-sm font-medium">
+                      <div className="text-sm font-medium text-slate-700 dark:text-slate-300">
                         {currentAge} years old
                       </div>
                     </div>
@@ -436,10 +437,10 @@ function EditStudentContent() {
               </Card>
 
               {/* Guardian Information */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Users className="h-5 w-5" />
+              <Card className="border-slate-200 dark:border-slate-700">
+                <CardHeader className="pb-4">
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <Users className="h-5 w-5 text-primary" />
                     Guardian Information
                   </CardTitle>
                   <CardDescription>
@@ -454,7 +455,7 @@ function EditStudentContent() {
                       value={formData.guardianRelation}
                       onChange={(e) => updateFormData('guardianRelation', e.target.value)}
                       placeholder="e.g., Mother, Father, Uncle, Aunt"
-                      className={errors.guardianRelation ? 'border-red-300' : ''}
+                      className={`h-10 border-2 ${errors.guardianRelation ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'} focus:border-primary bg-white dark:bg-slate-900`}
                     />
                     {errors.guardianRelation && (
                       <p className="text-sm text-red-600 flex items-center gap-1">
@@ -472,7 +473,7 @@ function EditStudentContent() {
                       value={formData.guardianPhone}
                       onChange={(e) => updateFormData('guardianPhone', e.target.value)}
                       placeholder="+256 700 123 456"
-                      className={errors.guardianPhone ? 'border-red-300' : ''}
+                      className={`h-10 border-2 ${errors.guardianPhone ? 'border-red-300' : 'border-slate-200 dark:border-slate-700'} focus:border-primary bg-white dark:bg-slate-900`}
                     />
                     {errors.guardianPhone && (
                       <p className="text-sm text-red-600 flex items-center gap-1">
@@ -488,10 +489,10 @@ function EditStudentContent() {
             {/* Right Column - Photo & Enrollment */}
             <div className="space-y-6">
               {/* Student Photo */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Camera className="h-5 w-5" />
+              <Card className="border-slate-200 dark:border-slate-700">
+                <CardHeader className="pb-4">
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <Camera className="h-5 w-5 text-primary" />
                     Student Photo
                   </CardTitle>
                   <CardDescription>
@@ -503,7 +504,7 @@ function EditStudentContent() {
                   <div className="flex justify-center">
                     {photoPreview ? (
                       <div className="relative group">
-                        <div className="w-48 h-48 rounded-lg overflow-hidden border-2 border-gray-200 bg-gray-50">
+                        <div className="w-48 h-48 rounded-lg overflow-hidden border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
                           <img
                             src={photoPreview}
                             alt="Student photo"
@@ -533,7 +534,7 @@ function EditStudentContent() {
                         </div>
                       </div>
                     ) : (
-                      <div className="w-48 h-48 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 flex flex-col items-center justify-center text-gray-400">
+                      <div className="w-48 h-48 rounded-lg border-2 border-dashed border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 flex flex-col items-center justify-center text-slate-400">
                         <ImageIcon className="h-12 w-12 mb-2" />
                         <p className="text-sm text-center">No photo</p>
                       </div>
@@ -552,7 +553,7 @@ function EditStudentContent() {
                     <Button
                       type="button"
                       variant="outline"
-                      className="w-full"
+                      className="w-full h-10"
                       onClick={() => fileInputRef.current?.click()}
                     >
                       <Upload className="h-4 w-4 mr-2" />
@@ -560,19 +561,19 @@ function EditStudentContent() {
                     </Button>
                     
                     {photoFile && (
-                    <div className="p-2 rounded-md bg-blue-50 border border-blue-200 text-blue-800 text-xs">
+                    <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 text-xs">
                       New photo selected: {photoFile.name}
                     </div>
                     )}
 
                     {removePhoto && (
-                      <div className="p-2 rounded-md bg-red-50 border border-red-200 text-red-800 text-xs">
+                      <div className="p-2 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-xs">
                         Photo will be removed when you save
                       </div>
                     )}
                   </div>
 
-                  <p className="text-xs text-muted-foreground text-center">
+                  <p className="text-xs text-slate-500 text-center">
                     Accepted formats: JPG, PNG, GIF<br />
                     Max size: 5MB
                   </p>
@@ -581,23 +582,23 @@ function EditStudentContent() {
 
               {/* Current Enrollment Info */}
               {currentClass && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <GraduationCap className="h-5 w-5" />
+                <Card className="border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center gap-2 text-base">
+                      <GraduationCap className="h-5 w-5 text-primary" />
                       Current Enrollment
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Class:</span>
-                      <span className="font-medium">{currentClass.name}</span>
+                      <span className="text-slate-500">Class:</span>
+                      <span className="font-medium text-slate-700 dark:text-slate-300">{currentClass.name}</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Level:</span>
-                      <span className="font-medium">{currentClass.level}</span>
+                      <span className="text-slate-500">Level:</span>
+                      <span className="font-medium text-slate-700 dark:text-slate-300">{currentClass.level}</span>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-2">
+                    <p className="text-xs text-slate-500 mt-2">
                       * To change class, use the promotion feature
                     </p>
                   </CardContent>
@@ -606,10 +607,10 @@ function EditStudentContent() {
 
               {/* Enrollment History */}
               {studentData.enrollments && studentData.enrollments.length > 0 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Calendar className="h-5 w-5" />
+                <Card className="border-slate-200 dark:border-slate-700">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center gap-2 text-base">
+                      <Calendar className="h-5 w-5 text-primary" />
                       Enrollment History
                     </CardTitle>
                   </CardHeader>
@@ -618,11 +619,11 @@ function EditStudentContent() {
                       {studentData.enrollments.map((enrollment) => (
                         <div 
                           key={enrollment.id}
-                          className={`flex items-center justify-between text-sm p-2 rounded ${
-                            enrollment.isCurrent ? 'bg-primary/10' : 'bg-muted/50'
+                          className={`flex items-center justify-between text-sm p-2 rounded-lg ${
+                            enrollment.isCurrent ? 'bg-primary/10 border border-primary/20' : 'bg-slate-50 dark:bg-slate-800/50'
                           }`}
                         >
-                          <span>{enrollment.class.name}</span>
+                          <span className="text-slate-700 dark:text-slate-300">{enrollment.class.name}</span>
                           {enrollment.isCurrent && (
                             <Badge variant="default" className="text-xs">Current</Badge>
                           )}
@@ -637,9 +638,9 @@ function EditStudentContent() {
 
           {/* Changes Summary */}
           {hasChanges && (
-            <Card className="bg-amber-50 border-amber-200">
-              <CardHeader>
-                <CardTitle className="text-lg text-amber-800">Pending Changes</CardTitle>
+            <Card className="bg-amber-50 dark:bg-amber-950/20 border-2 border-amber-200 dark:border-amber-800">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base text-amber-800 dark:text-amber-300">Pending Changes</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
@@ -695,11 +696,11 @@ function EditStudentContent() {
           )}
 
           {/* Action Buttons */}
-          <div className="flex gap-4 pt-6">
+          <div className="flex gap-3 pt-2">
             <Button 
               type="submit" 
               disabled={loading.saving || !hasChanges}
-              className="min-w-32"
+              className="min-w-32 h-10"
             >
               {loading.saving ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -710,7 +711,7 @@ function EditStudentContent() {
             </Button>
             
             <Link href="/students">
-              <Button type="button" variant="outline" disabled={loading.saving}>
+              <Button type="button" variant="outline" className="h-10" disabled={loading.saving}>
                 Cancel
               </Button>
             </Link>

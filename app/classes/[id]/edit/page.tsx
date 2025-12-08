@@ -147,9 +147,9 @@ export default function EditClassPage() {
         showBackButton
       >
         <div className="max-w-4xl mx-auto space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Edit Class Details</CardTitle>
+          <Card className="border-slate-200 dark:border-slate-700">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-xl">Edit Class Details</CardTitle>
               <CardDescription>Modify class name, level, stream, and teacher</CardDescription>
             </CardHeader>
             <CardContent>
@@ -161,7 +161,7 @@ export default function EditClassPage() {
                     <Input
                       value={formData.name}
                       onChange={(e) => updateFormData("name", e.target.value)}
-                      className={errors.name ? "border-red-300" : ""}
+                      className={`h-10 border-2 ${errors.name ? "border-red-300" : "border-slate-200 dark:border-slate-700"} focus:border-primary bg-white dark:bg-slate-900`}
                     />
                     {errors.name && (
                       <p className="text-sm text-red-600 flex items-center gap-1">
@@ -177,7 +177,7 @@ export default function EditClassPage() {
                       onValueChange={(v) => updateFormData("level", v)}
                       value={formData.level}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="h-10 border-2 border-slate-200 dark:border-slate-700 focus:border-primary">
                         <SelectValue placeholder="Select Level" />
                       </SelectTrigger>
                       <SelectContent>
@@ -201,7 +201,7 @@ export default function EditClassPage() {
                       onValueChange={(v) => updateFormData("stream", v)}
                       value={formData.stream}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="h-10 border-2 border-slate-200 dark:border-slate-700 focus:border-primary">
                         <SelectValue placeholder="Select Stream" />
                       </SelectTrigger>
                       <SelectContent>
@@ -219,44 +219,50 @@ export default function EditClassPage() {
                 <div className="space-y-2">
                   <Label htmlFor="teacherSearch">Search Teachers</Label>
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
                     <Input
                       id="teacherSearch"
                       value={teacherSearch}
                       onChange={(e) => setTeacherSearch(e.target.value)}
                       placeholder="Search by name or email..."
-                      className="pl-10"
+                      className="pl-10 h-10 border-2 border-slate-200 dark:border-slate-700 focus:border-primary bg-white dark:bg-slate-900"
                     />
                   </div>
 
-                  <div className="border rounded-lg max-h-64 overflow-y-auto mt-2">
-                    {filteredTeachers.map((t) => (
-                      <div
-                        key={t.id}
-                        onClick={() =>
-                          updateFormData("classTeacherId", t.id.toString())
-                        }
-                        className={`p-3 cursor-pointer rounded-md ${
-                          formData.classTeacherId === t.id.toString()
-                            ? "bg-primary/10 border border-primary/20"
-                            : "hover:bg-muted/50"
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="font-medium text-sm">
-                              {t.firstName} {t.lastName}
-                            </div>
-                            <div className="text-xs text-muted-foreground">
-                              {t.email}
-                            </div>
-                          </div>
-                          {formData.classTeacherId === t.id.toString() && (
-                            <CheckCircle className="h-4 w-4 text-green-600" />
-                          )}
-                        </div>
+                  <div className="border-2 border-slate-200 dark:border-slate-700 rounded-lg max-h-64 overflow-y-auto mt-2">
+                    {filteredTeachers.length === 0 ? (
+                      <div className="p-4 text-center text-slate-500">
+                        No teachers found matching your search
                       </div>
-                    ))}
+                    ) : (
+                      filteredTeachers.map((t) => (
+                        <div
+                          key={t.id}
+                          onClick={() =>
+                            updateFormData("classTeacherId", t.id.toString())
+                          }
+                          className={`p-3 cursor-pointer transition-all ${
+                            formData.classTeacherId === t.id.toString()
+                              ? "bg-primary/10 border-l-4 border-l-primary"
+                              : "hover:bg-slate-50 dark:hover:bg-slate-800/50 border-l-4 border-l-transparent"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="font-medium text-sm text-slate-900 dark:text-white">
+                                {t.firstName} {t.lastName}
+                              </div>
+                              <div className="text-xs text-slate-500">
+                                {t.email}
+                              </div>
+                            </div>
+                            {formData.classTeacherId === t.id.toString() && (
+                              <CheckCircle className="h-4 w-4 text-green-600" />
+                            )}
+                          </div>
+                        </div>
+                      ))
+                    )}
                   </div>
                   {errors.classTeacherId && (
                     <p className="text-sm text-red-600 flex items-center gap-1 mt-1">
@@ -265,19 +271,21 @@ export default function EditClassPage() {
                   )}
                 </div>
 
-                <Button type="submit" disabled={saving}>
-                  {saving ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  ) : (
-                    <Save className="h-4 w-4 mr-2" />
-                  )}
-                  {saving ? "Saving..." : "Save Changes"}
-                </Button>
-                <Link href="/classes">
-                  <Button variant="outline" className="ml-3">
-                    Cancel
+                <div className="flex gap-3 pt-2">
+                  <Button type="submit" disabled={saving} className="h-10">
+                    {saving ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Save className="h-4 w-4 mr-2" />
+                    )}
+                    {saving ? "Saving..." : "Save Changes"}
                   </Button>
-                </Link>
+                  <Link href="/classes">
+                    <Button variant="outline" className="h-10">
+                      Cancel
+                    </Button>
+                  </Link>
+                </div>
               </form>
             </CardContent>
           </Card>

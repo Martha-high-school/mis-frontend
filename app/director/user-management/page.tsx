@@ -22,7 +22,6 @@ import { toast } from "react-toastify"
 import { 
   Mail, 
   Search, 
-  Filter, 
   MoreHorizontal,
   Edit, 
   Trash2, 
@@ -54,7 +53,6 @@ function UserManagementContent() {
   const loadUsers = async () => {
     try {
       setIsLoading(true)
-      toast.error("")
       const data = await userService.getAllUsers()
       setUsers(data.users)
     } catch (err: any) {
@@ -166,40 +164,34 @@ function UserManagementContent() {
         {/* Header Actions */}
         <div className="flex flex-col sm:flex-row gap-4 justify-between">
           <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-500" />
             <Input
               placeholder="Search by name or email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+              className="pl-10 h-10 border-2 border-slate-200 dark:border-slate-700 focus:border-primary bg-white dark:bg-slate-900"
             />
           </div>
           <div className="flex gap-2">
-            <Button onClick={() => loadUsers()} variant="outline">
+            <Button onClick={() => loadUsers()} variant="outline" className="h-10">
               <RefreshCw className="h-4 w-4 mr-2" />
               Refresh
             </Button>
-            <Button onClick={() => setInviteDialogOpen(true)}>
+            <Button onClick={() => setInviteDialogOpen(true)} className="h-10">
               <Mail className="h-4 w-4 mr-2" />
               Invite User
             </Button>
           </div>
         </div>
 
-        {/* Filters */}
+        {/* Filters - Compact single row */}
         <Card>
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Filter className="h-5 w-5" />
-              Filters
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Role</label>
+          <CardContent className="py-4">
+            <div className="flex flex-wrap items-end gap-3">
+              <div className="space-y-1 min-w-[160px]">
+                <label className="text-xs font-medium">Role</label>
                 <Select value={roleFilter} onValueChange={setRoleFilter}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-9">
                     <SelectValue placeholder="All Roles" />
                   </SelectTrigger>
                   <SelectContent>
@@ -211,10 +203,10 @@ function UserManagementContent() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Status</label>
+              <div className="space-y-1 min-w-[160px]">
+                <label className="text-xs font-medium">Status</label>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-9">
                     <SelectValue placeholder="All Statuses" />
                   </SelectTrigger>
                   <SelectContent>
@@ -225,12 +217,11 @@ function UserManagementContent() {
                   </SelectContent>
                 </Select>
               </div>
-            </div>
-            {(roleFilter !== "All Roles" || statusFilter !== "All Statuses") && (
-              <div className="mt-4">
+              {(roleFilter !== "All Roles" || statusFilter !== "All Statuses") && (
                 <Button
                   variant="outline"
                   size="sm"
+                  className="h-9"
                   onClick={() => {
                     setRoleFilter("All Roles")
                     setStatusFilter("All Statuses")
@@ -238,28 +229,28 @@ function UserManagementContent() {
                 >
                   Clear Filters
                 </Button>
-              </div>
-            )}
+              )}
+            </div>
           </CardContent>
         </Card>
 
         {/* Users Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              Staff Members ({filteredUsers.length} of {users.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
+        <Card className="overflow-visible">
+          <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-700">
+            <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
+              Staff Members <span className="text-slate-500">({filteredUsers.length})</span>
+            </p>
+          </div>
+          <CardContent className="p-0 overflow-visible">
+            <div className="overflow-x-auto overflow-y-visible">
               <Table>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                  <TableRow className="bg-slate-100 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800/50 border-b-2 border-slate-200 dark:border-slate-700">
+                    <TableHead className="font-semibold text-slate-700 dark:text-slate-200 py-4">Name</TableHead>
+                    <TableHead className="font-semibold text-slate-700 dark:text-slate-200 py-4">Email</TableHead>
+                    <TableHead className="font-semibold text-slate-700 dark:text-slate-200 py-4">Role</TableHead>
+                    <TableHead className="font-semibold text-slate-700 dark:text-slate-200 py-4">Status</TableHead>
+                    <TableHead className="text-right font-semibold text-slate-700 dark:text-slate-200 py-4">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -271,7 +262,7 @@ function UserManagementContent() {
                     </TableRow>
                   ) : (
                     filteredUsers.map((u) => (
-                      <TableRow key={u.id}>
+                      <TableRow key={u.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 border-b border-slate-100 dark:border-slate-800">
                         <TableCell className="font-medium">
                           {u.firstName} {u.lastName}
                         </TableCell>
@@ -281,12 +272,12 @@ function UserManagementContent() {
                         <TableCell className="text-right">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                              <Button variant="ghost" size="icon" className="h-8 w-8">
                                 <span className="sr-only">Open menu</span>
                                 <MoreHorizontal className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
+                            <DropdownMenuContent align="end" className="z-50">
                               <DropdownMenuLabel>Actions</DropdownMenuLabel>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem

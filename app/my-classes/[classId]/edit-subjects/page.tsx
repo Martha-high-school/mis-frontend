@@ -140,39 +140,29 @@ export default function EditSubjectsPage() {
         <div className="container mx-auto py-6 space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div>
-                <p className="text-muted-foreground">
-                  {classInfo?.name} • Add subjects and configure competencies for each term
-                </p>
-              </div>
+            <div>
+              {/* <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Edit Subjects</h1> */}
+              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                {classInfo?.name} • Add subjects and configure competencies for each term
+              </p>
             </div>
-            <Button onClick={() => setAddSubjectDialogOpen(true)}>
+            <Button className="h-10" onClick={() => setAddSubjectDialogOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
               Add Subject
             </Button>
           </div>
 
           {/* Year & Term Selector */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5" />
-                Academic Period
-              </CardTitle>
-              <CardDescription>
-                Select the academic year and term to view/edit subjects
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Academic Year</Label>
+          <Card className="border-slate-200 dark:border-slate-700">
+            <CardContent className="py-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 items-end">
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-slate-600 dark:text-slate-400">Academic Year</label>
                   <Select
                     value={selectedYear?.toString()}
                     onValueChange={(value) => setSelectedYear(parseInt(value))}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="h-9 border-2 border-slate-200 dark:border-slate-700">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -188,13 +178,13 @@ export default function EditSubjectsPage() {
                   </Select>
                 </div>
 
-                <div className="space-y-2">
-                  <Label>Term</Label>
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-slate-600 dark:text-slate-400">Term</label>
                   <Select
                     value={selectedTerm}
                     onValueChange={(value) => setSelectedTerm(value as "T1" | "T2" | "T3")}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="h-9 border-2 border-slate-200 dark:border-slate-700">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -219,57 +209,47 @@ export default function EditSubjectsPage() {
                     </SelectContent>
                   </Select>
                 </div>
-              </div>
 
-              <div className="flex items-start gap-2 bg-blue-50 border border-blue-200 p-3 rounded-md mt-4">
-                <AlertCircle className="h-4 w-4 text-blue-600 mt-0.5" />
-                <p className="text-sm text-blue-800">
-                  Viewing subjects for <strong>{getTermName(selectedTerm)} {selectedYear}</strong>.
-                  When you add a subject, it will be available for all terms.
-                </p>
+                <div className="flex items-center gap-2 h-9 px-3 bg-blue-50 dark:bg-blue-950/30 rounded-md border-2 border-blue-200 dark:border-blue-800">
+                  <AlertCircle className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                  <span className="text-xs text-blue-700 dark:text-blue-300">
+                    Viewing <strong>{getTermName(selectedTerm)} {selectedYear}</strong>
+                  </span>
+                </div>
               </div>
-
             </CardContent>
           </Card>
 
           {/* Subjects List */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <GraduationCap className="h-5 w-5" />
-                    Subjects for {classInfo?.name}
-                  </CardTitle>
-                  <CardDescription>
-                    Manage subjects and their competencies for {getTermName(selectedTerm)}
-                  </CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
+          <Card className="border-slate-200 dark:border-slate-700 overflow-visible">
+            <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-700">
+              <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                Subjects for {classInfo?.name} <span className="text-slate-400">• {getTermName(selectedTerm)}</span>
+              </p>
+            </div>
+            <CardContent className="p-0">
               {loading ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
                 </div>
               ) : subjects.length === 0 ? (
-                <div className="flex items-start gap-3 p-4 border border-yellow-300 bg-yellow-50 rounded-md">
+                <div className="flex items-start gap-3 p-4 m-4 border-2 border-yellow-200 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-950/30 rounded-lg">
                   <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5" />
-                  <p className="text-sm text-yellow-700">
+                  <p className="text-sm text-yellow-700 dark:text-yellow-300">
                     No subjects configured for this class yet. Click <strong>"Add Subject"</strong> to get started.
                   </p>
                 </div>
               ) : (
-                <div className="rounded-md border">
+                <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-[50px]">#</TableHead>
-                        <TableHead>Subject Name</TableHead>
-                        <TableHead className="text-center">Type</TableHead>
-                        <TableHead className="text-center">Competencies ({selectedTerm})</TableHead>
-                        <TableHead className="text-center">Total Max Score</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
+                      <TableRow className="bg-slate-100 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800/50 border-b-2 border-slate-200 dark:border-slate-700">
+                        <TableHead className="font-semibold text-slate-700 dark:text-slate-200 py-4 w-[50px] text-center">#</TableHead>
+                        <TableHead className="font-semibold text-slate-700 dark:text-slate-200 py-4">Subject Name</TableHead>
+                        <TableHead className="font-semibold text-slate-700 dark:text-slate-200 py-4 text-center">Type</TableHead>
+                        <TableHead className="font-semibold text-slate-700 dark:text-slate-200 py-4 text-center">Competencies ({selectedTerm})</TableHead>
+                        <TableHead className="font-semibold text-slate-700 dark:text-slate-200 py-4 text-center">Total Max Score</TableHead>
+                        <TableHead className="font-semibold text-slate-700 dark:text-slate-200 py-4 text-center">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -280,12 +260,12 @@ export default function EditSubjectsPage() {
                         ) || 0
 
                         return (
-                          <TableRow key={subject.id}>
-                            <TableCell className="font-medium">{index + 1}</TableCell>
+                          <TableRow key={subject.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 border-b border-slate-100 dark:border-slate-800">
+                            <TableCell className="font-medium text-center">{index + 1}</TableCell>
                             <TableCell>
                               <div className="flex items-center gap-2">
-                                <BookOpen className="h-4 w-4 text-muted-foreground" />
-                                <span className="font-semibold">{subject.subject.name}</span>
+                                <BookOpen className="h-4 w-4 text-slate-500" />
+                                <span className="font-semibold text-slate-700 dark:text-slate-300">{subject.subject.name}</span>
                               </div>
                             </TableCell>
                             <TableCell className="text-center">
@@ -295,7 +275,7 @@ export default function EditSubjectsPage() {
                             </TableCell>
                             <TableCell className="text-center">
                               {subject.competences?.length > 0 ? (
-                                <Badge variant="outline">
+                                <Badge variant="outline" className="border-slate-300">
                                   {subject.competences.length} competencies
                                 </Badge>
                               ) : (
@@ -309,11 +289,12 @@ export default function EditSubjectsPage() {
                                 {totalMaxScore} marks
                               </Badge>
                             </TableCell>
-                            <TableCell className="text-right">
-                              <div className="flex items-center justify-end gap-2">
+                            <TableCell className="text-center">
+                              <div className="flex items-center justify-center">
                                 <Button
                                   variant="outline"
                                   size="sm"
+                                  className="h-8"
                                   onClick={() => handleEditCompetencies(subject)}
                                 >
                                   <Edit className="h-4 w-4 mr-2" />
@@ -332,37 +313,37 @@ export default function EditSubjectsPage() {
           </Card>
 
           {/* Info Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">How it Works</CardTitle>
+          <Card className="border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm text-slate-700 dark:text-slate-300">How it Works</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2 text-sm text-muted-foreground">
+              <div className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
                 <p className="flex items-start gap-2">
-                  <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                  <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0 text-slate-500" />
                   <span>
-                    <strong>Adding a subject:</strong> When you add a subject, you'll set up initial competencies. 
+                    <strong className="text-slate-700 dark:text-slate-300">Adding a subject:</strong> When you add a subject, you'll set up initial competencies. 
                     These will be automatically applied to all three terms (T1, T2, T3).
                   </span>
                 </p>
                 <p className="flex items-start gap-2">
-                  <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                  <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0 text-slate-500" />
                   <span>
-                    <strong>Term-specific competencies:</strong> Each term can have different competencies. 
+                    <strong className="text-slate-700 dark:text-slate-300">Term-specific competencies:</strong> Each term can have different competencies. 
                     Click "Edit Competencies" to customize for the selected term without affecting other terms.
                   </span>
                 </p>
                 <p className="flex items-start gap-2">
-                  <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                  <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0 text-slate-500" />
                   <span>
-                    <strong>Auto-cloning:</strong> When you first edit competencies for a new term, 
+                    <strong className="text-slate-700 dark:text-slate-300">Auto-cloning:</strong> When you first edit competencies for a new term, 
                     the system copies from the last edited term as a starting point.
                   </span>
                 </p>
                 <p className="flex items-start gap-2">
-                  <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                  <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0 text-slate-500" />
                   <span>
-                    <strong>Assessment calculation:</strong> Continuous assessment = 
+                    <strong className="text-slate-700 dark:text-slate-300">Assessment calculation:</strong> Continuous assessment = 
                     Sum of Competence Scores + Project Score (10 marks)
                   </span>
                 </p>
