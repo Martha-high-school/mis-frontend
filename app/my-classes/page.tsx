@@ -11,6 +11,7 @@ import { MainLayout } from "@/components/layout/main-layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { toast } from "react-toastify"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
@@ -26,12 +27,10 @@ import {
   RefreshCw,
   Filter,
 } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
 
 export default function MyClassesPage() {
   const { user } = useAuth()
   const router = useRouter()
-  const { toast } = useToast()
   const { year, term, termName, loading: contextLoading } = useAcademicContext()
 
   const [classes, setClasses] = useState<Class[]>([])
@@ -78,11 +77,8 @@ export default function MyClassesPage() {
       setYears(academicYears)
     } catch (error) {
       console.error("Error loading academic years:", error)
-      toast({
-        title: "Error",
-        description: "Failed to load academic years",
-        variant: "destructive",
-      })
+      toast.error("Failed to load academic years")
+
     }
   }
 
@@ -121,11 +117,7 @@ export default function MyClassesPage() {
       setClassSummaries(summaries)
       setClassSetupStatus(setupStatuses)
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to load classes",
-        variant: "destructive",
-      })
+      toast.error("Failed to load classes")
     } finally {
       setLoading(false)
     }
@@ -169,14 +161,10 @@ export default function MyClassesPage() {
   }
 
   if (!year || !term) {
+    toast.error("Academic year and term are not configured for the system.")
     return (
       <MainLayout pageTitle="My Classes" userRole={user?.role} userName={user?.name}>
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            Academic year and term not configured. Please ask your head teacher to configure them in settings.
-          </AlertDescription>
-        </Alert>
+        <p className="text-center text-muted-foreground">Please ask your head teacher to configure them in settings</p>
       </MainLayout>
     )
   }

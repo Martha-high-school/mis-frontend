@@ -17,8 +17,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Progress } from "@/components/ui/progress"
+import { toast } from "react-toastify"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -144,7 +143,6 @@ function TeacherReportsContent() {
   const [signature, setSignature] = useState<string | null>(null)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
-  const [saveStatus, setSaveStatus] = useState<"idle" | "success" | "error">("idle")
   const [validationErrors, setValidationErrors] = useState<string[]>([])
 
   // Teacher comments state
@@ -164,8 +162,6 @@ function TeacherReportsContent() {
   const [generalCommentActive, setGeneralCommentActive] = useState(false)
 
   const [hasCommentChanges, setHasCommentChanges] = useState(false)
-  const [commentSaveStatus, setCommentSaveStatus] = useState<"idle" | "success" | "error">("idle")
-  const [errorMessage, setErrorMessage] = useState("")
   const [savedCount, setSavedCount] = useState(0)
 
   // modal for per-student comment
@@ -284,7 +280,7 @@ function TeacherReportsContent() {
       setAvailableYears(years)
     } catch (error: any) {
       console.error("Error loading years:", error)
-      setErrorMessage("Failed to load academic years")
+      toast.error("Failed to load academic years")
     } finally {
       setLoading(prev => ({ ...prev, fetchingYears: false }))
     }
@@ -301,7 +297,7 @@ function TeacherReportsContent() {
       setAvailableTerms(terms)
     } catch (error: any) {
       console.error("Error loading terms:", error)
-      setErrorMessage("Failed to load terms")
+      toast.error("Failed to load terms")
     } finally {
       setLoading(prev => ({ ...prev, fetchingTerms: false }))
     }
@@ -321,7 +317,7 @@ function TeacherReportsContent() {
       }
     } catch (error: any) {
       console.error("Error loading classes:", error)
-      setErrorMessage("Failed to load classes")
+      toast.error("Failed to load classes")
     } finally {
       setLoading(prev => ({ ...prev, fetchingClasses: false }))
     }
@@ -352,7 +348,7 @@ function TeacherReportsContent() {
       setCurrentPage(1) 
     } catch (error: any) {
       console.error("Error loading students:", error)
-      setErrorMessage("Failed to load students")
+      toast.error("Failed to load students")
     } finally {
       setLoading(prev => ({ ...prev, fetchingStudents: false }))
     }
@@ -362,7 +358,7 @@ function TeacherReportsContent() {
     if (!selectedClass || !selectedYear || !selectedTerm) return
 
     setLoading(prev => ({ ...prev, fetchingComments: true }))
-    setErrorMessage("")
+    toast.error("")
     try {
       const termNumber = termToNumber(selectedTerm)
       const comments = await reportService.getClassComments(
@@ -379,11 +375,10 @@ function TeacherReportsContent() {
 
       setStudentComments(commentMap)
       setHasCommentChanges(false)
-      setCommentSaveStatus("idle")
     } catch (error: any) {
       console.error("Error loading comments:", error)
       if (error.response?.status !== 404) {
-        setErrorMessage("Failed to load comments")
+        toast.error("Failed to load comments")
       }
     } finally {
       setLoading(prev => ({ ...prev, fetchingComments: false }))
@@ -464,21 +459,20 @@ function TeacherReportsContent() {
       return next
     })
     setHasCommentChanges(true)
-    setCommentSaveStatus("idle")
   }
 
   const handleSaveGeneralComment = async () => {
     if (!generalCommentText.trim()) {
-      setErrorMessage("General comment cannot be empty")
+      toast.error("General comment cannot be empty")
       return
     }
     if (!selectedClass || !selectedYear || !selectedTerm) {
-      setErrorMessage("Please select class, year, and term")
+      toast.error("Please select class, year, and term")
       return
     }
 
     setLoading(prev => ({ ...prev, savingComments: true }))
-    setErrorMessage("")
+    toast.error("")
     try {
       const termNumber = termToNumber(selectedTerm)
       const result = await reportService.saveGeneralComment({
@@ -489,11 +483,10 @@ function TeacherReportsContent() {
       })
       setGeneralComment(result)
       setGeneralCommentActive(!!result.isActive)
-      setCommentSaveStatus("success")
-      setTimeout(() => setCommentSaveStatus("idle"), 2500)
+     toast.success("Comment saved successfully")
     } catch (error: any) {
-      setErrorMessage(error.message || "Failed to save general comment")
-      setCommentSaveStatus("error")
+      toast.error(error.message || "Failed to save general comment")
+      toast.error("Failed to save comment")
     } finally {
       setLoading(prev => ({ ...prev, savingComments: false }))
     }
@@ -513,7 +506,7 @@ function TeacherReportsContent() {
       )
       setGeneralCommentActive(!generalCommentActive)
     } catch (error: any) {
-      setErrorMessage(error.message || "Failed to toggle general comment")
+      toast.error(error.message || "Failed to toggle general comment")
     } finally {
       setLoading(prev => ({ ...prev, savingComments: false }))
     }
@@ -526,17 +519,15 @@ function TeacherReportsContent() {
     })
 
     if (payload.length === 0) {
-      setErrorMessage("No specific comments to save")
+      toast.error("No specific comments to save")
       return
     }
     if (!selectedClass || !selectedYear || !selectedTerm) {
-      setErrorMessage("Please select class, year, and term")
+      toast.error("Please select class, year, and term")
       return
     }
 
     setLoading(prev => ({ ...prev, savingComments: true }))
-    setErrorMessage("")
-    setCommentSaveStatus("idle")
 
     try {
       const termNumber = termToNumber(selectedTerm)
@@ -548,12 +539,11 @@ function TeacherReportsContent() {
       )
       setSavedCount(result.count)
       setHasCommentChanges(false)
-      setCommentSaveStatus("success")
-      setTimeout(() => setCommentSaveStatus("idle"), 3000)
+     toast.success("Comment saved successfully")
       await loadComments()
     } catch (error: any) {
-      setErrorMessage(error.message || "Failed to save comments")
-      setCommentSaveStatus("error")
+      toast.error(error.message || "Failed to save comments")
+      toast.error("Failed to save comment")
     } finally {
       setLoading(prev => ({ ...prev, savingComments: false }))
     }
@@ -561,11 +551,11 @@ function TeacherReportsContent() {
 
   const handleAutoGenerate = async () => {
     if (!selectedClass || !selectedYear || !selectedTerm) {
-      setErrorMessage("Please select class, year, and term")
+      toast.error("Please select class, year, and term")
       return
     }
     setLoading(prev => ({ ...prev, generating: true }))
-    setErrorMessage("")
+    toast.error("")
     try {
       const termNumber = termToNumber(selectedTerm)
       const results = await reportService.autoGenerateComments(
@@ -578,7 +568,7 @@ function TeacherReportsContent() {
       setShowAutoGenerateDialog(true)
       await loadComments()
     } catch (error: any) {
-      setErrorMessage(error.message || "Failed to auto-generate comments")
+      toast.error(error.message || "Failed to auto-generate comments")
     } finally {
       setLoading(prev => ({ ...prev, generating: false }))
     }
@@ -635,7 +625,7 @@ function TeacherReportsContent() {
     if (!modalStudent || !selectedClass || !selectedYear || !selectedTerm) return
     const text = (modalCommentValue || "").trim()
     if (!text) {
-      setErrorMessage("Comment cannot be empty. Consider deleting instead.")
+      toast.error("Comment cannot be empty. Consider deleting instead.")
       return
     }
     setModalSaving(true)
@@ -655,12 +645,11 @@ function TeacherReportsContent() {
         return next
       })
       setHasCommentChanges(false) // explicit save done
-      setCommentSaveStatus("success")
-      setTimeout(() => setCommentSaveStatus("idle"), 2000)
+     toast.success("Comment saved successfully")
       closeCommentModal()
     } catch (e: any) {
-      setErrorMessage(e?.message || "Failed to save comment")
-      setCommentSaveStatus("error")
+      toast.error(e?.message || "Failed to save comment")
+      toast.error("Failed to save comment")
     } finally {
       setModalSaving(false)
     }
@@ -685,7 +674,7 @@ function TeacherReportsContent() {
       setHasCommentChanges(false)
       closeCommentModal()
     } catch (e: any) {
-      setErrorMessage(e?.message || "Failed to delete comment")
+      toast.error(e?.message || "Failed to delete comment")
     } finally {
       setModalDeleting(false)
     }
@@ -712,7 +701,6 @@ function TeacherReportsContent() {
   const markAsChanged = useCallback(() => {
     if (!hasUnsavedChanges) {
       setHasUnsavedChanges(true)
-      setSaveStatus("idle")
     }
   }, [hasUnsavedChanges])
 
@@ -772,15 +760,12 @@ function TeacherReportsContent() {
   const saveMarkRanges = async () => {
     if (!validateMarkRanges()) return
     setLoading(prev => ({ ...prev, saving: true }))
-    setSaveStatus("idle")
     try {
       await reportService.saveGradeRanges(markRanges)
       setHasUnsavedChanges(false)
-      setSaveStatus("success")
-      setTimeout(() => setSaveStatus("idle"), 3000)
+      toast.success("Grade ranges saved successfully!")
     } catch (error: any) {
-      console.error("Error saving grade ranges:", error)
-      setSaveStatus("error")
+      toast.error("Failed to save grade ranges")
     } finally {
       setLoading(prev => ({ ...prev, saving: false }))
     }
@@ -1033,26 +1018,6 @@ function TeacherReportsContent() {
             {/* Content */}
             {selectedClass && students.length > 0 ? (
               <>
-                {/* Alerts */}
-                {errorMessage && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>{errorMessage}</AlertDescription>
-                  </Alert>
-                )}
-                {commentSaveStatus === "success" && (
-                  <Alert className="border-green-200 bg-green-50 text-green-900">
-                    <CheckCircle className="h-4 w-4" />
-                    <AlertDescription>Comment saved successfully.</AlertDescription>
-                  </Alert>
-                )}
-                {commentSaveStatus === "error" && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>Something went wrong while saving.</AlertDescription>
-                  </Alert>
-                )}
-
                 {/* General Comment */}
                 <Card className="border-blue-200">
                   <CardHeader>
@@ -1107,13 +1072,13 @@ function TeacherReportsContent() {
                     </Button>
 
                     {generalCommentActive && (
-                      <Alert className="bg-blue-50 border-blue-200">
-                        <Info className="h-4 w-4 text-blue-600" />
-                        <AlertDescription className="text-blue-900">
+                      <div className="flex items-start gap-3 p-3 border border-blue-300 bg-blue-50 rounded-md">
+                        <Info className="h-4 w-4 text-blue-700 mt-1" />
+                        <p className="text-sm text-blue-800">
                           This general comment is active and will apply to {studentsWithGeneralOnly} student
                           {studentsWithGeneralOnly !== 1 ? "s" : ""} without specific comments.
-                        </AlertDescription>
-                      </Alert>
+                        </p>
+                      </div>
                     )}
                   </CardContent>
                 </Card>
@@ -1193,13 +1158,14 @@ function TeacherReportsContent() {
                     </div>
 
                     {hasCommentChanges && (
-                      <Alert>
-                        <AlertCircle className="h-4 w-4" />
-                        <AlertDescription>
-                          You have unsaved changes. Click &quot;Save Specific Comments&quot; to update.
-                        </AlertDescription>
-                      </Alert>
+                      <div className="flex items-start gap-2 p-3 border border-amber-300 bg-amber-50 rounded-md">
+                        <AlertCircle className="h-4 w-4 text-amber-600 mt-1" />
+                        <p className="text-sm text-amber-800">
+                          You have unsaved changes. Click “Save Specific Comments” to update.
+                        </p>
+                      </div>
                     )}
+
 
                     {/* Students List */}
                     <ScrollArea className="h-[450px] pr-4 border rounded-lg p-4">
@@ -1353,33 +1319,20 @@ function TeacherReportsContent() {
                     )}
                   </Button>
                 </div>
-
-                {saveStatus === "success" && (
-                  <Alert className="border-green-200 bg-green-50 text-green-900">
-                    <CheckCircle className="h-4 w-4" />
-                    <AlertDescription>Grade ranges saved successfully!</AlertDescription>
-                  </Alert>
-                )}
-                {saveStatus === "error" && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>Failed to save grade ranges. Please try again.</AlertDescription>
-                  </Alert>
-                )}
                 {validationErrors.length > 0 && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>
-                      <div className="font-medium mb-1">Validation Errors:</div>
-                      <ul className="list-disc list-inside space-y-1">
-                        {validationErrors.map((e, i) => (
-                          <li key={i} className="text-sm">
-                            {e}
-                          </li>
-                        ))}
-                      </ul>
-                    </AlertDescription>
-                  </Alert>
+                  <div className="p-4 border border-red-300 bg-red-50 rounded-md">
+                    <div className="flex items-start gap-2 text-red-700">
+                      <AlertCircle className="h-4 w-4 mt-1" />
+                      <div className="space-y-1">
+                        <p className="font-medium">Validation Errors:</p>
+                        <ul className="list-disc list-inside text-sm">
+                          {validationErrors.map((e, i) => (
+                            <li key={i}>{e}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
                 )}
 
                 <Card>

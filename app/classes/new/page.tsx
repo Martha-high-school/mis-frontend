@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+import { toast } from "react-toastify"
 import { Save, GraduationCap, User, CheckCircle, AlertCircle, Loader2, Search, ArrowRight } from "lucide-react"
 import Link from "next/link"
 import { classService, type RankOption, type StreamOption } from "@/services/class.service"
@@ -42,7 +42,6 @@ function NewClassContent() {
     classTeacher: "",
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
-  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "success" | "error">("idle")
 
   // Get available ranks and streams from the service
   const availableRanks = useMemo(() => classService.getAvailableRanks(), [])
@@ -132,7 +131,6 @@ function NewClassContent() {
     if (!validateForm()) return
 
     setLoading(true)
-    setSaveStatus("saving")
 
     try {
       await classService.createClass({
@@ -141,16 +139,18 @@ function NewClassContent() {
         classTeacherId: formData.classTeacher,
       })
 
-      setSaveStatus("success")
+      toast.success("Class created successfully!")
+
       setTimeout(() => router.push("/classes"), 1500)
+
     } catch (error: any) {
       console.error("Error creating class:", error)
-      setErrors({ submit: error.message || "Failed to create class" })
-      setSaveStatus("error")
+      toast.error(error.message || "Failed to create class.")
     } finally {
       setLoading(false)
     }
   }
+
 
   if (!user) return null
 
@@ -182,24 +182,6 @@ function NewClassContent() {
               <p className="text-muted-foreground">Add a new class to the school system</p>
             </div>
           </div>
-
-          {saveStatus === "success" && (
-            <Alert className="border-green-200 bg-green-50">
-              <CheckCircle className="h-4 w-4 text-green-600" />
-              <AlertDescription className="text-green-800">
-                Class created successfully! The new class is now available in the system.
-              </AlertDescription>
-            </Alert>
-          )}
-
-          {saveStatus === "error" && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                {errors.submit || "Failed to create class. Please check your information and try again."}
-              </AlertDescription>
-            </Alert>
-          )}
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -466,7 +448,7 @@ function NewClassContent() {
 
           {/* Actions */}
           <div className="flex gap-4 pt-6">
-            <Button type="submit" disabled={loading || saveStatus === "saving"} className="min-w-32">
+            <Button type="submit" disabled={loading} className="min-w-32">
               {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
               {loading ? "Creating..." : "Create Class"}
             </Button>

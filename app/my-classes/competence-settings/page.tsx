@@ -12,7 +12,6 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { 
   Trash2, 
   Plus, 
@@ -25,6 +24,7 @@ import {
   AlertCircle,
   GraduationCap
 } from "lucide-react"
+import { toast } from "react-toastify"
 
 // -------------------- Types --------------------
 
@@ -305,13 +305,10 @@ function CompetenceSettingsContent({ classId }: { classId: string }) {
     try {
       await saveCompetenceSettings(classId, settings)
       setHasUnsavedChanges(false)
-      setSaveStatus("success")
-
-      // Clear success message after 3 seconds
-      setTimeout(() => setSaveStatus("idle"), 3000)
+      toast.success("Competence settings saved successfully")
     } catch (error) {
       console.error("Error saving settings:", error)
-      setSaveStatus("error")
+      toast.error("Failed to save competence settings")
     } finally {
       setLoading((prev) => ({ ...prev, saving: false }))
     }
@@ -387,14 +384,14 @@ function CompetenceSettingsContent({ classId }: { classId: string }) {
 
         {/* Validation Alert */}
         {!isValid && emptyFields > 0 && (
-          <Alert>
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              Please fill in all {emptyFields} empty field
-              {emptyFields !== 1 ? "s" : ""} before saving.
-            </AlertDescription>
-          </Alert>
+          <div className="flex items-start gap-3 p-4 border border-red-300 bg-red-50 rounded-md">
+            <AlertCircle className="h-4 w-4 text-red-600 mt-1" />
+            <p className="text-sm text-red-700">
+              Please fill in all {emptyFields} empty field{emptyFields !== 1 ? "s" : ""} before saving.
+            </p>
+          </div>
         )}
+
 
         {/* Academic Period Selection */}
         <Card>

@@ -12,7 +12,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { 
   Save, 
   User, 
@@ -36,7 +35,7 @@ import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
 import { studentService } from "@/services/student.service"
 import { classService } from "@/services/class.service"
-import { toast } from "sonner"
+import { toast } from "react-toastify"
 
 // Types
 interface StudentData {
@@ -90,7 +89,6 @@ function EditStudentContent() {
     guardianRelation: ""
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
-  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle')
   const [hasChanges, setHasChanges] = useState(false)
   const [photoFile, setPhotoFile] = useState<File | null>(null)
   const [photoPreview, setPhotoPreview] = useState<string | null>(null)
@@ -246,7 +244,6 @@ function EditStudentContent() {
       return
     }
 
-    setSaveStatus('saving')
     setLoading(prev => ({ ...prev, saving: true }))
 
     try {
@@ -266,7 +263,6 @@ function EditStudentContent() {
 
       await studentService.updateStudent(studentId, payload)
 
-      setSaveStatus('success')
       toast.success('Student updated successfully!')
       
       // Reload student data
@@ -292,10 +288,7 @@ function EditStudentContent() {
         setHasChanges(false)
       }
 
-      setTimeout(() => setSaveStatus('idle'), 3000)
     } catch (error: any) {
-      console.error('Failed to update student:', error)
-      setSaveStatus('error')
       toast.error(error.message || 'Failed to update student')
     } finally {
       setLoading(prev => ({ ...prev, saving: false }))
@@ -316,12 +309,10 @@ function EditStudentContent() {
     return (
       <MainLayout>
         <div className="max-w-4xl mx-auto py-6 px-4">
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              Student not found. Please try again.
-            </AlertDescription>
-          </Alert>
+          <div className="flex items-start gap-2 p-4 border border-red-300 bg-red-50 rounded-md">
+            <AlertCircle className="h-4 w-4 text-red-600 mt-1" />
+            <p className="text-sm text-red-700">Student not found. Please try again.</p>
+          </div>
         </div>
       </MainLayout>
     )
@@ -350,15 +341,6 @@ function EditStudentContent() {
             <p className="text-muted-foreground">
                 Update student information and photo
               </p>
-          
-          {saveStatus === 'success' && (
-            <Alert className="w-auto bg-green-50 border-green-200">
-              <CheckCircle className="h-4 w-4 text-green-600" />
-              <AlertDescription className="text-green-800">
-                Changes saved successfully!
-              </AlertDescription>
-            </Alert>
-          )}
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -578,19 +560,15 @@ function EditStudentContent() {
                     </Button>
                     
                     {photoFile && (
-                      <Alert className="bg-blue-50 border-blue-200">
-                        <AlertDescription className="text-blue-800 text-xs">
-                          New photo selected: {photoFile.name}
-                        </AlertDescription>
-                      </Alert>
+                    <div className="p-2 rounded-md bg-blue-50 border border-blue-200 text-blue-800 text-xs">
+                      New photo selected: {photoFile.name}
+                    </div>
                     )}
 
                     {removePhoto && (
-                      <Alert className="bg-red-50 border-red-200">
-                        <AlertDescription className="text-red-800 text-xs">
-                          Photo will be removed when you save
-                        </AlertDescription>
-                      </Alert>
+                      <div className="p-2 rounded-md bg-red-50 border border-red-200 text-red-800 text-xs">
+                        Photo will be removed when you save
+                      </div>
                     )}
                   </div>
 

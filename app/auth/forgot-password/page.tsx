@@ -10,36 +10,34 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { AlertCircle, CheckCircle2, ArrowLeft } from "lucide-react"
+import { toast } from "react-toastify"
+import { ArrowLeft } from "lucide-react"
 import apiClient from "@/lib/api-client"
 
 export default function ForgotPasswordPage() {
   const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState("")
-  const [success, setSuccess] = useState(false)
   const [email, setEmail] = useState("")
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-    setError("")
-    setSuccess(false)
 
     if (!email) {
-      setError("Please enter your email address")
+      toast.error("Please enter your email address")
       setIsLoading(false)
       return
     }
 
     try {
       await apiClient.post("/auth/forgot-password", { email })
-      setSuccess(true)
+
+      toast.success(`A password reset link has been sent to ${email}`)
+
     } catch (err: any) {
-      setError(
+      toast.error(
         err.response?.data?.message ||
-        "Failed to send reset email. Please try again."
+          "Failed to send reset email. Please try again."
       )
     } finally {
       setIsLoading(false)
@@ -112,9 +110,7 @@ export default function ForgotPasswordPage() {
             <div>
               <CardTitle className="text-2xl font-bold">Forgot Password?</CardTitle>
               <CardDescription className="text-base">
-                {success
-                  ? "Check your email for reset instructions"
-                  : "Enter your email to receive a password reset link"}
+                Enter your email to receive a password reset link
               </CardDescription>
               {/* Mobile tagline */}
               <p className="text-sm text-primary font-medium mt-2 lg:hidden">
@@ -123,78 +119,42 @@ export default function ForgotPasswordPage() {
             </div>
           </CardHeader>
           <CardContent>
-            {success ? (
-              <div className="space-y-4">
-                <Alert className="border-green-200 bg-green-50">
-                  <CheckCircle2 className="h-4 w-4 text-green-600" />
-                  <AlertDescription className="text-green-800">
-                    A password reset link has been sent to <strong>{email}</strong>. 
-                    Please check your inbox and follow the instructions.
-                  </AlertDescription>
-                </Alert>
-                <div className="space-y-3">
-                  <Button
-                    onClick={() => router.push("/auth/login")}
-                    className="w-full"
-                  >
-                    Return to Login
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      setSuccess(false)
-                      setEmail("")
-                    }}
-                    variant="outline"
-                    className="w-full"
-                  >
-                    Send Another Email
-                  </Button>
-                </div>
+            <form onSubmit={handleSubmit} className="space-y-4">
+
+              <div className="space-y-2">
+                <Label htmlFor="email">Email Address</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  disabled={isLoading}
+                />
               </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-4">
-                {error && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>{error}</AlertDescription>
-                  </Alert>
+
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? (
+                  <span className="flex items-center gap-2">
+                    <span className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Sending...
+                  </span>
+                ) : (
+                  "Send Reset Link"
                 )}
+              </Button>
 
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email Address</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="Enter your email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    disabled={isLoading}
-                  />
-                </div>
-
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? (
-                    <span className="flex items-center gap-2">
-                      <span className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      Sending...
-                    </span>
-                  ) : (
-                    "Send Reset Link"
-                  )}
-                </Button>
-
-                <div className="text-center">
-                  <Link
-                    href="/auth/login"
-                    className="text-sm text-primary hover:underline inline-flex items-center gap-1"
-                  >
-                    <ArrowLeft className="h-4 w-4" />
-                    Back to Login
-                  </Link>
-                </div>
-              </form>
-            )}
+              <div className="text-center">
+                <Link
+                  href="/auth/login"
+                  className="text-sm text-primary hover:underline inline-flex items-center gap-1"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  Back to Login
+                </Link>
+              </div>
+            </form>
 
             <div className="mt-6 text-center text-sm text-muted-foreground">
               <p className="mb-1">Need help? Contact your administrator</p>

@@ -4,6 +4,9 @@ import { Suspense } from "react"
 import { AuthProvider } from "@/contexts/auth-context"
 import "./globals.css"
 
+import { ToastContainer } from "react-toastify"
+import "react-toastify/dist/ReactToastify.css"
+
 
 export const metadata: Metadata = {
   title: "Martah High School MIS",
@@ -20,11 +23,22 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  return (
+ return (
     <html lang="en">
       <body className="font-sans antialiased">
         <AuthProvider>
-          <Suspense fallback={null}>{children}</Suspense>
+          <Suspense fallback={null}>
+            {children}
+            <ToastContainer 
+              position="top-right"
+              autoClose={3000}
+              hideProgressBar={false}
+              closeOnClick
+              pauseOnFocusLoss
+              pauseOnHover
+              theme="light"
+            />
+          </Suspense>
         </AuthProvider>
       </body>
     </html>
