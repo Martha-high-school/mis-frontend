@@ -131,7 +131,7 @@ export default function AccountSetupPage() {
           </div>
           <div>
             <h1 className="text-4xl font-bold mb-2">Martah High School</h1>
-            <p className="text-xl text-white/90">Management System</p>
+            <p className="text-xl text-white/90">Management Information System</p>
             <p className="text-lg font-medium mt-4 text-white/80">Empowering to Excel</p>
           </div>
           

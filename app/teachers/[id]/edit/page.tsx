@@ -421,7 +421,7 @@ function EditTeacherContent() {
 
   return (
     <MainLayout
-      userRole={user.role
+      userRole={user.role}
       userName={user.name}
       breadcrumbs={breadcrumbs}
       showBackButton={true}
