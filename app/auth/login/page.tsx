@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { toast } from "react-toastify"
-import { Eye, EyeOff} from "lucide-react"
+import { Eye, EyeOff, Loader2 } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
 
 export default function LoginPage() {
@@ -20,6 +20,7 @@ export default function LoginPage() {
     email: "",
     password: "",
   })
+  const [errors, setErrors] = useState<Record<string, string>>({})
   const router = useRouter()
   const { login, user } = useAuth()
 
@@ -30,8 +31,30 @@ export default function LoginPage() {
     bursar: "/dashboard/bursar",
   }
 
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {}
+
+    if (!formData.email.trim()) {
+      newErrors.email = "Email is required"
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = "Please enter a valid email address"
+    }
+
+    if (!formData.password) {
+      newErrors.password = "Password is required"
+    }
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (!validateForm()) {
+      return
+    }
+
     setIsLoading(true)
 
     try {
@@ -46,6 +69,13 @@ export default function LoginPage() {
       toast.error(err.message || "Login failed. Please try again.")
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const updateField = (field: keyof typeof formData, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }))
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: "" }))
     }
   }
 
@@ -98,11 +128,11 @@ export default function LoginPage() {
 
       {/* Right Side - Login Form */}
       <div className="flex-1 flex items-center justify-center p-4 bg-gradient-to-br from-background via-background to-secondary/5">
-        <Card className="w-full max-w-md border-0 shadow-xl">
-          <CardHeader className="text-center space-y-4">
+        <Card className="w-full max-w-md border-2 border-slate-200 dark:border-slate-700 shadow-xl">
+          <CardHeader className="text-center space-y-4 pb-4">
             {/* Mobile Logo - Only visible on small screens */}
             <div className="flex justify-center lg:hidden">
-              <div className="bg-white p-3 rounded-xl shadow-lg">
+              <div className="bg-white p-3 rounded-xl shadow-lg border-2 border-slate-100">
                 <Image
                   src="/images/school-logo.png"
                   alt="Martah High School"
@@ -113,8 +143,8 @@ export default function LoginPage() {
               </div>
             </div>
             <div>
-              <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>
-              <CardDescription className="text-base">Sign in to continue</CardDescription>
+              <CardTitle className="text-2xl font-bold text-slate-900 dark:text-white">Welcome Back</CardTitle>
+              <CardDescription className="text-sm text-slate-500 dark:text-slate-400 mt-1">Sign in to continue to your dashboard</CardDescription>
               {/* Mobile tagline */}
               <p className="text-sm text-primary font-medium mt-2 lg:hidden">
                 Martah High School - Empowering to Excel
@@ -124,56 +154,60 @@ export default function LoginPage() {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
+                <Label htmlFor="email" className="text-slate-700 dark:text-slate-300">Email Address *</Label>
                 <Input
                   id="email"
                   type="email"
                   placeholder="Enter your email"
                   value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  onChange={(e) => updateField("email", e.target.value)}
                   required
                   disabled={isLoading}
+                  className={`h-10 border-2 ${errors.email ? "border-red-300" : "border-slate-200 dark:border-slate-700"} focus:border-primary bg-white dark:bg-slate-900`}
                 />
+                {errors.email && <p className="text-sm text-red-600">{errors.email}</p>}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password" className="text-slate-700 dark:text-slate-300">Password *</Label>
                 <div className="relative">
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
                     placeholder="Enter your password"
                     value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    onChange={(e) => updateField("password", e.target.value)}
                     required
                     disabled={isLoading}
+                    className={`h-10 border-2 pr-10 ${errors.password ? "border-red-300" : "border-slate-200 dark:border-slate-700"} focus:border-primary bg-white dark:bg-slate-900`}
                   />
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent text-slate-500 hover:text-slate-700"
                     onClick={() => setShowPassword(!showPassword)}
                     disabled={isLoading}
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </Button>
                 </div>
+                {errors.password && <p className="text-sm text-red-600">{errors.password}</p>}
               </div>
 
-              <div className="flex items-center justify-end mb-4">
+              <div className="flex items-center justify-end">
                 <a
                   href="/auth/forgot-password"
-                  className="text-sm text-primary hover:underline"
+                  className="text-sm text-primary hover:underline font-medium"
                 >
                   Forgot password?
                 </a>
               </div>
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button type="submit" className="w-full h-10" disabled={isLoading}>
                 {isLoading ? (
                   <span className="flex items-center gap-2">
-                    <span className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <Loader2 className="h-4 w-4 animate-spin" />
                     Signing in...
                   </span>
                 ) : (
@@ -182,8 +216,8 @@ export default function LoginPage() {
               </Button>
             </form>
 
-            <div className="mt-6 text-center text-sm text-muted-foreground">
-              <p className="mb-1">Need help? Contact your administrator</p>
+            <div className="mt-6 text-center">
+              <p className="text-sm text-slate-500 dark:text-slate-400">Need help? Contact your administrator</p>
             </div>
           </CardContent>
         </Card>
