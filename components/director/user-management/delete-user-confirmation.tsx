@@ -10,8 +10,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { AlertCircle, Trash2 } from "lucide-react"
+import { AlertCircle, Trash2, Loader2 } from "lucide-react"
 import { userService, type User } from "@/services/user.service"
 
 interface DeleteUserDialogProps {
@@ -42,43 +41,54 @@ export function DeleteUserDialog({ open, onOpenChange, onSuccess, user }: Delete
     }
   }
 
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      setError("")
+    }
+    onOpenChange(open)
+  }
+
   if (!user) return null
 
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
+    <AlertDialog open={open} onOpenChange={handleOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle className="flex items-center gap-2">
-            <Trash2 className="h-5 w-5 text-destructive" />
+          <AlertDialogTitle className="flex items-center gap-2 text-slate-900 dark:text-white">
+            <Trash2 className="h-5 w-5 text-red-600" />
             Delete User
           </AlertDialogTitle>
-          <AlertDialogDescription className="space-y-4">
-            {error && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-            <div>
-              Are you sure you want to delete{" "}
-              <strong>
-                {user.firstName} {user.lastName}
-              </strong>{" "}
-              ({user.email})?
-            </div>
-            <div className="text-destructive">
-              This action cannot be undone. All data associated with this user will be permanently removed.
+          <AlertDialogDescription asChild>
+            <div className="space-y-4">
+              {error && (
+                <div className="flex items-start gap-2 p-3 border-2 border-red-300 bg-red-50 dark:bg-red-950/20 rounded-lg">
+                  <AlertCircle className="h-5 w-5 text-red-600 mt-0.5" />
+                  <p className="text-sm text-red-600">{error}</p>
+                </div>
+              )}
+              <p className="text-slate-600 dark:text-slate-400">
+                Are you sure you want to delete{" "}
+                <strong className="text-slate-900 dark:text-white">
+                  {user.firstName} {user.lastName}
+                </strong>{" "}
+                ({user.email})?
+              </p>
+              <div className="p-3 border-2 border-red-200 bg-red-50 dark:bg-red-950/20 dark:border-red-800 rounded-lg">
+                <p className="text-sm text-red-700 dark:text-red-400">
+                  ⚠️ This action cannot be undone. All data associated with this user will be permanently removed.
+                </p>
+              </div>
             </div>
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
+        <AlertDialogFooter className="gap-3">
+          <Button variant="outline" className="h-10" onClick={() => handleOpenChange(false)} disabled={isLoading}>
             Cancel
           </Button>
-          <Button variant="destructive" onClick={handleDelete} disabled={isLoading}>
+          <Button variant="destructive" className="h-10" onClick={handleDelete} disabled={isLoading}>
             {isLoading ? (
               <span className="flex items-center gap-2">
-                <span className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin" />
                 Deleting...
               </span>
             ) : (

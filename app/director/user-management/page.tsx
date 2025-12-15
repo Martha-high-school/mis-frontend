@@ -6,28 +6,21 @@ import { ProtectedRoute } from "@/components/auth/protected-route"
 import { MainLayout } from "@/components/layout/main-layout"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { toast } from "react-toastify"
 import { 
   Mail, 
   Search, 
-  MoreHorizontal,
   Edit, 
   Trash2, 
   UserX, 
   UserCheck, 
-  RefreshCw
+  RefreshCw,
+  Loader2
 } from "lucide-react"
 import { userService, type User } from "@/services/user.service"
 import { InviteUserDialog } from "@/components/director/user-management/invite-user-dialog"
@@ -41,6 +34,7 @@ function UserManagementContent() {
   const [searchTerm, setSearchTerm] = useState("")
   const [roleFilter, setRoleFilter] = useState("All Roles")
   const [statusFilter, setStatusFilter] = useState("All Statuses")
+  const [actionLoading, setActionLoading] = useState<string | null>(null)
   
   // Dialog states
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false)
@@ -48,7 +42,10 @@ function UserManagementContent() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
 
-  if (!user) return null
+  const breadcrumbs = [
+    { label: "Dashboard", href: "/dashboard" },
+    { label: "User Management" }
+  ]
 
   const loadUsers = async () => {
     try {
@@ -65,6 +62,8 @@ function UserManagementContent() {
   useEffect(() => {
     loadUsers()
   }, [])
+
+  if (!user) return null
 
   const handleInviteSuccess = () => {
     toast.success("Invitation sent successfully! The user will receive an email with setup instructions.")
@@ -83,23 +82,27 @@ function UserManagementContent() {
 
   const handleSuspend = async (userId: string) => {
     try {
+      setActionLoading(userId)
       await userService.suspendUser(userId)
       toast.success("User suspended successfully!")
       loadUsers()
-
     } catch (err: any) {
-      toast.error(err.message || "Failed to suspend users")
+      toast.error(err.message || "Failed to suspend user")
+    } finally {
+      setActionLoading(null)
     }
   }
 
   const handleActivate = async (userId: string) => {
     try {
+      setActionLoading(userId)
       await userService.activateUser(userId)
       toast.success("User activated successfully!")
       loadUsers()
-
     } catch (err: any) {
-      toast.error(err.message || "Failed to load users")
+      toast.error(err.message || "Failed to activate user")
+    } finally {
+      setActionLoading(null)
     }
   }
 
@@ -116,13 +119,13 @@ function UserManagementContent() {
   })
 
   const getStatusBadge = (status: string) => {
-    const variants: Record<string, { variant: "default" | "secondary" | "destructive"; label: string }> = {
-      ACTIVE: { variant: "default", label: "Active" },
-      PENDING: { variant: "secondary", label: "Pending Setup" },
+    const variants: Record<string, { variant: "default" | "secondary" | "destructive"; label: string; className?: string }> = {
+      ACTIVE: { variant: "default", label: "Active", className: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" },
+      PENDING: { variant: "secondary", label: "Pending", className: "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200" },
       SUSPENDED: { variant: "destructive", label: "Suspended" },
     }
     const config = variants[status] || { variant: "secondary", label: status }
-    return <Badge variant={config.variant}>{config.label}</Badge>
+    return <Badge variant={config.variant} className={config.className}>{config.label}</Badge>
   }
 
   const getRoleDisplay = (role: string) => {
@@ -131,7 +134,6 @@ function UserManagementContent() {
       head_teacher: "Head Teacher",
       class_teacher: "Class Teacher",
       bursar: "Bursar",
-      // Legacy uppercase support
       DIRECTOR: "Director",
       HEAD_TEACHER: "Head Teacher",
       CLASS_TEACHER: "Class Teacher",
@@ -140,18 +142,13 @@ function UserManagementContent() {
     return roleMap[role] || role
   }
 
-  const breadcrumbs = [
-    { label: "Dashboard", href: "/dashboard" },
-    { label: "User Management" }
-  ]
-
   if (isLoading) {
     return (
       <MainLayout userRole={user.role} userName={user.name} breadcrumbs={breadcrumbs}>
         <div className="flex items-center justify-center h-64">
           <div className="flex flex-col items-center gap-4">
-            <RefreshCw className="h-8 w-8 animate-spin text-primary" />
-            <p className="text-muted-foreground">Loading users...</p>
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="text-slate-500">Loading users...</p>
           </div>
         </div>
       </MainLayout>
@@ -159,7 +156,7 @@ function UserManagementContent() {
   }
 
   return (
-    <MainLayout userRole={user.role}  userName={user.name} breadcrumbs={breadcrumbs}>
+    <MainLayout userRole={user.role} userName={user.name} breadcrumbs={breadcrumbs}>
       <div className="space-y-6">
         {/* Header Actions */}
         <div className="flex flex-col sm:flex-row gap-4 justify-between">
@@ -185,13 +182,13 @@ function UserManagementContent() {
         </div>
 
         {/* Filters - Compact single row */}
-        <Card>
+        <Card className="border-slate-200 dark:border-slate-700">
           <CardContent className="py-4">
             <div className="flex flex-wrap items-end gap-3">
               <div className="space-y-1 min-w-[160px]">
-                <label className="text-xs font-medium">Role</label>
+                <label className="text-xs font-medium text-slate-600 dark:text-slate-400">Role</label>
                 <Select value={roleFilter} onValueChange={setRoleFilter}>
-                  <SelectTrigger className="h-9">
+                  <SelectTrigger className="h-9 border-2 border-slate-200 dark:border-slate-700">
                     <SelectValue placeholder="All Roles" />
                   </SelectTrigger>
                   <SelectContent>
@@ -204,9 +201,9 @@ function UserManagementContent() {
                 </Select>
               </div>
               <div className="space-y-1 min-w-[160px]">
-                <label className="text-xs font-medium">Status</label>
+                <label className="text-xs font-medium text-slate-600 dark:text-slate-400">Status</label>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="h-9">
+                  <SelectTrigger className="h-9 border-2 border-slate-200 dark:border-slate-700">
                     <SelectValue placeholder="All Statuses" />
                   </SelectTrigger>
                   <SelectContent>
@@ -235,90 +232,133 @@ function UserManagementContent() {
         </Card>
 
         {/* Users Table */}
-        <Card className="overflow-visible">
+        <Card className="border-slate-200 dark:border-slate-700">
           <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-700">
             <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
               Staff Members <span className="text-slate-500">({filteredUsers.length})</span>
             </p>
           </div>
-          <CardContent className="p-0 overflow-visible">
-            <div className="overflow-x-auto overflow-y-visible">
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-slate-100 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800/50 border-b-2 border-slate-200 dark:border-slate-700">
+                  <TableRow className="bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/50 border-b-2 border-slate-200 dark:border-slate-700">
                     <TableHead className="font-semibold text-slate-700 dark:text-slate-200 py-4">Name</TableHead>
                     <TableHead className="font-semibold text-slate-700 dark:text-slate-200 py-4">Email</TableHead>
                     <TableHead className="font-semibold text-slate-700 dark:text-slate-200 py-4">Role</TableHead>
-                    <TableHead className="font-semibold text-slate-700 dark:text-slate-200 py-4">Status</TableHead>
-                    <TableHead className="text-right font-semibold text-slate-700 dark:text-slate-200 py-4">Actions</TableHead>
+                    <TableHead className="font-semibold text-slate-700 dark:text-slate-200 py-4 w-[100px]">Status</TableHead>
+                    <TableHead className="font-semibold text-slate-700 dark:text-slate-200 py-4 text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredUsers.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                      <TableCell colSpan={5} className="text-center text-slate-500 py-8">
                         No users found
                       </TableCell>
                     </TableRow>
                   ) : (
                     filteredUsers.map((u) => (
                       <TableRow key={u.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 border-b border-slate-100 dark:border-slate-800">
-                        <TableCell className="font-medium">
+                        <TableCell className="font-medium text-slate-900 dark:text-white">
                           {u.firstName} {u.lastName}
                         </TableCell>
-                        <TableCell>{u.email}</TableCell>
-                        <TableCell>{getRoleDisplay(u.role)}</TableCell>
+                        <TableCell className="text-slate-600 dark:text-slate-400">{u.email}</TableCell>
+                        <TableCell className="text-slate-600 dark:text-slate-400">{getRoleDisplay(u.role)}</TableCell>
                         <TableCell>{getStatusBadge(u.status)}</TableCell>
-                        <TableCell className="text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8">
-                                <span className="sr-only">Open menu</span>
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="z-50">
-                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                onClick={() => {
-                                  setSelectedUser(u)
-                                  setEditDialogOpen(true)
-                                }}
-                              >
-                                <Edit className="h-4 w-4 mr-2" />
-                                Edit User
-                              </DropdownMenuItem>
-                              {u.status === "ACTIVE" ? (
-                                <DropdownMenuItem
-                                  onClick={() => handleSuspend(u.id)}
-                                  className="text-orange-600"
-                                >
-                                  <UserX className="h-4 w-4 mr-2" />
-                                  Suspend User
-                                </DropdownMenuItem>
-                              ) : (
-                                <DropdownMenuItem
-                                  onClick={() => handleActivate(u.id)}
-                                  className="text-green-600"
-                                >
-                                  <UserCheck className="h-4 w-4 mr-2" />
-                                  Activate User
-                                </DropdownMenuItem>
+                        <TableCell>
+                          <div className="flex items-center justify-end gap-1">
+                            <TooltipProvider>
+                              {/* Edit Button */}
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 text-slate-600 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30"
+                                    onClick={() => {
+                                      setSelectedUser(u)
+                                      setEditDialogOpen(true)
+                                    }}
+                                    disabled={actionLoading === u.id}
+                                  >
+                                    <Edit className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Edit User</p>
+                                </TooltipContent>
+                              </Tooltip>
+
+                              {/* Suspend/Activate Button */}
+                              {u.status === "ACTIVE" && (
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-8 w-8 text-slate-600 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-950/30"
+                                      onClick={() => handleSuspend(u.id)}
+                                      disabled={actionLoading === u.id}
+                                    >
+                                      {actionLoading === u.id ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                      ) : (
+                                        <UserX className="h-4 w-4" />
+                                      )}
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Suspend User</p>
+                                  </TooltipContent>
+                                </Tooltip>
                               )}
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                onClick={() => {
-                                  setSelectedUser(u)
-                                  setDeleteDialogOpen(true)
-                                }}
-                                className="text-destructive"
-                              >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Delete User
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                              
+                              {u.status === "SUSPENDED" && (
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-8 w-8 text-slate-600 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-950/30"
+                                      onClick={() => handleActivate(u.id)}
+                                      disabled={actionLoading === u.id}
+                                    >
+                                      {actionLoading === u.id ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                      ) : (
+                                        <UserCheck className="h-4 w-4" />
+                                      )}
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Activate User</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              )}
+
+                              {/* Delete Button */}
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 text-slate-600 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
+                                    onClick={() => {
+                                      setSelectedUser(u)
+                                      setDeleteDialogOpen(true)
+                                    }}
+                                    disabled={actionLoading === u.id}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Delete User</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))
