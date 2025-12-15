@@ -11,23 +11,36 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { toast } from "react-toastify"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, Loader2 } from "lucide-react"
 import apiClient from "@/lib/api-client"
 
 export default function ForgotPasswordPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [email, setEmail] = useState("")
+  const [error, setError] = useState("")
   const router = useRouter()
+
+  const validateForm = (): boolean => {
+    if (!email.trim()) {
+      setError("Email is required")
+      return false
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setError("Please enter a valid email address")
+      return false
+    }
+    setError("")
+    return true
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
 
-    if (!email) {
-      toast.error("Please enter your email address")
-      setIsLoading(false)
+    if (!validateForm()) {
       return
     }
+
+    setIsLoading(true)
 
     try {
       await apiClient.post("/auth/forgot-password", { email })
@@ -41,6 +54,13 @@ export default function ForgotPasswordPage() {
       )
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const updateEmail = (value: string) => {
+    setEmail(value)
+    if (error) {
+      setError("")
     }
   }
 
@@ -93,11 +113,11 @@ export default function ForgotPasswordPage() {
 
       {/* Right Side - Forgot Password Form */}
       <div className="flex-1 flex items-center justify-center p-4 bg-gradient-to-br from-background via-background to-secondary/5">
-        <Card className="w-full max-w-md border-0 shadow-xl">
-          <CardHeader className="text-center space-y-4">
+        <Card className="w-full max-w-md border-2 border-slate-200 dark:border-slate-700 shadow-xl">
+          <CardHeader className="text-center space-y-4 pb-4">
             {/* Mobile Logo - Only visible on small screens */}
             <div className="flex justify-center lg:hidden">
-              <div className="bg-white p-3 rounded-xl shadow-lg">
+              <div className="bg-white p-3 rounded-xl shadow-lg border-2 border-slate-100">
                 <Image
                   src="/images/school-logo.png"
                   alt="Martah High School"
@@ -108,8 +128,8 @@ export default function ForgotPasswordPage() {
               </div>
             </div>
             <div>
-              <CardTitle className="text-2xl font-bold">Forgot Password?</CardTitle>
-              <CardDescription className="text-base">
+              <CardTitle className="text-2xl font-bold text-slate-900 dark:text-white">Forgot Password?</CardTitle>
+              <CardDescription className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                 Enter your email to receive a password reset link
               </CardDescription>
               {/* Mobile tagline */}
@@ -122,22 +142,24 @@ export default function ForgotPasswordPage() {
             <form onSubmit={handleSubmit} className="space-y-4">
 
               <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
+                <Label htmlFor="email" className="text-slate-700 dark:text-slate-300">Email Address *</Label>
                 <Input
                   id="email"
                   type="email"
                   placeholder="Enter your email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => updateEmail(e.target.value)}
                   required
                   disabled={isLoading}
+                  className={`h-10 border-2 ${error ? "border-red-300" : "border-slate-200 dark:border-slate-700"} focus:border-primary bg-white dark:bg-slate-900`}
                 />
+                {error && <p className="text-sm text-red-600">{error}</p>}
               </div>
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button type="submit" className="w-full h-10" disabled={isLoading}>
                 {isLoading ? (
                   <span className="flex items-center gap-2">
-                    <span className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <Loader2 className="h-4 w-4 animate-spin" />
                     Sending...
                   </span>
                 ) : (
@@ -148,7 +170,7 @@ export default function ForgotPasswordPage() {
               <div className="text-center">
                 <Link
                   href="/auth/login"
-                  className="text-sm text-primary hover:underline inline-flex items-center gap-1"
+                  className="text-sm text-primary hover:underline inline-flex items-center gap-1 font-medium"
                 >
                   <ArrowLeft className="h-4 w-4" />
                   Back to Login
@@ -156,8 +178,8 @@ export default function ForgotPasswordPage() {
               </div>
             </form>
 
-            <div className="mt-6 text-center text-sm text-muted-foreground">
-              <p className="mb-1">Need help? Contact your administrator</p>
+            <div className="mt-6 text-center">
+              <p className="text-sm text-slate-500 dark:text-slate-400">Need help? Contact your administrator</p>
             </div>
           </CardContent>
         </Card>
