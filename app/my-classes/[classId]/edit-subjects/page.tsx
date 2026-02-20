@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
+import Link from "next/link"
 import { MainLayout } from "@/components/layout/main-layout"
 import { useAuth } from "@/contexts/auth-context"
 import { ProtectedRoute } from "@/components/auth/protected-route"
@@ -17,7 +18,6 @@ import { classService } from "@/services/class.service"
 import { academicYearService } from "@/services/accademic-year.service"
 import { competencyService, type Subject } from "@/services/competency.service"
 import { EditCompetenciesDialog } from "@/components/competence/edit-competence-dialog"
-import { AddSubjectDialog } from "@/components/competence/add-subject-dialo"
 
 export default function EditSubjectsPage() {
   const { user } = useAuth()
@@ -37,8 +37,7 @@ export default function EditSubjectsPage() {
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [editingSubject, setEditingSubject] = useState<Subject | null>(null)
 
-  // Add subject dialog state
-  const [addSubjectDialogOpen, setAddSubjectDialogOpen] = useState(false)
+
 
   useEffect(() => {
     loadInitialData()
@@ -104,11 +103,6 @@ export default function EditSubjectsPage() {
     toast.success("Competencies updated successfully")
   }
 
-  const handleSubjectAdded = () => {
-    loadSubjects()
-    toast.success("Subject added successfully")
-  }
-
   const getTermName = (term: string) => {
     const termMap: Record<string, string> = {
       T1: "First Term",
@@ -146,10 +140,12 @@ export default function EditSubjectsPage() {
                 {classInfo?.name} • Add subjects and configure competencies for each term
               </p>
             </div>
-            <Button className="h-10" onClick={() => setAddSubjectDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Subject
-            </Button>
+            <Link href={`/my-classes/${classId}/setup?year=${selectedYear}`}>
+              <Button className="h-10">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Subject
+              </Button>
+            </Link>
           </div>
 
           {/* Year & Term Selector */}
@@ -366,16 +362,7 @@ export default function EditSubjectsPage() {
           />
         )}
 
-        {/* Add Subject Dialog */}
-        {selectedYear && (
-          <AddSubjectDialog
-            open={addSubjectDialogOpen}
-            onOpenChange={setAddSubjectDialogOpen}
-            classId={classId as string}
-            year={selectedYear}
-            onAdded={handleSubjectAdded}
-          />
-        )}
+
       </MainLayout>
     </ProtectedRoute>
   )
