@@ -142,7 +142,6 @@ function buildNavigation(
   userRole: string
 ): NavItem[] {
   const nav: NavItem[] = []
-  const isDirector = userRole === "director"
 
   // Map dashboard to the correct role-specific path
   const getDashboardPath = () => {
@@ -160,6 +159,13 @@ function buildNavigation(
 
   for (const item of sidebar) {
     const Icon = getIcon(item.icon)
+
+    // Client-side permission guard: skip items whose permissions
+    // the current user does not have (defence-in-depth).
+    if (item.permissions && item.permissions.length > 0) {
+      const hasAny = item.permissions.some(p => userPermissions.has(p))
+      if (!hasAny) continue
+    }
 
     // Dashboard — use role-specific path
     if (item.module === "dashboard") {
@@ -308,10 +314,6 @@ function buildNavigation(
   const visibleSettingsSubItems: { name: string; href: string; icon: LucideIcon }[] = []
 
   for (const sub of settingsConfig.subItems) {
-    if (isDirector) {
-      visibleSettingsSubItems.push({ name: sub.name, href: sub.href, icon: sub.icon })
-      continue
-    }
     if (!sub.permissions || sub.permissions.length === 0) {
       visibleSettingsSubItems.push({ name: sub.name, href: sub.href, icon: sub.icon })
       continue
