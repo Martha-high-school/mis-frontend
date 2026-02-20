@@ -1,11 +1,17 @@
 "use client"
 
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react"
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react"
 import { authService, type User } from "@/services/auth.service"
 
 interface AuthContextType {
   user: User | null
-  login: (email: string, password: string) => Promise<User>  
+  login: (email: string, password: string) => Promise<User>
   logout: () => Promise<void>
   isLoading: boolean
   isAuthenticated: boolean
@@ -19,7 +25,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
 
   useEffect(() => {
-    // Check for stored user data on mount
     try {
       const currentUser = authService.getCurrentUser()
       if (currentUser) {
@@ -30,7 +35,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     } catch (error) {
       console.error("Error loading user:", error)
-      // Clear invalid data
       authService.logout()
       setIsAuthenticated(false)
     } finally {
@@ -39,31 +43,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const login = async (email: string, password: string): Promise<User> => {
-    try {
-      const { user: userData } = await authService.login({ email, password })
-      setUser(userData)
-      setIsAuthenticated(true)
-      return userData 
-    } catch (error) {
-      throw error
-    }
+    const { user: userData } = await authService.login({ email, password })
+    setUser(userData)
+    setIsAuthenticated(true)
+    return userData
   }
 
   const logout = async () => {
     try {
       await authService.logout()
-      setUser(null)
-      setIsAuthenticated(false)
     } catch (error) {
       console.error("Logout error:", error)
-      // Still clear user state even if logout fails
+    } finally {
       setUser(null)
       setIsAuthenticated(false)
+      // Clear permission cache too
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("userPermissions")
+        localStorage.removeItem("userSidebar")
+      }
     }
   }
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isLoading, isAuthenticated }}>
+    <AuthContext.Provider
+      value={{ user, login, logout, isLoading, isAuthenticated }}
+    >
       {children}
     </AuthContext.Provider>
   )
