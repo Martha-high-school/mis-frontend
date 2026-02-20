@@ -120,6 +120,29 @@ const moduleSubItems: Record<string, SubItemConfig> = {
 }
 
 // ============================================================================
+// MODULE → REQUIRED PERMISSIONS MAP
+// Hard-coded client-side guard.  The user must hold at least ONE permission
+// from the array for the module to appear in the sidebar.  This is enforced
+// independently of whatever the backend puts in the sidebar payload.
+// ============================================================================
+
+const moduleRequiredPermissions: Record<string, string[]> = {
+  dashboard:      ["dashboard.view"],
+  users:          ["users.view", "users.invite", "users.edit"],
+  permissions:    ["permissions.view", "permissions.assign"],
+  academic_years: ["academic_years.view"],
+  classes:        ["classes.view", "classes.view_own"],
+  academics:      ["academics.view"],
+  students:       ["students.view"],
+  promotions:     ["promotions.view"],
+  reports:        ["reports.view"],
+  report_cards:   ["report_cards.view"],
+  pdf_reports:    ["pdf_reports.generate"],
+  fees:           ["fees.view", "fees.record_payment", "fees.set_fees"],
+  signatures:     ["signatures.manage"],
+}
+
+// ============================================================================
 // SIDEBAR NAVIGATION BUILDER
 // Builds navigation from the permission context's sidebar array
 // ============================================================================
@@ -160,9 +183,15 @@ function buildNavigation(
   for (const item of sidebar) {
     const Icon = getIcon(item.icon)
 
-    // Client-side permission guard: skip items whose permissions
-    // the current user does not have (defence-in-depth).
-    if (item.permissions && item.permissions.length > 0) {
+    // Client-side permission guard: skip items the current user
+    // is not allowed to see.  We check our own hardcoded map first
+    // (it covers every module), then fall back to the backend-provided
+    // permissions array on the sidebar item.
+    const requiredPerms = moduleRequiredPermissions[item.module]
+    if (requiredPerms && requiredPerms.length > 0) {
+      const hasAny = requiredPerms.some(p => userPermissions.has(p))
+      if (!hasAny) continue
+    } else if (item.permissions && item.permissions.length > 0) {
       const hasAny = item.permissions.some(p => userPermissions.has(p))
       if (!hasAny) continue
     }
