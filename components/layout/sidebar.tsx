@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { usePathname, useRouter } from "next/navigation"
@@ -382,9 +382,35 @@ export function Sidebar({ userRole: userRoleProp }: SidebarProps) {
   const router = useRouter()
 
   const role = userRoleProp || user?.role || "class_teacher"
-  
+
   // Build navigation items from permission context
   const items = buildNavigation(sidebar, permissions, role)
+
+  // ---- Auto-expand menus that contain the current active route ----
+  const hasAutoExpanded = useRef(false)
+
+  useEffect(() => {
+    const menusToExpand: string[] = []
+    for (const item of items) {
+      if (item.subItems && item.subItems.length > 0) {
+        const hasActiveChild = item.subItems.some(
+          (sub) => pathname === sub.href || pathname.startsWith(sub.href + "/")
+        )
+        if (hasActiveChild) {
+          menusToExpand.push(item.name)
+        }
+      }
+    }
+
+    if (menusToExpand.length > 0) {
+      setExpandedMenus((prev) => {
+        const merged = new Set([...prev, ...menusToExpand])
+        return Array.from(merged)
+      })
+      hasAutoExpanded.current = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname, items.length])
 
   const handleLogout = () => {
     logout()
@@ -392,9 +418,9 @@ export function Sidebar({ userRole: userRoleProp }: SidebarProps) {
   }
 
   const toggleMenu = (menuName: string) => {
-    setExpandedMenus(prev =>
+    setExpandedMenus((prev) =>
       prev.includes(menuName)
-        ? prev.filter(name => name !== menuName)
+        ? prev.filter((name) => name !== menuName)
         : [...prev, menuName]
     )
   }
@@ -470,8 +496,8 @@ export function Sidebar({ userRole: userRoleProp }: SidebarProps) {
               {items.map((item) => {
                 const Icon = item.icon
                 const hasSubItems = !!item.subItems && item.subItems.length > 0
-                const isActive = item.href ? pathname === item.href : false
-                const isSubItemActive = hasSubItems && item.subItems?.some((sub) => pathname === sub.href)
+                const isActive = item.href ? (pathname === item.href || pathname.startsWith(item.href + "/")) : false
+                const isSubItemActive = hasSubItems && item.subItems?.some((sub) => pathname === sub.href || pathname.startsWith(sub.href + "/"))
                 const isExpanded = isMenuExpanded(item.name)
 
                 // Items with sub-menus
@@ -510,7 +536,7 @@ export function Sidebar({ userRole: userRoleProp }: SidebarProps) {
                           <div className="space-y-0.5">
                             {item.subItems?.map((subItem) => {
                               const SubIcon = subItem.icon
-                              const isSubActive = pathname === subItem.href
+                              const isSubActive = pathname === subItem.href || pathname.startsWith(subItem.href + "/")
                               return (
                                 <Link key={subItem.name} href={subItem.href}>
                                   <Button
@@ -567,7 +593,7 @@ export function Sidebar({ userRole: userRoleProp }: SidebarProps) {
                         <div className="ml-4 mt-1 space-y-0.5 border-l-2 border-muted pl-3">
                           {item.subItems?.map((subItem) => {
                             const SubIcon = subItem.icon
-                            const isSubActive = pathname === subItem.href
+                            const isSubActive = pathname === subItem.href || pathname.startsWith(subItem.href + "/")
                             return (
                               <Link key={subItem.name} href={subItem.href}>
                                 <Button
