@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { useAuth } from "@/contexts/auth-context"
 import { ProtectedRoute } from "@/components/auth/protected-route"
+import { PermissionGate } from "@/components/auth/permission-gate"
 import { MainLayout } from "@/components/layout/main-layout"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -136,14 +137,14 @@ function TeachersContent() {
             />
           </div>
           <div className="flex gap-2">
-            {user.role === "head_teacher" && (
+            <PermissionGate permissions={["users.invite"]}>
               <Link href="/teachers/new">
                 <Button>
                   <PlusIcon />
                   <span className="ml-2">Add Teacher</span>
                 </Button>
               </Link>
-            )}
+            </PermissionGate>
           </div>
         </div>
 
@@ -196,13 +197,13 @@ function TeachersContent() {
                     <TableCell>{getStatusBadge(teacher.status)}</TableCell>
                     <TableCell>
                       <div className="flex gap-2">
-                        {user.role === "head_teacher" && (
+                        <PermissionGate permissions={["users.edit"]}>
                           <Link href={`/teachers/${teacher.id}/edit`}>
                             <Button variant="ghost" size="sm">
                               <EditIcon />
                             </Button>
                           </Link>
-                        )}
+                        </PermissionGate>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -218,7 +219,7 @@ function TeachersContent() {
 
 export default function TeachersPage() {
   return (
-    <ProtectedRoute allowedRoles={["director", "head_teacher"]}>
+    <ProtectedRoute requiredPermissions={["users.view_teachers"]}>
       <TeachersContent />
     </ProtectedRoute>
   )

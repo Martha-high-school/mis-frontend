@@ -799,7 +799,7 @@ function AcademicYearSettings() {
 
 export default function AcademicYearSettingsPage() {
   return (
-    <ProtectedRoute allowedRoles={["director", "head_teacher"]}>
+    <ProtectedRoute requiredPermissions={["academic_years.view"]}>
       <AcademicYearSettings />
     </ProtectedRoute>
   )

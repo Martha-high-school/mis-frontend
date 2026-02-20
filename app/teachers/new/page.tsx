@@ -598,7 +598,7 @@ function NewTeacherContent() {
 
 export default function NewTeacherPage() {
   return (
-    <ProtectedRoute allowedRoles={["director", "head_teacher"]}>
+    <ProtectedRoute requiredPermissions={["users.invite"]}>
       <NewTeacherContent />
     </ProtectedRoute>
   )

@@ -499,7 +499,7 @@ export default function PromotionsPage() {
   ]
 
   return (
-    <ProtectedRoute allowedRoles={["director", "head_teacher", "class_teacher"]}>
+    <ProtectedRoute requiredPermissions={["promotions.view"]}>
       <MainLayout breadcrumbs={breadcrumbs}>
         <div className="space-y-6">
           {/* Header */}

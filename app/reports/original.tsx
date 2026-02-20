@@ -1033,7 +1033,7 @@ function ReportsContent() {
 
 export default function ReportsPage() {
   return (
-    <ProtectedRoute allowedRoles={["director", "head_teacher", "class_teacher", "bursar"]}>
+    <ProtectedRoute requiredPermissions={["reports.view"]}>
       <ReportsContent />
     </ProtectedRoute>
   )

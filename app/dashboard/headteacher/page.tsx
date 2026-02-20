@@ -536,7 +536,7 @@ function HeadTeacherDashboardContent() {
 
 export default function HeadTeacherDashboardPage() {
   return (
-    <ProtectedRoute>
+    <ProtectedRoute requiredPermissions={["dashboard.view_head_teacher"]}>
       <HeadTeacherDashboardContent />
     </ProtectedRoute>
   )

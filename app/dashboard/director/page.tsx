@@ -661,7 +661,7 @@ function DirectorDashboardContent() {
 
 export default function DirectorDashboardPage() {
   return (
-    <ProtectedRoute>
+    <ProtectedRoute requiredPermissions={["dashboard.view_director"]}>
       <DirectorDashboardContent />
     </ProtectedRoute>
   )

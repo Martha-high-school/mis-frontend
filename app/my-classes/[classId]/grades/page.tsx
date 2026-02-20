@@ -458,7 +458,7 @@ export default function GradesPage() {
   }
 
   return (
-    <ProtectedRoute allowedRoles={["class_teacher", "head_teacher"]}>
+    <ProtectedRoute requiredPermissions={["academics.view_grades"]}>
       <MainLayout
         userRole={user?.role}
        

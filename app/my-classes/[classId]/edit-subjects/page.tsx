@@ -120,7 +120,7 @@ export default function EditSubjectsPage() {
 
   if (loading && !classInfo) {
     return (
-      <ProtectedRoute allowedRoles={["head_teacher", "class_teacher"]}>
+      <ProtectedRoute requiredPermissions={["academics.manage_subjects"]}>
         <MainLayout>
           <div className="flex items-center justify-center min-h-screen">
             <Loader2 className="h-8 w-8 animate-spin" />
@@ -135,7 +135,7 @@ export default function EditSubjectsPage() {
     { label: "Edit Subjects" }]
 
   return (
-    <ProtectedRoute allowedRoles={["head_teacher", "class_teacher"]}>
+    <ProtectedRoute requiredPermissions={["academics.manage_subjects"]}>
       <MainLayout breadcrumbs={breadcrumbs}>
         <div className="container mx-auto py-6 space-y-6">
           {/* Header */}

@@ -620,7 +620,7 @@ function ClassTeacherDashboardContent() {
 
 export default function ClassTeacherDashboardPage() {
   return (
-    <ProtectedRoute>
+    <ProtectedRoute requiredPermissions={["dashboard.view_class_teacher"]}>
       <ClassTeacherDashboardContent />
     </ProtectedRoute>
   )

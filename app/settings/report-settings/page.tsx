@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback, useMemo } from "react"
 import { useAuth } from "@/contexts/auth-context"
 import { useAcademicContext } from "@/contexts/use-academic-contex"
 import { ProtectedRoute } from "@/components/auth/protected-route"
+import { usePermissions } from "@/contexts/permission-context"
 import { MainLayout } from "@/components/layout/main-layout"
 
 import { reportService } from "@/services/report.service"
@@ -180,9 +181,10 @@ function TeacherReportsContent() {
   const [currentPage, setCurrentPage] = useState(1)
   const studentsPerPage = 10
 
-  const userRole = user?.role === "head_teacher" ? "head_teacher" : "class_teacher"
-  const isClassTeacher = userRole === "class_teacher"
-  const isHeadTeacher = userRole === "head_teacher"
+  const { hasAnyPermission } = usePermissions()
+  const isHeadTeacher = hasAnyPermission("reports.manage_settings")
+  const isClassTeacher = !isHeadTeacher
+  const userRole = isHeadTeacher ? "head_teacher" : "class_teacher"
 
   // Helper: extract term number
   const termToNumber = (term: string): number => {
@@ -1587,7 +1589,7 @@ function TeacherReportsContent() {
 
 export default function TeacherReportsPage() {
   return (
-    <ProtectedRoute allowedRoles={["class_teacher", "head_teacher"]}>
+    <ProtectedRoute requiredPermissions={["reports.manage_settings", "reports.manage_comments"]}>
       <TeacherReportsContent />
     </ProtectedRoute>
   )

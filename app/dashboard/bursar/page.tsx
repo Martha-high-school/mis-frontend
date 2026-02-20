@@ -751,7 +751,7 @@ function BursarDashboardContent() {
 
 export default function BursarDashboardPage() {
   return (
-    <ProtectedRoute>
+    <ProtectedRoute requiredPermissions={["dashboard.view_bursar"]}>
       <BursarDashboardContent />
     </ProtectedRoute>
   )

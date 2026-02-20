@@ -36,7 +36,7 @@ function SignatureSettingsContent() {
 
 export default function SignatureSettingsPage() {
   return (
-    <ProtectedRoute allowedRoles={["head_teacher", "class_teacher"]}>
+    <ProtectedRoute requiredPermissions={["signatures.manage"]}>
       <SignatureSettingsContent />
     </ProtectedRoute>
   )

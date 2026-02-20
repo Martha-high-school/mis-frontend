@@ -282,7 +282,7 @@ export default function ClassSetupPage() {
   }
 
   return (
-    <ProtectedRoute allowedRoles={["head_teacher", "class_teacher", "director"]}>
+    <ProtectedRoute requiredPermissions={["classes.setup_subjects"]}>
       <MainLayout userRole={user?.role} userName={user?.name}>
         <div className="space-y-6">
           {/* Header */}

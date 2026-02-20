@@ -776,7 +776,7 @@ function SchoolClassesContent() {
 
 export default function SchoolClassesPage() {
   return (
-    <ProtectedRoute allowedRoles={["head_teacher"]}>
+    <ProtectedRoute requiredPermissions={["academics.manage_assessments"]}>
       <SchoolClassesContent />
     </ProtectedRoute>
   )

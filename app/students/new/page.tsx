@@ -411,7 +411,7 @@ function NewStudentContent() {
 
 export default function NewStudentPage() {
   return (
-    <ProtectedRoute allowedRoles={["director", "head_teacher"]}>
+    <ProtectedRoute requiredPermissions={["students.create"]}>
       <NewStudentContent />
     </ProtectedRoute>
   )

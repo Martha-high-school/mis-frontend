@@ -1169,7 +1169,7 @@ function FeeManagementContent() {
 
 export default function FeeManagementPage() {
   return (
-    <ProtectedRoute allowedRoles={["bursar"]}>
+    <ProtectedRoute requiredPermissions={["fees.view", "fees.record_payment", "fees.set_fees"]}>
       <FeeManagementContent />
     </ProtectedRoute>
   )
