@@ -44,9 +44,7 @@ import {
 } from "recharts"
 import { dashboardService, HeadTeacherDashboardData } from "@/services/dashbaord.service"
 
-// ============================================================================
 // ENHANCED COMPONENTS
-// ============================================================================
 
 const MetricCard = ({
   title,
@@ -247,9 +245,6 @@ const WelcomeHeader = ({
   return (
     <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-700 p-6 text-white shadow-xl shadow-purple-500/30">
 
-      {/* ========================================================= */}
-      {/* Decorative Layer (NOW STRONG & VISIBLE)                   */}
-      {/* ========================================================= */}
       <div className="absolute inset-0 pointer-events-none">
 
         {/* Bright circles */}
@@ -270,9 +265,6 @@ const WelcomeHeader = ({
         </svg>
       </div>
 
-      {/* ========================================================= */}
-      {/* Main Content                                              */}
-      {/* ========================================================= */}
       <div className="relative flex flex-wrap items-center justify-between gap-4">
         <div className="space-y-2">
 
@@ -325,9 +317,7 @@ const WelcomeHeader = ({
   )
 }
 
-// ============================================================================
 // HEAD TEACHER DASHBOARD CONTENT
-// ============================================================================
 
 function HeadTeacherDashboardContent() {
   const { user } = useAuth()
@@ -501,42 +491,16 @@ function HeadTeacherDashboardContent() {
           </ChartCard>
         </div>
 
-        {/* Quick Actions */}
-        {/* <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {[
-            { label: "Manage Classes", icon: GraduationCap, href: "/classes", color: "blue", description: "View and organize classes" },
-            { label: "View Students", icon: Users, href: "/students", color: "green", description: "Student records" },
-            { label: "Assessments", icon: BookOpen, href: "/assessments", color: "purple", description: "Manage assessments" },
-            { label: "Report Settings", icon: Settings, href: "/settings/report-settings", color: "amber", description: "Configure reports" }
-          ].map((action, idx) => (
-            <button
-              key={idx}
-              className="group flex flex-col items-start rounded-2xl border border-gray-200 bg-white p-5 text-left transition-all duration-300 hover:shadow-xl hover:border-gray-300 hover:-translate-y-1"
-            >
-              <div className={`rounded-xl bg-gradient-to-br from-${action.color}-100 to-${action.color}-50 p-3 mb-4 ring-1 ring-${action.color}-200/50`}>
-                <action.icon className={`h-5 w-5 text-${action.color}-600`} />
-              </div>
-              <span className="font-semibold text-gray-900 mb-1">{action.label}</span>
-              <span className="text-xs text-gray-500 mb-3">{action.description}</span>
-              <div className="flex items-center gap-1 text-sm font-medium text-gray-400 group-hover:text-gray-600 mt-auto">
-                <span>Open</span>
-                <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </div>
-            </button>
-          ))}
-        </div> */}
       </div>
     </MainLayout>
   )
 }
 
-// ============================================================================
 // EXPORT
-// ============================================================================
 
 export default function HeadTeacherDashboardPage() {
   return (
-    <ProtectedRoute>
+    <ProtectedRoute requiredPermissions={["dashboard.view_head_teacher"]}>
       <HeadTeacherDashboardContent />
     </ProtectedRoute>
   )

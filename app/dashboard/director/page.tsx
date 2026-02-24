@@ -41,9 +41,7 @@ import {
 } from "recharts"
 import { dashboardService, DirectorDashboardData } from "@/services/dashbaord.service"
 
-// ============================================================================
 // HELPER FUNCTIONS
-// ============================================================================
 
 const formatCurrency = (amount: number) => {
   if (amount >= 1000000) {
@@ -59,9 +57,7 @@ const formatNumber = (num: number) => {
   return new Intl.NumberFormat().format(num)
 }
 
-// ============================================================================
 // ENHANCED COMPONENTS
-// ============================================================================
 
 const MetricCard = ({
   title,
@@ -347,9 +343,7 @@ const WelcomeHeader = ({
 }
 
 
-// ============================================================================
 // DIRECTOR DASHBOARD CONTENT
-// ============================================================================
 
 function DirectorDashboardContent() {
   const { user } = useAuth()
@@ -655,13 +649,11 @@ function DirectorDashboardContent() {
   )
 }
 
-// ============================================================================
 // EXPORT
-// ============================================================================
 
 export default function DirectorDashboardPage() {
   return (
-    <ProtectedRoute>
+    <ProtectedRoute requiredPermissions={["dashboard.view_director"]}>
       <DirectorDashboardContent />
     </ProtectedRoute>
   )

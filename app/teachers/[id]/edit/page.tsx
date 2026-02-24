@@ -907,7 +907,7 @@ function EditTeacherContent() {
 
 export default function EditTeacherPage() {
   return (
-    <ProtectedRoute allowedRoles={["director", "head_teacher"]}>
+    <ProtectedRoute requiredPermissions={["users.edit"]}>
       <EditTeacherContent />
     </ProtectedRoute>
   )

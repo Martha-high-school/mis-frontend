@@ -667,7 +667,7 @@ function CompetenceSettingsPageInner() {
 
 export default function CompetenceSettingsPage() {
   return (
-    <ProtectedRoute allowedRoles={["class_teacher", "head_teacher"]}>
+    <ProtectedRoute requiredPermissions={["academics.manage_competences"]}>
       <CompetenceSettingsPageInner />
     </ProtectedRoute>
   )

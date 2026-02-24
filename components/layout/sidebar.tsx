@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { usePathname, useRouter } from "next/navigation"
@@ -120,6 +120,29 @@ const moduleSubItems: Record<string, SubItemConfig> = {
 }
 
 // ============================================================================
+// MODULE → REQUIRED PERMISSIONS MAP
+// Hard-coded client-side guard.  The user must hold at least ONE permission
+// from the array for the module to appear in the sidebar.  This is enforced
+// independently of whatever the backend puts in the sidebar payload.
+// ============================================================================
+
+const moduleRequiredPermissions: Record<string, string[]> = {
+  dashboard:      ["dashboard.view"],
+  users:          ["users.view", "users.invite", "users.edit"],
+  permissions:    ["permissions.view", "permissions.assign"],
+  academic_years: ["academic_years.view"],
+  classes:        ["classes.view", "classes.view_own"],
+  academics:      ["academics.view"],
+  students:       ["students.view"],
+  promotions:     ["promotions.view"],
+  reports:        ["reports.view"],
+  report_cards:   ["report_cards.view"],
+  pdf_reports:    ["pdf_reports.generate"],
+  fees:           ["fees.view", "fees.record_payment", "fees.set_fees"],
+  signatures:     ["signatures.manage"],
+}
+
+// ============================================================================
 // SIDEBAR NAVIGATION BUILDER
 // Builds navigation from the permission context's sidebar array
 // ============================================================================
@@ -142,7 +165,6 @@ function buildNavigation(
   userRole: string
 ): NavItem[] {
   const nav: NavItem[] = []
-  const isDirector = userRole === "director"
 
   // Map dashboard to the correct role-specific path
   const getDashboardPath = () => {
@@ -160,6 +182,19 @@ function buildNavigation(
 
   for (const item of sidebar) {
     const Icon = getIcon(item.icon)
+
+    // Client-side permission guard: skip items the current user
+    // is not allowed to see.  We check our own hardcoded map first
+    // (it covers every module), then fall back to the backend-provided
+    // permissions array on the sidebar item.
+    const requiredPerms = moduleRequiredPermissions[item.module]
+    if (requiredPerms && requiredPerms.length > 0) {
+      const hasAny = requiredPerms.some(p => userPermissions.has(p))
+      if (!hasAny) continue
+    } else if (item.permissions && item.permissions.length > 0) {
+      const hasAny = item.permissions.some(p => userPermissions.has(p))
+      if (!hasAny) continue
+    }
 
     // Dashboard — use role-specific path
     if (item.module === "dashboard") {
@@ -308,10 +343,6 @@ function buildNavigation(
   const visibleSettingsSubItems: { name: string; href: string; icon: LucideIcon }[] = []
 
   for (const sub of settingsConfig.subItems) {
-    if (isDirector) {
-      visibleSettingsSubItems.push({ name: sub.name, href: sub.href, icon: sub.icon })
-      continue
-    }
     if (!sub.permissions || sub.permissions.length === 0) {
       visibleSettingsSubItems.push({ name: sub.name, href: sub.href, icon: sub.icon })
       continue
@@ -334,10 +365,7 @@ function buildNavigation(
   return nav
 }
 
-// ============================================================================
 // SIDEBAR COMPONENT
-// ============================================================================
-
 interface SidebarProps {
   userRole?: "director" | "head_teacher" | "class_teacher" | "bursar"
 }
@@ -351,9 +379,35 @@ export function Sidebar({ userRole: userRoleProp }: SidebarProps) {
   const router = useRouter()
 
   const role = userRoleProp || user?.role || "class_teacher"
-  
+
   // Build navigation items from permission context
   const items = buildNavigation(sidebar, permissions, role)
+
+  // ---- Auto-expand menus that contain the current active route ----
+  const hasAutoExpanded = useRef(false)
+
+  useEffect(() => {
+    const menusToExpand: string[] = []
+    for (const item of items) {
+      if (item.subItems && item.subItems.length > 0) {
+        const hasActiveChild = item.subItems.some(
+          (sub) => pathname === sub.href || pathname.startsWith(sub.href + "/")
+        )
+        if (hasActiveChild) {
+          menusToExpand.push(item.name)
+        }
+      }
+    }
+
+    if (menusToExpand.length > 0) {
+      setExpandedMenus((prev) => {
+        const merged = new Set([...prev, ...menusToExpand])
+        return Array.from(merged)
+      })
+      hasAutoExpanded.current = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname, items.length])
 
   const handleLogout = () => {
     logout()
@@ -361,9 +415,9 @@ export function Sidebar({ userRole: userRoleProp }: SidebarProps) {
   }
 
   const toggleMenu = (menuName: string) => {
-    setExpandedMenus(prev =>
+    setExpandedMenus((prev) =>
       prev.includes(menuName)
-        ? prev.filter(name => name !== menuName)
+        ? prev.filter((name) => name !== menuName)
         : [...prev, menuName]
     )
   }
@@ -439,8 +493,8 @@ export function Sidebar({ userRole: userRoleProp }: SidebarProps) {
               {items.map((item) => {
                 const Icon = item.icon
                 const hasSubItems = !!item.subItems && item.subItems.length > 0
-                const isActive = item.href ? pathname === item.href : false
-                const isSubItemActive = hasSubItems && item.subItems?.some((sub) => pathname === sub.href)
+                const isActive = item.href ? (pathname === item.href || pathname.startsWith(item.href + "/")) : false
+                const isSubItemActive = hasSubItems && item.subItems?.some((sub) => pathname === sub.href || pathname.startsWith(sub.href + "/"))
                 const isExpanded = isMenuExpanded(item.name)
 
                 // Items with sub-menus
@@ -479,7 +533,7 @@ export function Sidebar({ userRole: userRoleProp }: SidebarProps) {
                           <div className="space-y-0.5">
                             {item.subItems?.map((subItem) => {
                               const SubIcon = subItem.icon
-                              const isSubActive = pathname === subItem.href
+                              const isSubActive = pathname === subItem.href || pathname.startsWith(subItem.href + "/")
                               return (
                                 <Link key={subItem.name} href={subItem.href}>
                                   <Button
@@ -536,7 +590,7 @@ export function Sidebar({ userRole: userRoleProp }: SidebarProps) {
                         <div className="ml-4 mt-1 space-y-0.5 border-l-2 border-muted pl-3">
                           {item.subItems?.map((subItem) => {
                             const SubIcon = subItem.icon
-                            const isSubActive = pathname === subItem.href
+                            const isSubActive = pathname === subItem.href || pathname.startsWith(subItem.href + "/")
                             return (
                               <Link key={subItem.name} href={subItem.href}>
                                 <Button

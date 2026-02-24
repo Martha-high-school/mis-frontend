@@ -134,10 +134,6 @@ export default function PromotionsPage() {
     reason: ''
   })
 
-  // ============================================================================
-  // LOAD INITIAL DATA
-  // ============================================================================
-
   useEffect(() => {
     loadInitialData()
   }, [])
@@ -178,10 +174,6 @@ export default function PromotionsPage() {
       setLoading(false)
     }
   }
-
-  // ============================================================================
-  // LOAD PROMOTION DATA
-  // ============================================================================
 
   const loadPromotionData = async () => {
     if (!selectedYear || !selectedClassId) return
@@ -242,10 +234,6 @@ export default function PromotionsPage() {
     }
   }
 
-  // ============================================================================
-  // DECISION HANDLERS
-  // ============================================================================
-
   const handleDecisionChange = (studentId: string, action: 'PROMOTE' | 'REPEAT', toClassId?: string) => {
     const newDecisions = new Map(decisions)
     const existingDecision = newDecisions.get(studentId) || {
@@ -277,10 +265,6 @@ export default function PromotionsPage() {
       setDecisions(newDecisions)
     }
   }
-
-  // ============================================================================
-  // BULK ACTIONS
-  // ============================================================================
 
   const handlePromoteAllQualifying = () => {
     const newDecisions = new Map(decisions)
@@ -314,10 +298,6 @@ export default function PromotionsPage() {
     setDecisions(newDecisions)
      toast.info("Set all non-qualifying students to repeat")
   }
-
-  // ============================================================================
-  // PROCESS PROMOTIONS
-  // ============================================================================
 
   const handleProcessPromotions = async () => {
     if (!nextAcademicYear) {
@@ -365,9 +345,6 @@ export default function PromotionsPage() {
     }
   }
 
-  // ============================================================================
-  // TEACHER OVERRIDE
-  // ============================================================================
 
   const openOverrideDialog = (student: StudentForPromotion) => {
     const currentDecision = decisions.get(student.id)
@@ -499,7 +476,7 @@ export default function PromotionsPage() {
   ]
 
   return (
-    <ProtectedRoute allowedRoles={["director", "head_teacher", "class_teacher"]}>
+    <ProtectedRoute requiredPermissions={["promotions.view"]}>
       <MainLayout breadcrumbs={breadcrumbs}>
         <div className="space-y-6">
           {/* Header */}

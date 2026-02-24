@@ -817,7 +817,7 @@ function FinancialReportsContent() {
 
 export default function FinancialReportsPage() {
   return (
-    <ProtectedRoute allowedRoles={["bursar", "head_teacher", "director"]}>
+    <ProtectedRoute requiredPermissions={["fees.view_reports"]}>
       <FinancialReportsContent />
     </ProtectedRoute>
   )
