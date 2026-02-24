@@ -155,7 +155,7 @@ function NewClassContent() {
   if (!user) return null
 
   const breadcrumbs = [
-    { label: "Dashboard", href: "/dashboard" },
+    { label: "Dashboard"},
     { label: "Classes", href: "/classes" },
     { label: "Create Class" },
   ]

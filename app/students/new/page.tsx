@@ -205,7 +205,7 @@ function NewStudentContent() {
   }
 
   const breadcrumbs = [
-    { label: "Dashboard", href: "/dashboard" },
+    { label: "Dashboard"},
     { label: "Students", href: "/students" },
     { label: "Create Student" },
   ]

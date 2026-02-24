@@ -70,7 +70,7 @@ function ClassesContent() {
 
   if (!user) return null
 
-  const breadcrumbs = [{ label: "Dashboard", href: "/dashboard" }, { label: "Classes" }]
+  const breadcrumbs = [{ label: "Dashboard"}, { label: "Classes" }]
 
   return (
     <MainLayout userRole={user.role} userName={user.name} breadcrumbs={breadcrumbs}>

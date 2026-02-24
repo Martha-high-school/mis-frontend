@@ -322,7 +322,7 @@ function EditStudentContent() {
   const currentAge = calculateAge(studentData.admissionDate)
 
     const breadcrumbs = [
-    { label: "Dashboard", href: "/dashboard" },
+    { label: "Dashboard"},
     { label: "Students", href: "/students" },
     { label: "Edit Student" },
   ]

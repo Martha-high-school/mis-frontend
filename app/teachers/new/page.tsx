@@ -196,7 +196,7 @@ function NewTeacherContent() {
   if (!user) return null
 
   const breadcrumbs = [
-    { label: "Dashboard", href: "/dashboard" },
+    { label: "Dashboard"},
     { label: "Teachers", href: "/teachers" },
     { label: "Add Teacher" },
   ]

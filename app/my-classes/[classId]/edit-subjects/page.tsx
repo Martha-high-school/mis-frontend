@@ -124,7 +124,7 @@ export default function EditSubjectsPage() {
     )
   }
   const breadcrumbs = [
-    {label: "Dashboard", href: "/dashboard" },
+    {label: "Dashboard" },
     {label: "My classes", href: "/my-classes" }, 
     { label: "Edit Subjects" }]
 

@@ -470,7 +470,7 @@ export default function PromotionsPage() {
   }
 
   const breadcrumbs = [
-    { label: "Dashboard", href: "/dashboard" },
+    { label: "Dashboard"},
     { label: "My Classes", href: "/my-classes" },
     { label: "Promotions" }
   ]

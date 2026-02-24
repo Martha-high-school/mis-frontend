@@ -138,7 +138,7 @@ export default function EditClassPage() {
         userRole={user.role}
         userName={user.name}
         breadcrumbs={[
-          { label: "Dashboard", href: "/dashboard" },
+          { label: "Dashboard"},
           { label: "Classes", href: "/classes" },
           { label: classData?.name || "Edit" },
         ]}

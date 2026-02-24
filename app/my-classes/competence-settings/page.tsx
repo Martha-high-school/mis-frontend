@@ -330,7 +330,7 @@ function CompetenceSettingsContent({ classId }: { classId: string }) {
   if (!user) return null
 
   const breadcrumbs = [
-    { label: "Dashboard", href: "/dashboard" },
+    { label: "Dashboard"},
     { label: "My Classes", href: "/my-classes" },
     { label: "Competence Settings" },
   ]

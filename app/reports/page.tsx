@@ -893,7 +893,7 @@ function ReportsContent() {
   if (!user) return null
 
   const breadcrumbs = [
-    { label: "Dashboard", href: "/dashboard" },
+    { label: "Dashboard"},
     { label: "Report Generator" }
   ]
 

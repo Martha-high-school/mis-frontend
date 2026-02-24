@@ -15,10 +15,6 @@ import {
 } from "@/services/permission.service"
 import { useAuth } from "@/contexts/auth-context"
 
-// ============================================================================
-// TYPES
-// ============================================================================
-
 interface PermissionContextType {
   /** Set of permission code strings, e.g. "classes.view", "fees.record_payment" */
   permissions: Set<string>
@@ -38,76 +34,90 @@ interface PermissionContextType {
   refresh: () => Promise<void>
 }
 
-// ============================================================================
-// CONTEXT
-// ============================================================================
 
 const PermissionContext = createContext<PermissionContextType | undefined>(
   undefined
 )
 
-// ============================================================================
-// PROVIDER
-// ============================================================================
+function hydratePermissions(): Set<string> {
+  if (typeof window === "undefined") return new Set()
+  try {
+    const raw = localStorage.getItem("userPermissions")
+    if (raw) return new Set(JSON.parse(raw) as string[])
+  } catch { /* ignore */ }
+  return new Set()
+}
+
+function hydrateSidebar(): SidebarItem[] {
+  if (typeof window === "undefined") return []
+  try {
+    const raw = localStorage.getItem("userSidebar")
+    if (raw) return JSON.parse(raw) as SidebarItem[]
+  } catch { /* ignore */ }
+  return []
+}
 
 export function PermissionProvider({ children }: { children: ReactNode }) {
   const { user, isAuthenticated } = useAuth()
-  const [permissions, setPermissions] = useState<Set<string>>(new Set())
-  const [sidebar, setSidebar] = useState<SidebarItem[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+
+  // Hydrate from cache synchronously so the first render is never "empty"
+  const [permissions, setPermissions] = useState<Set<string>>(hydratePermissions)
+  const [sidebar, setSidebar] = useState<SidebarItem[]>(hydrateSidebar)
+  // `hasFetched` ensures ProtectedRoute won't redirect until a real API
+  // call has completed (or failed) at least once for this session.
+  const [hasFetched, setHasFetched] = useState(false)
+  const [isFetching, setIsFetching] = useState(false)
+
+  // Derived loading flag – true while auth is resolving OR while we haven't
+  // completed the first permission fetch for an authenticated user.
+  const isLoading = !isAuthenticated
+    ? false
+    : !hasFetched || isFetching
 
   const loadPermissions = useCallback(async () => {
     if (!isAuthenticated || !user) {
       setPermissions(new Set())
       setSidebar([])
-      setIsLoading(false)
+      setHasFetched(false)
       return
     }
 
     try {
-      setIsLoading(true)
+      setIsFetching(true)
       const data: MyPermissionsResponse =
         await permissionService.getMyPermissions()
 
-      setPermissions(new Set(data.permissions))
+      const newPerms = new Set(data.permissions)
+      setPermissions(newPerms)
       setSidebar(data.sidebar)
 
-      // Also store in localStorage for quick hydration on next load
+      // Persist for next hydration
       if (typeof window !== "undefined") {
-        localStorage.setItem(
-          "userPermissions",
-          JSON.stringify(data.permissions)
-        )
+        localStorage.setItem("userPermissions", JSON.stringify(data.permissions))
         localStorage.setItem("userSidebar", JSON.stringify(data.sidebar))
       }
     } catch (error) {
       console.error("Failed to load permissions:", error)
-      // Try to hydrate from localStorage as fallback
-      if (typeof window !== "undefined") {
-        try {
-          const cached = localStorage.getItem("userPermissions")
-          const cachedSidebar = localStorage.getItem("userSidebar")
-          if (cached) setPermissions(new Set(JSON.parse(cached)))
-          if (cachedSidebar) setSidebar(JSON.parse(cachedSidebar))
-        } catch {
-          // ignore parse errors
-        }
-      }
+      // Keep whatever was hydrated from cache – don't wipe it
     } finally {
-      setIsLoading(false)
+      setIsFetching(false)
+      setHasFetched(true)
     }
   }, [isAuthenticated, user])
 
   // Load permissions when user changes
   useEffect(() => {
-    loadPermissions()
-  }, [loadPermissions])
+    if (isAuthenticated && user) {
+      loadPermissions()
+    }
+  }, [isAuthenticated, user, loadPermissions])
 
   // Clear on logout
   useEffect(() => {
     if (!isAuthenticated) {
       setPermissions(new Set())
       setSidebar([])
+      setHasFetched(false)
       if (typeof window !== "undefined") {
         localStorage.removeItem("userPermissions")
         localStorage.removeItem("userSidebar")
@@ -115,7 +125,6 @@ export function PermissionProvider({ children }: { children: ReactNode }) {
     }
   }, [isAuthenticated])
 
-  // ---- Helpers ----
 
   const hasPermission = useCallback(
     (code: string) => permissions.has(code),
@@ -154,10 +163,6 @@ export function PermissionProvider({ children }: { children: ReactNode }) {
     </PermissionContext.Provider>
   )
 }
-
-// ============================================================================
-// HOOK
-// ============================================================================
 
 export function usePermissions() {
   const context = useContext(PermissionContext)

@@ -382,7 +382,7 @@ function SchoolClassesContent() {
   if (!user) return null
 
   const breadcrumbs = [
-    { label: "Dashboard", href: "/dashboard" },
+    { label: "Dashboard" },
     { label: "School Assessments" }
   ]
 

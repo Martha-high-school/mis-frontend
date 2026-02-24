@@ -77,7 +77,7 @@ function FinancialReportsContent() {
   })
 
   const breadcrumbs = [
-    { label: "Dashboard", href: "/dashboard" },
+    { label: "Dashboard"},
     { label: "Financial Reports" }
   ]
 

@@ -387,7 +387,7 @@ function AcademicYearSettings() {
     : 0
 
   const breadcrumbs = [
-    { label: "Dashboard", href: "/dashboard" },
+    { label: "Dashboard"},
     { label: "Settings", href: "/settings" },
     { label: "Academic Year" }
   ]

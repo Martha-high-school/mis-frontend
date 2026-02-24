@@ -464,7 +464,7 @@ export default function GradesPage() {
        
         userName={user?.name}
         breadcrumbs={[
-          { label: "Dashboard", href: "/dashboard" },
+          { label: "Dashboard"},
           { label: "My Classes", href: "/my-classes" },
           { label: "Grades" }
         ]}
