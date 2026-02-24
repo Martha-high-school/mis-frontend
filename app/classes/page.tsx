@@ -4,10 +4,11 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import { useAuth } from "@/contexts/auth-context"
 import { ProtectedRoute } from "@/components/auth/protected-route"
+import { PermissionGate } from "@/components/auth/permission-gate"
 import { MainLayout } from "@/components/layout/main-layout"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -74,7 +75,6 @@ function ClassesContent() {
   return (
     <MainLayout userRole={user.role} userName={user.name} breadcrumbs={breadcrumbs}>
       <div className="space-y-6">
-        {/* Header Actions */}
         <div className="flex flex-col sm:flex-row gap-4 justify-between">
           <div className="relative flex-1 max-w-md">
             <Input
@@ -84,14 +84,14 @@ function ClassesContent() {
               className="h-10 border-2 border-slate-200 dark:border-slate-700 focus:border-primary bg-white dark:bg-slate-900"
             />
           </div>
-          {user.role === "head_teacher" && (
+          {/* Now visible to director too — anyone with classes.create */}
+          <PermissionGate permissions={["classes.create"]}>
             <Link href="/classes/new">
               <Button className="h-10">Create Class</Button>
             </Link>
-          )}
+          </PermissionGate>
         </div>
 
-        {/* Classes Table */}
         <Card className="overflow-visible">
           <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-700">
             <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
@@ -134,40 +134,44 @@ function ClassesContent() {
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-2 justify-center">
-                            <Link href={`/classes/${cls.id}/edit`}>
-                              <Button variant="outline" size="sm">
-                                <Edit className="h-4 w-4 mr-1" /> Edit
-                              </Button>
-                            </Link>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              onClick={() => setSelectedClass(cls)}
-                            >
-                              <Trash2 className="h-4 w-4 mr-1" /> Delete
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Are you sure you want to delete{" "}
-                                <strong>{selectedClass?.name}</strong>? This action cannot be undone.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => selectedClass && handleDelete(selectedClass)}
-                                disabled={deleting}
-                              >
-                                {deleting ? "Deleting..." : "Yes, Delete"}
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                            <PermissionGate permissions={["classes.edit"]}>
+                              <Link href={`/classes/${cls.id}/edit`}>
+                                <Button variant="outline" size="sm">
+                                  <Edit className="h-4 w-4 mr-1" /> Edit
+                                </Button>
+                              </Link>
+                            </PermissionGate>
+                            <PermissionGate permissions={["classes.delete"]}>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button
+                                    variant="destructive"
+                                    size="sm"
+                                    onClick={() => setSelectedClass(cls)}
+                                  >
+                                    <Trash2 className="h-4 w-4 mr-1" /> Delete
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Are you sure you want to delete{" "}
+                                      <strong>{selectedClass?.name}</strong>? This action cannot be undone.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => selectedClass && handleDelete(selectedClass)}
+                                      disabled={deleting}
+                                    >
+                                      {deleting ? "Deleting..." : "Yes, Delete"}
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </PermissionGate>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -185,7 +189,7 @@ function ClassesContent() {
 
 export default function ClassesPage() {
   return (
-    <ProtectedRoute allowedRoles={["director", "head_teacher"]}>
+    <ProtectedRoute requiredPermissions={["classes.view", "classes.view_own"]}>
       <ClassesContent />
     </ProtectedRoute>
   )

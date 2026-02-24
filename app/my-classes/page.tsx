@@ -181,7 +181,7 @@ export default function MyClassesPage() {
   }
 
   return (
-    <ProtectedRoute allowedRoles={["class_teacher"]}>
+    <ProtectedRoute requiredPermissions={["classes.view_own"]}>
       <MainLayout
         // pageTitle="My Classes"
         userRole={user?.role}

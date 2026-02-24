@@ -29,9 +29,7 @@ import { classService, type ClassData } from "@/services/class.service"
 import { academicYearService, type AcademicYear } from "@/services/accademic-year.service"
 import { pdfService, type ReportData } from "@/services/pdf-report.service"
 
-// =============================================================================
 // TYPES
-// =============================================================================
 
 interface StudentListItem {
   id: string
@@ -54,9 +52,7 @@ interface TermOption {
   label: string
 }
 
-// =============================================================================
 // UTILITY FUNCTIONS
-// =============================================================================
 
 /**
  * Generate competence column headers dynamically (C1, C2, ..., Cn)
@@ -77,9 +73,7 @@ const formatTermName = (term: string): string => {
   return termMap[term] || term
 }
 
-// =============================================================================
 // REPORT PREVIEW MODAL COMPONENT
-// =============================================================================
 
 interface ReportPreviewModalProps {
   reportData: ReportData | null
@@ -412,9 +406,7 @@ function ReportPreviewModal({
   )
 }
 
-// =============================================================================
 // COMMENT MODAL COMPONENT
-// =============================================================================
 
 interface CommentModalProps {
   student: StudentListItem | null
@@ -473,17 +465,15 @@ function CommentModal({ student, isOpen, onClose, onSave }: CommentModalProps) {
   )
 }
 
-// =============================================================================
 // MAIN REPORTS COMPONENT
-// =============================================================================
 
 function ReportsContent() {
   const { user } = useAuth()
   const { context, loading: contextLoading } = useAcademicContext()
   
-  // =============================================================================
+
   // STATE MANAGEMENT
-  // =============================================================================
+
   
   // Selection state
   const [selectedYear, setSelectedYear] = useState<number | null>(null)
@@ -505,9 +495,9 @@ function ReportsContent() {
   const [classes, setClasses] = useState<ClassData[]>([])
   const [terms, setTerms] = useState<TermOption[]>([])
 
-  // =============================================================================
+
   // DATA FETCHING EFFECTS
-  // =============================================================================
+
   
   /**
    * Initialize with current context
@@ -622,9 +612,9 @@ function ReportsContent() {
     loadStudents()
   }, [selectedYear, selectedTerm, selectedClass])
 
-  // =============================================================================
+
   // EVENT HANDLERS
-  // =============================================================================
+
 
   /**
    * Handle preview button click
@@ -746,9 +736,9 @@ function ReportsContent() {
     setCommentStudent(null)
   }
 
-  // =============================================================================
+
   // RENDER
-  // =============================================================================
+
 
   if (!user) return null
 
@@ -1033,13 +1023,11 @@ function ReportsContent() {
   )
 }
 
-// =============================================================================
 // PAGE EXPORT WITH PROTECTED ROUTE
-// =============================================================================
 
 export default function ReportsPage() {
   return (
-    <ProtectedRoute allowedRoles={["director", "head_teacher", "class_teacher", "bursar"]}>
+    <ProtectedRoute requiredPermissions={["reports.view"]}>
       <ReportsContent />
     </ProtectedRoute>
   )

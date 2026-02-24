@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { useAuth } from "@/contexts/auth-context"
 import { useAcademicContext } from "@/contexts/use-academic-contex"
 import { ProtectedRoute } from "@/components/auth/protected-route"
+import { PermissionGate } from "@/components/auth/permission-gate"
 import { MainLayout } from "@/components/layout/main-layout"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -288,14 +289,14 @@ function StudentsContent() {
               <UploadIcon />
               <span className="ml-2">Import</span>
             </Button>
-            {user.role === "head_teacher" && (
+            <PermissionGate permissions={["students.create"]}>
               <Link href="/students/new">
                 <Button className="h-10">
                   <PlusIcon />
                   <span className="ml-2">Add Student</span>
                 </Button>
               </Link>
-            )}
+            </PermissionGate>
           </div>
         </div>
 
@@ -477,13 +478,13 @@ function StudentsContent() {
                           <TableCell className="text-center">{getFeeStatusBadge(student.feeStatus)}</TableCell>
                           <TableCell className="text-center">
                             <div className="flex gap-2 justify-center">
-                              {user.role === "head_teacher" && (
+                              <PermissionGate permissions={["students.edit"]}>
                                 <Link href={`/students/${student.id}/edit`}>
                                   <Button variant="ghost" size="sm">
                                     <EditIcon />
                                   </Button>
                                 </Link>
-                              )}
+                              </PermissionGate>
                             </div>
                           </TableCell>
                         </TableRow>
@@ -555,7 +556,7 @@ function StudentsContent() {
 
 export default function StudentsPage() {
   return (
-    <ProtectedRoute allowedRoles={["director", "head_teacher", "class_teacher", "bursar"]}>
+    <ProtectedRoute requiredPermissions={["students.view"]}>
       <StudentsContent />
     </ProtectedRoute>
   )

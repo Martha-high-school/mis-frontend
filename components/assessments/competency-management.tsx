@@ -16,9 +16,11 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Plus, Edit, Trash2, BookOpen } from "lucide-react"
+import { PermissionGate } from "../auth/permission-gate"
 
 interface CompetencyManagementProps {
-  userRole: string
+  /** @deprecated Use PermissionGate instead. Kept for backwards compat. */
+  userRole?: string
 }
 
 // Mock competency data
@@ -123,7 +125,6 @@ export function CompetencyManagement({ userRole }: CompetencyManagementProps) {
           placeholder="Enter competency name"
         />
       </div>
-
       <div className="space-y-2">
         <label className="text-sm font-medium">Description</label>
         <Textarea
@@ -133,7 +134,6 @@ export function CompetencyManagement({ userRole }: CompetencyManagementProps) {
           rows={3}
         />
       </div>
-
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <label className="text-sm font-medium">Subject</label>
@@ -143,7 +143,6 @@ export function CompetencyManagement({ userRole }: CompetencyManagementProps) {
             placeholder="Subject area"
           />
         </div>
-
         <div className="space-y-2">
           <label className="text-sm font-medium">Grade Level</label>
           <Input
@@ -153,7 +152,6 @@ export function CompetencyManagement({ userRole }: CompetencyManagementProps) {
           />
         </div>
       </div>
-
       <div className="space-y-2">
         <label className="text-sm font-medium">Assessment Criteria</label>
         <Input
@@ -162,11 +160,8 @@ export function CompetencyManagement({ userRole }: CompetencyManagementProps) {
           placeholder="Enter criteria separated by commas"
         />
       </div>
-
       <div className="flex justify-end gap-2">
-        <Button variant="outline" onClick={onCancel}>
-          Cancel
-        </Button>
+        <Button variant="outline" onClick={onCancel}>Cancel</Button>
         <Button onClick={onSubmit}>{selectedCompetency ? "Update Competency" : "Add Competency"}</Button>
       </div>
     </div>
@@ -174,13 +169,13 @@ export function CompetencyManagement({ userRole }: CompetencyManagementProps) {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex justify-between items-center">
         <div>
           <h3 className="text-lg font-semibold">Competency Framework</h3>
-          <p className="text-sm text-muted-foreground">Manage competencies aligned with Uganda's New Curriculum</p>
+          <p className="text-sm text-muted-foreground">Manage competencies aligned with Uganda&apos;s New Curriculum</p>
         </div>
-        {(userRole === "director" || userRole === "head_teacher") && (
+        {/* Was: userRole === "director" || userRole === "head_teacher" */}
+        <PermissionGate permissions={["academics.manage_competences"]}>
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
               <Button>
@@ -196,10 +191,9 @@ export function CompetencyManagement({ userRole }: CompetencyManagementProps) {
               <CompetencyForm onSubmit={handleAddCompetency} onCancel={() => setIsAddDialogOpen(false)} />
             </DialogContent>
           </Dialog>
-        )}
+        </PermissionGate>
       </div>
 
-      {/* Competencies Table */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -238,16 +232,15 @@ export function CompetencyManagement({ userRole }: CompetencyManagementProps) {
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-2">
-                      {(userRole === "director" || userRole === "head_teacher") && (
-                        <>
-                          <Button variant="ghost" size="sm" onClick={() => openEditDialog(competency)}>
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="sm">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </>
-                      )}
+                      {/* Was: userRole === "director" || userRole === "head_teacher" */}
+                      <PermissionGate permissions={["academics.manage_competences"]}>
+                        <Button variant="ghost" size="sm" onClick={() => openEditDialog(competency)}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </PermissionGate>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -257,7 +250,6 @@ export function CompetencyManagement({ userRole }: CompetencyManagementProps) {
         </CardContent>
       </Card>
 
-      {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>

@@ -41,9 +41,7 @@ import {
 
 import { dashboardService, ClassTeacherDashboardData } from "@/services/dashbaord.service"
 
-// ============================================================================
 // ENHANCED COMPONENTS
-// ============================================================================
 
 const MetricCard = ({
   title,
@@ -271,9 +269,6 @@ const WelcomeHeader = ({
   return (
     <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 p-6 text-white shadow-xl shadow-blue-500/30">
 
-      {/* ========================================================= */}
-      {/* DECORATIVE LAYER - NOW VISIBLE AND BEAUTIFUL              */}
-      {/* ========================================================= */}
       <div className="absolute inset-0 pointer-events-none">
 
         {/* Glowing circles */}
@@ -294,9 +289,7 @@ const WelcomeHeader = ({
         </svg>
       </div>
 
-      {/* ========================================================= */}
-      {/* MAIN CONTENT                                              */}
-      {/* ========================================================= */}
+    
       <div className="relative flex flex-wrap items-center justify-between gap-4">
         
         {/* Left side */}
@@ -361,9 +354,7 @@ const WelcomeHeader = ({
 }
 
 
-// ============================================================================
 // CLASS TEACHER DASHBOARD CONTENT
-// ============================================================================
 
 function ClassTeacherDashboardContent() {
   const { user } = useAuth()
@@ -584,29 +575,6 @@ function ClassTeacherDashboardContent() {
                 </div>
               </ChartCard>
             </div>
-
-            {/* Quick Actions */}
-            {/* <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {[
-                { label: "Enter Marks", icon: BookOpen, href: "/my-classes", color: "blue" },
-                { label: "Add Comments", icon: MessageSquare, href: "/my-classes", color: "purple" },
-                { label: "View Students", icon: Users, href: "/my-classes", color: "green" },
-                { label: "Generate Reports", icon: TrendingUp, href: "/reports", color: "amber" }
-              ].map((action, idx) => (
-                <button
-                  key={idx}
-                  className={`group flex items-center justify-between rounded-xl border border-gray-200 bg-white p-4 text-left transition-all duration-300 hover:shadow-lg hover:border-${action.color}-300 hover:-translate-y-0.5`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={`rounded-lg bg-${action.color}-100 p-2.5`}>
-                      <action.icon className={`h-5 w-5 text-${action.color}-600`} />
-                    </div>
-                    <span className="font-medium text-gray-900">{action.label}</span>
-                  </div>
-                  <ChevronRight className="h-5 w-5 text-gray-400 transition-transform group-hover:translate-x-1" />
-                </button>
-              ))}
-            </div> */}
           </>
         )}
       </div>
@@ -614,13 +582,9 @@ function ClassTeacherDashboardContent() {
   )
 }
 
-// ============================================================================
-// EXPORT
-// ============================================================================
-
 export default function ClassTeacherDashboardPage() {
   return (
-    <ProtectedRoute>
+    <ProtectedRoute requiredPermissions={["dashboard.view_class_teacher"]}>
       <ClassTeacherDashboardContent />
     </ProtectedRoute>
   )

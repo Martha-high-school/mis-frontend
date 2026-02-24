@@ -467,7 +467,7 @@ function NewClassContent() {
 
 export default function NewClassPage() {
   return (
-    <ProtectedRoute allowedRoles={["director", "head_teacher"]}>
+    <ProtectedRoute requiredPermissions={["classes.create"]}>
       <NewClassContent />
     </ProtectedRoute>
   )

@@ -20,9 +20,7 @@ import { classService } from "@/services/class.service"
 import apiClient from "@/lib/api-client"
 
 
-// -----------------------------------------------------------------------------
 // Helper Functions
-// -----------------------------------------------------------------------------
 
 // Function to show toast notifications
 const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
@@ -158,9 +156,7 @@ const downloadBulkPDFs = async (classId: string, year: number, term: 'T1' | 'T2'
   }
 };
 
-// -----------------------------------------------------------------------------
 // Component Interfaces
-// -----------------------------------------------------------------------------
 
 interface ReportPreviewModalProps {
   reportCard: ReportCardData | null
@@ -193,9 +189,7 @@ interface StudentDisplay {
   reportCard: ReportCardData | null
 }
 
-// -----------------------------------------------------------------------------
 // Modal Components
-// -----------------------------------------------------------------------------
 
 function ReportPreviewModal({
   reportCard,
@@ -208,9 +202,14 @@ function ReportPreviewModal({
   if (!reportCard) return null
 
   // Determine the maximum number of competencies across all subjects
+  // Filter out electives with no data — only show subjects the student actually takes
+  const displaySubjects = reportCard.subjects.filter(
+    (s: any) => s.isCore || s.hasData !== false
+  )
+
   const getMaxCompetencies = () => {
     let maxComp = 0
-    reportCard.subjects.forEach(subject => {
+    displaySubjects.forEach((subject: any) => {
       const compKeys = Object.keys(subject.competencies || {}).filter(key => 
         key.startsWith('c') && !isNaN(parseInt(key.slice(1)))
       )
@@ -251,9 +250,13 @@ function ReportPreviewModal({
                 {/* School Logo - Left */}
                 <div className="w-20 h-20 flex-shrink-0">
                   <img
-                    src="https://firebasestorage.googleapis.com/v0/b/toa-site.appspot.com/o/prod%2FsiteImages%2F1763390331952_school-logo.png?alt=media&token=82345e1d-0e91-4477-829c-39cb955a5c86"
+                    src="/images/school-logo.png"
                     alt="School Logo"
                     className="w-full h-full object-contain"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement
+                      target.style.display = "none"
+                    }}
                   />
                 </div>
 
@@ -333,7 +336,7 @@ function ReportPreviewModal({
                 </thead>
 
                 <tbody>
-                  {reportCard.subjects.map((subject, index) => (
+                  {displaySubjects.map((subject: any, index: number) => (
                     <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                       <td className="border border-gray-400 p-1 font-medium">{subject.subject}</td>
                       {/* Dynamic Competency Values */}
@@ -1176,7 +1179,7 @@ function ReportsContent() {
 
 export default function ReportsPage() {
   return (
-    <ProtectedRoute allowedRoles={["director", "head_teacher", "class_teacher", "bursar"]}>
+    <ProtectedRoute requiredPermissions={["reports.view"]}>
       <ReportsContent />
     </ProtectedRoute>
   )

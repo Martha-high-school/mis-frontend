@@ -108,9 +108,7 @@ export default function EditClassPage() {
       })
 
       toast.success("Class updated successfully!")
-
       setTimeout(() => router.push("/classes"), 1500)
-
     } catch (err) {
       console.error("Update failed:", err)
       toast.error("Failed to update class.")
@@ -135,7 +133,7 @@ export default function EditClassPage() {
     )
 
   return (
-    <ProtectedRoute allowedRoles={["head_teacher", "director"]}>
+    <ProtectedRoute requiredPermissions={["classes.edit"]}>
       <MainLayout
         userRole={user.role}
         userName={user.name}
@@ -155,7 +153,6 @@ export default function EditClassPage() {
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Class Name */}
                   <div className="space-y-2">
                     <Label>Class Name *</Label>
                     <Input
@@ -170,13 +167,9 @@ export default function EditClassPage() {
                     )}
                   </div>
 
-                  {/* Level */}
                   <div className="space-y-2">
                     <Label>Level *</Label>
-                    <Select
-                      onValueChange={(v) => updateFormData("level", v)}
-                      value={formData.level}
-                    >
+                    <Select onValueChange={(v) => updateFormData("level", v)} value={formData.level}>
                       <SelectTrigger className="h-10 border-2 border-slate-200 dark:border-slate-700 focus:border-primary">
                         <SelectValue placeholder="Select Level" />
                       </SelectTrigger>
@@ -193,29 +186,22 @@ export default function EditClassPage() {
                   </div>
                 </div>
 
-                {/* Stream Dropdown (Dynamic & Optional) */}
                 {formData.level && (
                   <div className="space-y-2">
                     <Label>Stream (Optional)</Label>
-                    <Select
-                      onValueChange={(v) => updateFormData("stream", v)}
-                      value={formData.stream}
-                    >
+                    <Select onValueChange={(v) => updateFormData("stream", v)} value={formData.stream}>
                       <SelectTrigger className="h-10 border-2 border-slate-200 dark:border-slate-700 focus:border-primary">
                         <SelectValue placeholder="Select Stream" />
                       </SelectTrigger>
                       <SelectContent>
                         {(formData.level === "O" ? oLevelStreams : aLevelStreams).map((s) => (
-                          <SelectItem key={s.value} value={s.value}>
-                            {s.label}
-                          </SelectItem>
+                          <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
                 )}
 
-                {/* Teacher Section */}
                 <div className="space-y-2">
                   <Label htmlFor="teacherSearch">Search Teachers</Label>
                   <div className="relative">
@@ -231,16 +217,12 @@ export default function EditClassPage() {
 
                   <div className="border-2 border-slate-200 dark:border-slate-700 rounded-lg max-h-64 overflow-y-auto mt-2">
                     {filteredTeachers.length === 0 ? (
-                      <div className="p-4 text-center text-slate-500">
-                        No teachers found matching your search
-                      </div>
+                      <div className="p-4 text-center text-slate-500">No teachers found matching your search</div>
                     ) : (
                       filteredTeachers.map((t) => (
                         <div
                           key={t.id}
-                          onClick={() =>
-                            updateFormData("classTeacherId", t.id.toString())
-                          }
+                          onClick={() => updateFormData("classTeacherId", t.id.toString())}
                           className={`p-3 cursor-pointer transition-all ${
                             formData.classTeacherId === t.id.toString()
                               ? "bg-primary/10 border-l-4 border-l-primary"
@@ -252,9 +234,7 @@ export default function EditClassPage() {
                               <div className="font-medium text-sm text-slate-900 dark:text-white">
                                 {t.firstName} {t.lastName}
                               </div>
-                              <div className="text-xs text-slate-500">
-                                {t.email}
-                              </div>
+                              <div className="text-xs text-slate-500">{t.email}</div>
                             </div>
                             {formData.classTeacherId === t.id.toString() && (
                               <CheckCircle className="h-4 w-4 text-green-600" />
@@ -273,17 +253,11 @@ export default function EditClassPage() {
 
                 <div className="flex gap-3 pt-2">
                   <Button type="submit" disabled={saving} className="h-10">
-                    {saving ? (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    ) : (
-                      <Save className="h-4 w-4 mr-2" />
-                    )}
+                    {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
                     {saving ? "Saving..." : "Save Changes"}
                   </Button>
                   <Link href="/classes">
-                    <Button variant="outline" className="h-10">
-                      Cancel
-                    </Button>
+                    <Button variant="outline" className="h-10">Cancel</Button>
                   </Link>
                 </div>
               </form>

@@ -17,9 +17,7 @@ import { Download, FileText, Users, Eye, Filter, MessageSquare } from "lucide-re
 
 const PDF_SERVER_URL = 'http://localhost:3001'; // Change to your backend URL
 
-// -----------------------------------------------------------------------------
 // Mock data
-// -----------------------------------------------------------------------------
 const mockClasses = [
   { id: "1", name: "Primary 1A", level: "Primary 1", students: 25 },
   { id: "2", name: "Primary 2B", level: "Primary 2", students: 28 },
@@ -130,9 +128,7 @@ const gradingScale = [
   { grade: "D", scoreRange: "50-59", descriptor: "Achieved a basic number of competencies in the subject" },
 ]
 
-// -----------------------------------------------------------------------------
 // Backend PDF Generation Functions
-// -----------------------------------------------------------------------------
 
 // Function to show toast notifications
 const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
@@ -455,9 +451,7 @@ const handleBulkGenerateViaBackend = async (students: any[]) => {
   );
 };
 
-// -----------------------------------------------------------------------------
 // Component Interfaces
-// -----------------------------------------------------------------------------
 
 interface ReportPreviewModalProps {
   student: any
@@ -476,9 +470,7 @@ interface CommentModalProps {
   onSave: (comments: { classTeacher: string; headTeacher: string; nextTermFees: number; balance: number }) => void
 }
 
-// -----------------------------------------------------------------------------
 // Modal Components
-// -----------------------------------------------------------------------------
 
 function ReportPreviewModal({
   student,
@@ -802,9 +794,7 @@ function CommentModal({ student, isOpen, onClose, onSave }: CommentModalProps) {
   )
 }
 
-// -----------------------------------------------------------------------------
 // Main Component
-// -----------------------------------------------------------------------------
 
 function ReportsContent() {
   const { user } = useAuth()
@@ -1033,7 +1023,7 @@ function ReportsContent() {
 
 export default function ReportsPage() {
   return (
-    <ProtectedRoute allowedRoles={["director", "head_teacher", "class_teacher", "bursar"]}>
+    <ProtectedRoute requiredPermissions={["reports.view"]}>
       <ReportsContent />
     </ProtectedRoute>
   )

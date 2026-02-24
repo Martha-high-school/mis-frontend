@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback, useMemo } from "react"
 import { useAuth } from "@/contexts/auth-context"
 import { useAcademicContext } from "@/contexts/use-academic-contex"
 import { ProtectedRoute } from "@/components/auth/protected-route"
+import { usePermissions } from "@/contexts/permission-context"
 import { MainLayout } from "@/components/layout/main-layout"
 
 import { reportService } from "@/services/report.service"
@@ -57,9 +58,7 @@ import {
 
 import { cn } from "@/lib/utils"
 
-// ============================================================================
 // TYPES & INTERFACES
-// ============================================================================
 
 interface MarkRange {
   id?: string
@@ -115,9 +114,7 @@ interface TeacherComment {
   role?: string
 }
 
-// ============================================================================
 // MAIN COMPONENT
-// ============================================================================
 
 function TeacherReportsContent() {
   const { user } = useAuth()
@@ -180,9 +177,10 @@ function TeacherReportsContent() {
   const [currentPage, setCurrentPage] = useState(1)
   const studentsPerPage = 10
 
-  const userRole = user?.role === "head_teacher" ? "head_teacher" : "class_teacher"
-  const isClassTeacher = userRole === "class_teacher"
-  const isHeadTeacher = userRole === "head_teacher"
+  const { hasAnyPermission } = usePermissions()
+  const isHeadTeacher = hasAnyPermission("reports.manage_settings")
+  const isClassTeacher = !isHeadTeacher
+  const userRole = isHeadTeacher ? "head_teacher" : "class_teacher"
 
   // Helper: extract term number
   const termToNumber = (term: string): number => {
@@ -204,9 +202,9 @@ function TeacherReportsContent() {
     { label: "Report Settings" }
   ]
 
-  // ============================================================================
+
   // INITIALIZATION
-  // ============================================================================
+
 
   useEffect(() => {
     loadAvailableYears()
@@ -268,9 +266,9 @@ function TeacherReportsContent() {
     loadSignature()
   }, [isClassTeacher])
 
-  // ============================================================================
+
   // DATA LOADING
-  // ============================================================================
+
 
   const loadAvailableYears = async () => {
     setLoading(prev => ({ ...prev, fetchingYears: true }))
@@ -447,9 +445,9 @@ function TeacherReportsContent() {
     }
   }
 
-  // ============================================================================
+
   // TEACHER COMMENTS – SAVE / TOGGLE / DELETE
-  // ============================================================================
+
 
   const handleCommentChange = (studentId: string, value: string) => {
     setStudentComments(prev => {
@@ -580,9 +578,9 @@ function TeacherReportsContent() {
     setHasCommentChanges(true)
   }
 
-  // ============================================================================
+
   // PER-STUDENT MODAL (single save/delete)
-  // ============================================================================
+
 
   const openCommentModal = async (student: Student) => {
     if (!selectedClass || !selectedYear || !selectedTerm) return
@@ -677,9 +675,9 @@ function TeacherReportsContent() {
     }
   }
 
-  // ============================================================================
+
   // YEAR CHANGE HANDLER
-  // ============================================================================
+
 
   const handleYearChange = (year: string) => {
     setSelectedYear(year)
@@ -691,9 +689,9 @@ function TeacherReportsContent() {
     setStudentComments(new Map())
   }
 
-  // ============================================================================
+
   // REPORT DISPLAY – MARK RANGES
-  // ============================================================================
+
 
   const markAsChanged = useCallback(() => {
     if (!hasUnsavedChanges) {
@@ -768,9 +766,9 @@ function TeacherReportsContent() {
     }
   }
 
-  // ============================================================================
+
   // SIGNATURE UPLOAD
-  // ============================================================================
+
 
   const handleSignatureUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -822,9 +820,9 @@ function TeacherReportsContent() {
     }
   }
 
-  // ============================================================================
+
   // FILTERING & PAGINATION MEMOS
-  // ============================================================================
+
 
   const normalizedQuery = useMemo(() => searchQuery.trim().toLowerCase(), [searchQuery])
 
@@ -855,9 +853,9 @@ function TeacherReportsContent() {
     [generalCommentActive, students.length, studentsWithSpecificComments]
   )
 
-  // ============================================================================
+
   // RENDER
-  // ============================================================================
+
 
   if (contextLoading || loading.fetchingYears) {
     return (
@@ -1587,7 +1585,7 @@ function TeacherReportsContent() {
 
 export default function TeacherReportsPage() {
   return (
-    <ProtectedRoute allowedRoles={["class_teacher", "head_teacher"]}>
+    <ProtectedRoute requiredPermissions={["reports.manage_settings", "reports.manage_comments"]}>
       <TeacherReportsContent />
     </ProtectedRoute>
   )

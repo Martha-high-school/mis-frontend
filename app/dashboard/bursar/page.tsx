@@ -59,9 +59,7 @@ import {
 
 import { dashboardService, BursarDashboardData } from "@/services/dashbaord.service"
 
-// ============================================================================
 // HELPER FUNCTIONS
-// ============================================================================
 
 const formatCurrency = (amount: number) => {
   if (amount >= 1000000000) {
@@ -85,9 +83,7 @@ const getMethodIcon = (method: string) => {
   }
 }
 
-// ============================================================================
 // ENHANCED COMPONENTS
-// ============================================================================
 
 const MetricCard = ({
   title,
@@ -427,9 +423,7 @@ const DefaulterCard = ({
   </div>
 )
 
-// ============================================================================
 // BURSAR DASHBOARD CONTENT
-// ============================================================================
 
 function BursarDashboardContent() {
   const { user } = useAuth()
@@ -715,43 +709,16 @@ function BursarDashboardContent() {
             </div>
           </ChartCard>
         </div>
-
-        {/* Quick Actions */}
-        {/* <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {[
-            { label: "Record Payment", icon: Receipt, description: "Log new fee payment", color: "bg-emerald-500" },
-            { label: "Fee Management", icon: BadgeDollarSign, description: "Manage fee structures", color: "bg-blue-500" },
-            { label: "Financial Reports", icon: FileText, description: "Generate reports", color: "bg-violet-500" },
-            { label: "Send Reminders", icon: Send, description: "Notify defaulters", color: "bg-amber-500" },
-          ].map((action, idx) => (
-            <button
-              key={idx}
-              className="group flex flex-col items-start rounded-2xl border border-gray-200 bg-white p-5 text-left transition-all duration-300 hover:shadow-xl hover:border-gray-300 hover:-translate-y-1"
-            >
-              <div className={`rounded-xl ${action.color} p-3 mb-4 shadow-lg transition-transform group-hover:scale-110`}>
-                <action.icon className="h-5 w-5 text-white" />
-              </div>
-              <span className="font-semibold text-gray-900 mb-1">{action.label}</span>
-              <span className="text-xs text-gray-500 mb-3">{action.description}</span>
-              <div className="flex items-center gap-1 text-sm font-medium text-gray-400 group-hover:text-gray-600 mt-auto">
-                <span>Open</span>
-                <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </div>
-            </button>
-          ))}
-        </div> */}
       </div>
     </MainLayout>
   )
 }
 
-// ============================================================================
 // EXPORT
-// ============================================================================
 
 export default function BursarDashboardPage() {
   return (
-    <ProtectedRoute>
+    <ProtectedRoute requiredPermissions={["dashboard.view_bursar"]}>
       <BursarDashboardContent />
     </ProtectedRoute>
   )
