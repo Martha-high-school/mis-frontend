@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Switch } from "@/components/ui/switch"
+import { Checkbox } from "@/components/ui/checkbox"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import {
@@ -26,10 +26,123 @@ import {
   RotateCcw,
   Save,
   ChevronRight,
+  ChevronDown,
   Info,
+  LayoutDashboard,
+  BookOpen,
+  GraduationCap,
+  Calendar,
+  School,
+  FileText,
+  DollarSign,
+  TrendingUp,
+  ClipboardList,
+  FileDown,
+  PenTool,
 } from "lucide-react"
 import { toast } from "react-toastify"
 import { cn } from "@/lib/utils"
+
+// ============================================================================
+// FRIENDLY LABELS
+// ============================================================================
+
+const MODULE_META: Record<string, { label: string; icon: React.ElementType }> = {
+  dashboard:      { label: "Dashboard",               icon: LayoutDashboard },
+  users:          { label: "User Management",          icon: Users },
+  permissions:    { label: "Permissions",              icon: Shield },
+  academic_years: { label: "Academic Years & Terms",   icon: Calendar },
+  classes:        { label: "Classes",                  icon: School },
+  academics:      { label: "Academics",                icon: BookOpen },
+  students:       { label: "Students",                 icon: GraduationCap },
+  promotions:     { label: "Promotions",               icon: TrendingUp },
+  reports:        { label: "Reports & Comments",       icon: FileText },
+  report_cards:   { label: "Report Cards",             icon: ClipboardList },
+  pdf_reports:    { label: "PDF Reports",              icon: FileDown },
+  fees:           { label: "Fees & Payments",          icon: DollarSign },
+  signatures:     { label: "Signatures",               icon: PenTool },
+}
+
+/** Human-friendly permission names (keyed by code). Falls back to the
+ *  backend description when a code isn't listed here. */
+const PERMISSION_LABELS: Record<string, string> = {
+  // Dashboard
+  "dashboard.view":               "Access own dashboard",
+  "dashboard.view_director":      "View Director dashboard",
+  "dashboard.view_head_teacher":  "View Head Teacher dashboard",
+  "dashboard.view_class_teacher": "View Class Teacher dashboard",
+  "dashboard.view_bursar":        "View Bursar dashboard",
+  // Users
+  "users.view":            "View all users",
+  "users.invite":          "Invite new users",
+  "users.edit":            "Edit user details",
+  "users.suspend":         "Suspend accounts",
+  "users.activate":        "Activate accounts",
+  "users.delete":          "Delete accounts",
+  "users.view_audit_logs": "View audit logs",
+  "users.view_teachers":   "View teachers list",
+  // Permissions
+  "permissions.view":   "View permissions",
+  "permissions.assign": "Assign or revoke permissions",
+  // Academic Years
+  "academic_years.view":            "View academic years",
+  "academic_years.create":          "Create academic years",
+  "academic_years.set_current":     "Set current year / term",
+  "academic_years.configure_terms": "Configure term dates",
+  "academic_years.complete_term":   "Mark term as completed",
+  // Classes
+  "classes.view":              "View all classes",
+  "classes.view_own":          "View own assigned classes",
+  "classes.create":            "Create new classes",
+  "classes.edit":              "Edit class details",
+  "classes.delete":            "Delete classes",
+  "classes.assign_teacher":    "Assign class teacher",
+  "classes.view_students":     "View students in class",
+  "classes.setup_subjects":    "Set up class subjects",
+  "classes.manage_instructors":"Manage subject instructors",
+  // Academics
+  "academics.view":               "View academic data",
+  "academics.manage_subjects":    "Manage subjects",
+  "academics.manage_competences": "Manage competences",
+  "academics.manage_assessments": "Enter / edit assessment scores",
+  "academics.view_grades":        "View grades & promotion stats",
+  "academics.clone_competences":  "Clone competences from previous year",
+  // Students
+  "students.view":             "View student list",
+  "students.create":           "Add / enroll students",
+  "students.edit":             "Edit student details",
+  "students.search":           "Search students",
+  "students.view_assessments": "View student assessments",
+  "students.view_competences": "View competence scores",
+  // Promotions
+  "promotions.view":     "View promotion data",
+  "promotions.process":  "Process promotions",
+  "promotions.override": "Override promotion decisions",
+  // Reports
+  "reports.view":                    "View reports",
+  "reports.manage_comments":         "Manage teacher comments",
+  "reports.manage_general_comments": "Manage general class comments",
+  "reports.auto_generate":           "Auto-generate comments",
+  "reports.manage_grade_ranges":     "Manage grade ranges",
+  "reports.manage_settings":         "Edit report settings",
+  // Report Cards
+  "report_cards.view":          "View report cards",
+  "report_cards.generate_pdf":  "Generate individual PDF",
+  "report_cards.bulk_generate": "Bulk generate report cards",
+  // PDF Reports
+  "pdf_reports.generate":      "Generate PDF reports",
+  "pdf_reports.bulk_generate": "Bulk generate PDF reports",
+  // Fees
+  "fees.view":               "View fee information",
+  "fees.view_student_status":"View student fee status",
+  "fees.set_fees":           "Set / update fee structures",
+  "fees.bulk_set_fees":      "Bulk set class fees",
+  "fees.record_payment":     "Record payments",
+  "fees.void_payment":       "Void / delete payments",
+  "fees.view_reports":       "View financial reports",
+  // Signatures
+  "signatures.manage": "Manage own signature",
+}
 
 // ============================================================================
 // USER LIST PANEL
@@ -53,18 +166,26 @@ function UserListPanel({
       u.firstName.toLowerCase().includes(search.toLowerCase()) ||
       u.lastName.toLowerCase().includes(search.toLowerCase()) ||
       u.email.toLowerCase().includes(search.toLowerCase()) ||
-      u.role.toLowerCase().includes(search.toLowerCase())
+      u.role.toLowerCase().includes(search.toLowerCase()),
   )
 
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
-      case "director": return "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400"
-      case "head_teacher": return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400"
-      case "class_teacher": return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-      case "bursar": return "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400"
-      default: return "bg-slate-100 text-slate-800"
+      case "director":
+        return "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400"
+      case "head_teacher":
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400"
+      case "class_teacher":
+        return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+      case "bursar":
+        return "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400"
+      default:
+        return "bg-slate-100 text-slate-800"
     }
   }
+
+  const formatRole = (role: string) =>
+    role.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
 
   return (
     <Card className="h-full">
@@ -99,7 +220,7 @@ function UserListPanel({
                   onClick={() => onSelect(user)}
                   className={cn(
                     "px-4 py-3 cursor-pointer transition-all hover:bg-muted/50",
-                    selectedUserId === user.id && "bg-primary/5 border-l-4 border-l-primary"
+                    selectedUserId === user.id && "bg-primary/5 border-l-4 border-l-primary",
                   )}
                 >
                   <div className="flex items-center justify-between">
@@ -110,12 +231,15 @@ function UserListPanel({
                       <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
-                      <span className={cn("text-[10px] px-2 py-0.5 rounded-full font-medium", getRoleBadgeColor(user.role))}>
-                        {user.role.replace(/_/g, " ")}
+                      <span
+                        className={cn(
+                          "text-[10px] px-2 py-0.5 rounded-full font-medium capitalize",
+                          getRoleBadgeColor(user.role),
+                        )}
+                      >
+                        {formatRole(user.role)}
                       </span>
-                      {selectedUserId === user.id && (
-                        <ChevronRight className="h-4 w-4 text-primary" />
-                      )}
+                      {selectedUserId === user.id && <ChevronRight className="h-4 w-4 text-primary" />}
                     </div>
                   </div>
                 </div>
@@ -129,7 +253,7 @@ function UserListPanel({
 }
 
 // ============================================================================
-// PERMISSION EDITOR PANEL
+// PERMISSION EDITOR PANEL  (checkbox layout, grouped by module)
 // ============================================================================
 
 function PermissionEditorPanel({
@@ -139,6 +263,7 @@ function PermissionEditorPanel({
   loading,
   saving,
   onTogglePermission,
+  onToggleAllModule,
   onSave,
   onReset,
 }: {
@@ -148,10 +273,19 @@ function PermissionEditorPanel({
   loading: boolean
   saving: boolean
   onTogglePermission: (code: string, enabled: boolean) => void
+  onToggleAllModule: (moduleName: string, enabled: boolean, codes: string[]) => void
   onSave: () => void
   onReset: () => void
 }) {
-  const [expandedModule, setExpandedModule] = useState<string | null>(null)
+  // Track which modules are collapsed (all open by default)
+  const [collapsedModules, setCollapsedModules] = useState<Set<string>>(new Set())
+
+  const toggleModule = (mod: string) =>
+    setCollapsedModules((prev) => {
+      const next = new Set(prev)
+      next.has(mod) ? next.delete(mod) : next.add(mod)
+      return next
+    })
 
   const effectiveMap = new Map<string, PermissionDetail>()
   userPermissions?.permissions.forEach((p) => {
@@ -159,6 +293,9 @@ function PermissionEditorPanel({
   })
 
   const isDirector = selectedUser?.role === "director"
+
+  const formatRole = (role: string) =>
+    role.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
 
   if (!selectedUser) {
     return (
@@ -173,6 +310,7 @@ function PermissionEditorPanel({
 
   return (
     <Card className="h-full flex flex-col">
+      {/* Header */}
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div>
@@ -181,10 +319,13 @@ function PermissionEditorPanel({
               {selectedUser.firstName} {selectedUser.lastName}
             </CardTitle>
             <CardDescription className="mt-1">
-              Role: <Badge variant="secondary" className="ml-1">{selectedUser.role.replace(/_/g, " ")}</Badge>
+              Role:{" "}
+              <Badge variant="secondary" className="ml-1 capitalize">
+                {formatRole(selectedUser.role)}
+              </Badge>
               {isDirector && (
                 <span className="ml-2 text-amber-600 text-xs font-medium">
-                  (All permissions — cannot be restricted)
+                  (Full access - cannot be restricted)
                 </span>
               )}
             </CardDescription>
@@ -195,8 +336,12 @@ function PermissionEditorPanel({
               Reset
             </Button>
             <Button size="sm" onClick={onSave} disabled={saving || isDirector}>
-              {saving ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <Save className="h-3.5 w-3.5 mr-1.5" />}
-              Save
+              {saving ? (
+                <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+              ) : (
+                <Save className="h-3.5 w-3.5 mr-1.5" />
+              )}
+              Save Changes
             </Button>
           </div>
         </div>
@@ -213,14 +358,17 @@ function PermissionEditorPanel({
           <div className="flex items-center gap-3 p-4 m-4 rounded-lg border border-amber-200 bg-amber-50 dark:bg-amber-950/20">
             <Info className="h-5 w-5 text-amber-600 flex-shrink-0" />
             <p className="text-sm text-amber-800 dark:text-amber-300">
-              Directors automatically have all permissions. This cannot be changed.
+              The Director role automatically has all permissions. This cannot be changed.
             </p>
           </div>
         ) : (
           <ScrollArea className="h-[calc(100vh-350px)]">
-            <div className="p-4 space-y-3">
+            <div className="p-4 space-y-4">
               {allModules.map((mod) => {
-                const isExpanded = expandedModule === mod.module
+                const meta = MODULE_META[mod.module] ?? { label: mod.label, icon: Shield }
+                const Icon = meta.icon
+                const isCollapsed = collapsedModules.has(mod.module)
+
                 const modulePerms = mod.permissions.map((p) => {
                   const detail = effectiveMap.get(p.code)
                   return {
@@ -230,64 +378,86 @@ function PermissionEditorPanel({
                     override: detail?.override ?? null,
                   }
                 })
+
                 const enabledCount = modulePerms.filter((p) => p.effective).length
+                const totalCount = modulePerms.length
+                const allEnabled = enabledCount === totalCount
+                const someEnabled = enabledCount > 0 && !allEnabled
+                const allCodes = modulePerms.map((p) => p.code)
 
                 return (
-                  <div key={mod.module} className="border rounded-lg overflow-hidden">
-                    <button
-                      onClick={() => setExpandedModule(isExpanded ? null : mod.module)}
-                      className="w-full flex items-center justify-between p-3 hover:bg-muted/50 transition-colors text-left"
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm font-medium">{mod.label}</span>
-                        <span className="text-xs text-muted-foreground">
-                          {enabledCount}/{modulePerms.length} enabled
-                        </span>
-                      </div>
-                      <ChevronRight
-                        className={cn(
-                          "h-4 w-4 text-muted-foreground transition-transform",
-                          isExpanded && "rotate-90"
-                        )}
+                  <div key={mod.module} className="rounded-lg border overflow-hidden">
+                    {/* Module header */}
+                    <div className="flex items-center gap-3 px-4 py-3 bg-muted/30">
+                      <Checkbox
+                        checked={allEnabled ? true : someEnabled ? "indeterminate" : false}
+                        onCheckedChange={(checked) =>
+                          onToggleAllModule(mod.module, checked === true, allCodes)
+                        }
+                        aria-label={`Toggle all ${meta.label} permissions`}
                       />
-                    </button>
 
-                    {isExpanded && (
-                      <div className="border-t bg-muted/20">
-                        {modulePerms.map((perm) => (
-                          <div
-                            key={perm.code}
-                            className="flex items-center justify-between px-4 py-2.5 hover:bg-muted/30"
-                          >
-                            <div className="flex-1 min-w-0 mr-4">
-                              <div className="flex items-center gap-2">
-                                <span className="text-sm">{perm.description}</span>
+                      <button
+                        onClick={() => toggleModule(mod.module)}
+                        className="flex flex-1 items-center gap-2.5 text-left"
+                      >
+                        <Icon className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm font-semibold">{meta.label}</span>
+                        <span className="ml-auto text-xs text-muted-foreground tabular-nums">
+                          {enabledCount} / {totalCount}
+                        </span>
+                        {isCollapsed ? (
+                          <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                        )}
+                      </button>
+                    </div>
+
+                    {/* Permission rows */}
+                    {!isCollapsed && (
+                      <div className="divide-y">
+                        {modulePerms.map((perm) => {
+                          const friendlyLabel =
+                            PERMISSION_LABELS[perm.code] ?? perm.description
+                          return (
+                            <label
+                              key={perm.code}
+                              className="flex items-center gap-3 px-4 py-2.5 hover:bg-muted/20 cursor-pointer transition-colors"
+                            >
+                              <Checkbox
+                                checked={perm.effective}
+                                onCheckedChange={(checked) =>
+                                  onTogglePermission(perm.code, checked === true)
+                                }
+                              />
+                              <div className="flex-1 min-w-0">
+                                <span className="text-sm">{friendlyLabel}</span>
                                 {perm.fromRole && !perm.override && (
-                                  <Badge variant="outline" className="text-[10px] h-5">
-                                    role default
+                                  <Badge
+                                    variant="outline"
+                                    className="ml-2 text-[10px] h-5 align-middle"
+                                  >
+                                    Role Default
                                   </Badge>
                                 )}
                                 {perm.override && (
                                   <Badge
                                     variant="secondary"
-                                    className="text-[10px] h-5"
+                                    className={cn(
+                                      "ml-2 text-[10px] h-5 align-middle",
+                                      perm.override.granted
+                                        ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                                        : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+                                    )}
                                   >
-                                    {perm.override.granted ? "granted" : "revoked"}
+                                    {perm.override.granted ? "Granted" : "Revoked"}
                                   </Badge>
                                 )}
                               </div>
-                              <p className="text-[11px] text-muted-foreground font-mono mt-0.5">
-                                {perm.code}
-                              </p>
-                            </div>
-                            <Switch
-                              checked={perm.effective}
-                              onCheckedChange={(checked) =>
-                                onTogglePermission(perm.code, checked)
-                              }
-                            />
-                          </div>
-                        ))}
+                            </label>
+                          )
+                        })}
                       </div>
                     )}
                   </div>
@@ -369,12 +539,39 @@ function PermissionsContent() {
     setLocalGrants(newGrants)
     setLocalRevokes(newRevokes)
 
-    // Immediate UI feedback
     if (userPermissions) {
       setUserPermissions({
         ...userPermissions,
         permissions: userPermissions.permissions.map((p) =>
-          p.code === code ? { ...p, effective: enabled } : p
+          p.code === code ? { ...p, effective: enabled } : p,
+        ),
+      })
+    }
+  }
+
+  const handleToggleAllModule = (_moduleName: string, enabled: boolean, codes: string[]) => {
+    const newGrants = new Set(localGrants)
+    const newRevokes = new Set(localRevokes)
+
+    for (const code of codes) {
+      if (enabled) {
+        newGrants.add(code)
+        newRevokes.delete(code)
+      } else {
+        newRevokes.add(code)
+        newGrants.delete(code)
+      }
+    }
+
+    setLocalGrants(newGrants)
+    setLocalRevokes(newRevokes)
+
+    if (userPermissions) {
+      const codeSet = new Set(codes)
+      setUserPermissions({
+        ...userPermissions,
+        permissions: userPermissions.permissions.map((p) =>
+          codeSet.has(p.code) ? { ...p, effective: enabled } : p,
         ),
       })
     }
@@ -425,7 +622,7 @@ function PermissionsContent() {
       userName={user.name}
       pageTitle="Permission Management"
       breadcrumbs={[
-        { label: "Dashboard", href: "/dashboard" },
+        { label: "Dashboard", href: "/" },
         { label: "Settings" },
         { label: "Permissions" },
       ]}
@@ -448,6 +645,7 @@ function PermissionsContent() {
             loading={loadingPerms}
             saving={saving}
             onTogglePermission={handleToggle}
+            onToggleAllModule={handleToggleAllModule}
             onSave={handleSave}
             onReset={handleReset}
           />
