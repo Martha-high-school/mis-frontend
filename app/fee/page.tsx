@@ -365,6 +365,171 @@ function FeeManagementContent() {
     await fetchStudentHistory(student.id)
   }
 
+  // Generate and download a PDF financial statement
+  const handleDownloadStatement = () => {
+    if (!selectedStudent || studentHistory.length === 0) return
+
+    const studentName = `${selectedStudent.firstName} ${selectedStudent.lastName}`
+    const className = selectedStudent.enrollments?.[0]?.class?.name || "N/A"
+
+    // Gather all payments across all terms
+    const allPayments = studentHistory.flatMap((r: any) =>
+      (r.payments || []).map((p: any) => ({ ...p, year: r.year, term: r.term }))
+    )
+
+    const totalOpening = studentHistory[0]?.openingBalance ?? 0
+    const totalFees = studentHistory.reduce((s: number, r: any) => s + (r.totalExpected ?? 0), 0)
+    const totalPaidAll = studentHistory.reduce((s: number, r: any) => s + (r.totalPaid ?? 0), 0)
+    const lastClosing = studentHistory[studentHistory.length - 1]?.closingBalance ?? 0
+
+    // Build printable HTML
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Financial Statement - ${studentName}</title>
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body { font-family: 'Segoe UI', Arial, sans-serif; color: #1a1a1a; padding: 40px; font-size: 13px; }
+          .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #1a1a1a; padding-bottom: 16px; }
+          .header h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+          .header p { font-size: 12px; color: #555; }
+          .info-row { display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 13px; }
+          .info-row div span:first-child { color: #555; }
+          .info-row div span:last-child { font-weight: 600; margin-left: 6px; }
+          .summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
+          .summary-card { border: 1px solid #ddd; border-radius: 6px; padding: 10px 12px; }
+          .summary-card .label { font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 0.3px; }
+          .summary-card .value { font-size: 18px; font-weight: 700; margin-top: 4px; }
+          .summary-card .value.orange { color: #c2410c; }
+          .summary-card .value.blue { color: #1d4ed8; }
+          .summary-card .value.green { color: #15803d; }
+          .summary-card .value.red { color: #b91c1c; }
+          h2 { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+          table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+          th { background: #f3f4f6; text-align: left; padding: 8px 10px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; border-bottom: 2px solid #d1d5db; }
+          td { padding: 8px 10px; border-bottom: 1px solid #e5e7eb; font-size: 12px; }
+          .text-right { text-align: right; }
+          .text-green { color: #15803d; }
+          .text-red { color: #b91c1c; font-weight: 600; }
+          .text-orange { color: #c2410c; }
+          .text-bold { font-weight: 600; }
+          .footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid #ddd; text-align: center; font-size: 11px; color: #888; }
+          @media print {
+            body { padding: 20px; }
+            @page { margin: 15mm; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>STUDENT FINANCIAL STATEMENT</h1>
+          <p>Generated on ${new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "numeric" })}</p>
+        </div>
+
+        <div class="info-row">
+          <div><span>Student:</span> <span>${studentName}</span></div>
+          <div><span>Class:</span> <span>${className}</span></div>
+        </div>
+
+        <div class="summary">
+          <div class="summary-card">
+            <div class="label">Opening Balance</div>
+            <div class="value orange">${formatCurrency(totalOpening)}</div>
+          </div>
+          <div class="summary-card">
+            <div class="label">Total Fees Charged</div>
+            <div class="value blue">${formatCurrency(totalFees)}</div>
+          </div>
+          <div class="summary-card">
+            <div class="label">Total Paid</div>
+            <div class="value green">${formatCurrency(totalPaidAll)}</div>
+          </div>
+          <div class="summary-card">
+            <div class="label">Current Balance</div>
+            <div class="value red">${formatCurrency(lastClosing)}</div>
+          </div>
+        </div>
+
+        <h2>Term-by-Term Breakdown</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Period</th>
+              <th class="text-right">Opening Bal.</th>
+              <th class="text-right">Term Fees</th>
+              <th class="text-right">Total Due</th>
+              <th class="text-right">Paid</th>
+              <th class="text-right">Closing Bal.</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${studentHistory
+              .map(
+                (r: any) => `
+              <tr>
+                <td class="text-bold">${r.year} Term ${r.term}</td>
+                <td class="text-right text-orange">${formatCurrency(r.openingBalance ?? 0)}</td>
+                <td class="text-right">${formatCurrency(r.totalExpected ?? 0)}</td>
+                <td class="text-right text-bold">${formatCurrency((r.openingBalance ?? 0) + (r.totalExpected ?? 0))}</td>
+                <td class="text-right text-green">${formatCurrency(r.totalPaid ?? 0)}</td>
+                <td class="text-right text-red">${formatCurrency(r.closingBalance ?? 0)}</td>
+              </tr>`
+              )
+              .join("")}
+          </tbody>
+        </table>
+
+        ${
+          allPayments.length > 0
+            ? `
+        <h2>Payment Transactions (${allPayments.length})</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Period</th>
+              <th>Method</th>
+              <th>Reference</th>
+              <th class="text-right">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${allPayments
+              .map(
+                (p: any) => `
+              <tr>
+                <td>${new Date(p.paymentDate).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}</td>
+                <td>${p.year} T${p.term}</td>
+                <td>${p.paymentMethod?.replace(/_/g, " ") || "-"}</td>
+                <td>${p.referenceNumber || "-"}</td>
+                <td class="text-right text-green text-bold">${formatCurrency(p.amount)}</td>
+              </tr>`
+              )
+              .join("")}
+          </tbody>
+        </table>`
+            : ""
+        }
+
+        <div class="footer">
+          This is a computer-generated statement. No signature is required.
+        </div>
+      </body>
+      </html>
+    `
+
+    const printWindow = window.open("", "_blank")
+    if (printWindow) {
+      printWindow.document.write(html)
+      printWindow.document.close()
+      // Give it a moment to render, then trigger print (which allows Save as PDF)
+      setTimeout(() => {
+        printWindow.print()
+      }, 400)
+    }
+  }
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-UG', {
       style: 'currency',
@@ -1080,86 +1245,193 @@ function FeeManagementContent() {
           </DialogContent>
         </Dialog>
 
-        {/* Student Detail/History Dialog */}
+        {/* Student Financial Statement Dialog */}
         <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
-          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>
-                Fee History - {selectedStudent?.firstName} {selectedStudent?.lastName}
-              </DialogTitle>
-              <DialogDescription>
-                Complete fee and payment history across all terms
-              </DialogDescription>
+          <DialogContent className="max-w-5xl max-h-[90vh] flex flex-col gap-0 p-0">
+            <DialogHeader className="px-6 pt-6 pb-4 border-b">
+              <div className="flex items-start justify-between">
+                <div>
+                  <DialogTitle className="text-lg">
+                    Financial Statement
+                  </DialogTitle>
+                  <DialogDescription className="mt-1">
+                    {selectedStudent?.firstName} {selectedStudent?.lastName}
+                    {selectedStudent?.enrollments?.[0]?.class?.name && (
+                      <span className="ml-2 text-xs">
+                        ({selectedStudent.enrollments[0].class.name})
+                      </span>
+                    )}
+                  </DialogDescription>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-shrink-0"
+                  onClick={() => {
+                    if (!selectedStudent || studentHistory.length === 0) return
+                    handleDownloadStatement()
+                  }}
+                  disabled={loadingHistory || studentHistory.length === 0}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Download PDF
+                </Button>
+              </div>
             </DialogHeader>
 
-            {loadingHistory ? (
-              <div className="text-center py-8">
-                <Loader2 className="h-8 w-8 animate-spin mx-auto" />
-              </div>
-            ) : studentHistory.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <FileText className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                <p>No fee records found</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {studentHistory.map((record, index) => (
-                  <Card key={record.id || index}>
-                    <CardHeader className="pb-2">
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="text-sm">
-                          {record.year} - Term {record.term}
-                        </CardTitle>
-                        <Badge variant={record.closingBalance > 0 ? "destructive" : "default"}>
-                          {record.closingBalance > 0 ? "Balance Due" : "Paid"}
-                        </Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-4">
-                        <div>
-                          <p className="text-muted-foreground">Opening Balance</p>
-                          <p className="font-medium text-orange-600">{formatCurrency(record.openingBalance)}</p>
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              {loadingHistory ? (
+                <div className="flex items-center justify-center py-16">
+                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                </div>
+              ) : studentHistory.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+                  <FileText className="h-12 w-12 mb-3 opacity-40" />
+                  <p className="text-sm">No fee records found for this student.</p>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {/* Summary cards row */}
+                  {(() => {
+                    const totalOpening = studentHistory[0]?.openingBalance ?? 0
+                    const totalFees = studentHistory.reduce((s: number, r: any) => s + (r.totalExpected ?? 0), 0)
+                    const totalPaidAll = studentHistory.reduce((s: number, r: any) => s + (r.totalPaid ?? 0), 0)
+                    const lastClosing = studentHistory[studentHistory.length - 1]?.closingBalance ?? 0
+                    return (
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        <div className="rounded-lg border bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-800 p-3">
+                          <p className="text-xs font-medium text-muted-foreground">Opening Balance</p>
+                          <p className="text-lg font-bold text-orange-600 mt-1">{formatCurrency(totalOpening)}</p>
                         </div>
-                        <div>
-                          <p className="text-muted-foreground">Term Fees</p>
-                          <p className="font-medium">{formatCurrency(record.totalExpected)}</p>
+                        <div className="rounded-lg border bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800 p-3">
+                          <p className="text-xs font-medium text-muted-foreground">Total Fees Charged</p>
+                          <p className="text-lg font-bold text-blue-600 mt-1">{formatCurrency(totalFees)}</p>
                         </div>
-                        <div>
-                          <p className="text-muted-foreground">Paid</p>
-                          <p className="font-medium text-green-600">{formatCurrency(record.totalPaid)}</p>
+                        <div className="rounded-lg border bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800 p-3">
+                          <p className="text-xs font-medium text-muted-foreground">Total Paid</p>
+                          <p className="text-lg font-bold text-green-600 mt-1">{formatCurrency(totalPaidAll)}</p>
                         </div>
-                        <div>
-                          <p className="text-muted-foreground">Closing Balance</p>
-                          <p className="font-medium text-red-600">{formatCurrency(record.closingBalance)}</p>
+                        <div className="rounded-lg border bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800 p-3">
+                          <p className="text-xs font-medium text-muted-foreground">Current Balance</p>
+                          <p className="text-lg font-bold text-red-600 mt-1">{formatCurrency(lastClosing)}</p>
                         </div>
                       </div>
+                    )
+                  })()}
 
-                      {record.payments && record.payments.length > 0 && (
-                        <div className="border-t pt-2">
-                          <p className="text-xs text-muted-foreground mb-2">Payments:</p>
-                          <div className="space-y-1">
-                            {record.payments.map((payment: any, pIndex: number) => (
-                              <div key={pIndex} className="flex justify-between text-xs bg-muted/50 p-2 rounded">
-                                <span>{new Date(payment.paymentDate).toLocaleDateString()}</span>
-                                <span>{payment.paymentMethod}</span>
-                                <span className="text-green-600 font-medium">{formatCurrency(payment.amount)}</span>
-                              </div>
-                            ))}
-                          </div>
+                  {/* Term-by-term breakdown table */}
+                  <div className="rounded-lg border overflow-hidden">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-muted/50 hover:bg-muted/50">
+                          <TableHead className="font-semibold py-3">Period</TableHead>
+                          <TableHead className="text-right font-semibold py-3">Opening Bal.</TableHead>
+                          <TableHead className="text-right font-semibold py-3">Term Fees</TableHead>
+                          <TableHead className="text-right font-semibold py-3">Total Due</TableHead>
+                          <TableHead className="text-right font-semibold py-3">Paid</TableHead>
+                          <TableHead className="text-right font-semibold py-3">Closing Bal.</TableHead>
+                          <TableHead className="font-semibold py-3">Status</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {studentHistory.map((record: any, index: number) => (
+                          <TableRow key={record.id || index} className="hover:bg-muted/30">
+                            <TableCell className="font-medium">
+                              {record.year} Term {record.term}
+                            </TableCell>
+                            <TableCell className="text-right text-orange-600">
+                              {formatCurrency(record.openingBalance ?? 0)}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {formatCurrency(record.totalExpected ?? 0)}
+                            </TableCell>
+                            <TableCell className="text-right font-medium">
+                              {formatCurrency((record.openingBalance ?? 0) + (record.totalExpected ?? 0))}
+                            </TableCell>
+                            <TableCell className="text-right text-green-600">
+                              {formatCurrency(record.totalPaid ?? 0)}
+                            </TableCell>
+                            <TableCell className="text-right font-semibold text-red-600">
+                              {formatCurrency(record.closingBalance ?? 0)}
+                            </TableCell>
+                            <TableCell>
+                              <Badge
+                                variant={record.closingBalance > 0 ? "destructive" : "default"}
+                                className="text-[10px]"
+                              >
+                                {record.closingBalance > 0 ? "Balance Due" : "Cleared"}
+                              </Badge>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+
+                  {/* Payment transactions table */}
+                  {(() => {
+                    const allPayments = studentHistory.flatMap((r: any) =>
+                      (r.payments || []).map((p: any) => ({ ...p, year: r.year, term: r.term }))
+                    )
+                    if (allPayments.length === 0) return null
+                    return (
+                      <div>
+                        <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                          <Receipt className="h-4 w-4" />
+                          Payment Transactions ({allPayments.length})
+                        </h3>
+                        <div className="rounded-lg border overflow-hidden">
+                          <Table>
+                            <TableHeader>
+                              <TableRow className="bg-muted/50 hover:bg-muted/50">
+                                <TableHead className="font-semibold py-3">Date</TableHead>
+                                <TableHead className="font-semibold py-3">Period</TableHead>
+                                <TableHead className="font-semibold py-3">Method</TableHead>
+                                <TableHead className="font-semibold py-3">Reference</TableHead>
+                                <TableHead className="text-right font-semibold py-3">Amount</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {allPayments.map((payment: any, idx: number) => (
+                                <TableRow key={idx} className="hover:bg-muted/30">
+                                  <TableCell className="text-sm">
+                                    {new Date(payment.paymentDate).toLocaleDateString("en-GB", {
+                                      day: "2-digit",
+                                      month: "short",
+                                      year: "numeric",
+                                    })}
+                                  </TableCell>
+                                  <TableCell className="text-sm">
+                                    {payment.year} T{payment.term}
+                                  </TableCell>
+                                  <TableCell>
+                                    <Badge variant="outline" className="text-[10px] font-normal">
+                                      {payment.paymentMethod?.replace(/_/g, " ")}
+                                    </Badge>
+                                  </TableCell>
+                                  <TableCell className="text-sm text-muted-foreground">
+                                    {payment.referenceNumber || "-"}
+                                  </TableCell>
+                                  <TableCell className="text-right font-semibold text-green-600">
+                                    {formatCurrency(payment.amount)}
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
                         </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
+                      </div>
+                    )
+                  })()}
+                </div>
+              )}
+            </div>
 
-            <DialogFooter>
+            <div className="px-6 py-4 border-t flex justify-end">
               <Button variant="outline" onClick={() => setShowDetailDialog(false)}>
                 Close
               </Button>
-            </DialogFooter>
+            </div>
           </DialogContent>
         </Dialog>
       </div>
