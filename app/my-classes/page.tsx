@@ -186,7 +186,7 @@ export default function MyClassesPage() {
         // pageTitle="My Classes"
         userRole={user?.role}
         userName={user?.name}
-        breadcrumbs={[{ label: "Dashboard", href: "/dashboard" }, { label: "My Classes" }, { label: "All Classes" }]}
+        breadcrumbs={[{ label: "Dashboard"}, { label: "My Classes" }, { label: "All Classes" }]}
       >
         <div className="max-w-7xl mx-auto space-y-6">
           {/* Filters Card */}

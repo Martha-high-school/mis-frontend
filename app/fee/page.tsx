@@ -123,7 +123,7 @@ function FeeManagementContent() {
 
   // Breadcrumbs
   const breadcrumbs = [
-    { label: "Dashboard", href: "/dashboard" },
+    { label: "Dashboard"},
     { label: "Fee Management" }
   ]
 
@@ -371,6 +371,7 @@ function FeeManagementContent() {
 
     const studentName = `${selectedStudent.firstName} ${selectedStudent.lastName}`
     const className = selectedStudent.enrollments?.[0]?.class?.name || "N/A"
+    const studentId = selectedStudent.id?.slice(-8)?.toUpperCase() || "N/A"
 
     // Gather all payments across all terms
     const allPayments = studentHistory.flatMap((r: any) =>
@@ -381,139 +382,446 @@ function FeeManagementContent() {
     const totalFees = studentHistory.reduce((s: number, r: any) => s + (r.totalExpected ?? 0), 0)
     const totalPaidAll = studentHistory.reduce((s: number, r: any) => s + (r.totalPaid ?? 0), 0)
     const lastClosing = studentHistory[studentHistory.length - 1]?.closingBalance ?? 0
+    const dateGenerated = new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "numeric" })
+    const timeGenerated = new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })
 
-    // Build printable HTML
+    // Build printable HTML with professional design
     const html = `
       <!DOCTYPE html>
       <html>
       <head>
         <title>Financial Statement - ${studentName}</title>
         <style>
+          @page {
+            size: A4;
+            margin: 12mm 14mm 16mm 14mm;
+          }
           * { margin: 0; padding: 0; box-sizing: border-box; }
-          body { font-family: 'Segoe UI', Arial, sans-serif; color: #1a1a1a; padding: 40px; font-size: 13px; }
-          .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #1a1a1a; padding-bottom: 16px; }
-          .header h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
-          .header p { font-size: 12px; color: #555; }
-          .info-row { display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 13px; }
-          .info-row div span:first-child { color: #555; }
-          .info-row div span:last-child { font-weight: 600; margin-left: 6px; }
-          .summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
-          .summary-card { border: 1px solid #ddd; border-radius: 6px; padding: 10px 12px; }
-          .summary-card .label { font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 0.3px; }
-          .summary-card .value { font-size: 18px; font-weight: 700; margin-top: 4px; }
-          .summary-card .value.orange { color: #c2410c; }
-          .summary-card .value.blue { color: #1d4ed8; }
-          .summary-card .value.green { color: #15803d; }
-          .summary-card .value.red { color: #b91c1c; }
-          h2 { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
-          table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
-          th { background: #f3f4f6; text-align: left; padding: 8px 10px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; border-bottom: 2px solid #d1d5db; }
-          td { padding: 8px 10px; border-bottom: 1px solid #e5e7eb; font-size: 12px; }
+          body {
+            font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            color: #1e293b;
+            font-size: 12px;
+            line-height: 1.5;
+            background: #fff;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+          .page-wrapper {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0;
+          }
+
+          /* ── HEADER WITH LOGO ── */
+          .school-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding-bottom: 16px;
+            border-bottom: 3px solid #1e3a5f;
+            margin-bottom: 6px;
+          }
+          .school-logo {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+            flex-shrink: 0;
+          }
+          .school-info {
+            flex: 1;
+            text-align: center;
+          }
+          .school-name {
+            font-size: 22px;
+            font-weight: 800;
+            color: #1e3a5f;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 2px;
+          }
+          .school-motto {
+            font-size: 11px;
+            color: #64748b;
+            font-style: italic;
+            margin-bottom: 4px;
+          }
+          .school-contacts {
+            font-size: 10px;
+            color: #64748b;
+          }
+          .logo-placeholder {
+            width: 80px;
+            flex-shrink: 0;
+          }
+
+          /* ── DOCUMENT TITLE BAR ── */
+          .doc-title-bar {
+            background: #1e3a5f;
+            color: #ffffff;
+            text-align: center;
+            padding: 8px 16px;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+          }
+
+          /* ── STUDENT INFO GRID ── */
+          .student-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            margin-bottom: 20px;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            overflow: hidden;
+          }
+          .info-cell {
+            padding: 8px 14px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            gap: 8px;
+          }
+          .info-cell:nth-child(odd) {
+            border-right: 1px solid #e2e8f0;
+          }
+          .info-cell:nth-last-child(-n+2) {
+            border-bottom: none;
+          }
+          .info-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #64748b;
+            font-weight: 600;
+            min-width: 100px;
+          }
+          .info-value {
+            font-weight: 600;
+            color: #1e293b;
+            font-size: 12px;
+          }
+
+          /* ── FINANCIAL SUMMARY BOXES ── */
+          .summary-strip {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0;
+            margin-bottom: 24px;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            overflow: hidden;
+          }
+          .summary-box {
+            padding: 12px 14px;
+            text-align: center;
+            border-right: 1px solid #e2e8f0;
+          }
+          .summary-box:last-child {
+            border-right: none;
+          }
+          .summary-box .s-label {
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #64748b;
+            font-weight: 600;
+            margin-bottom: 4px;
+          }
+          .summary-box .s-value {
+            font-size: 16px;
+            font-weight: 800;
+          }
+          .s-orange { color: #c2410c; }
+          .s-blue { color: #1d4ed8; }
+          .s-green { color: #15803d; }
+          .s-red { color: #b91c1c; }
+          .summary-box.highlight {
+            background: #fef2f2;
+          }
+
+          /* ── SECTION HEADINGS ── */
+          .section-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: #1e3a5f;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 8px;
+            padding-bottom: 4px;
+            border-bottom: 2px solid #1e3a5f;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+          }
+          .section-title .icon {
+            display: inline-block;
+            width: 4px;
+            height: 14px;
+            background: #1e3a5f;
+            border-radius: 2px;
+          }
+
+          /* ── TABLE STYLES ── */
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 24px;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            overflow: hidden;
+            font-size: 11px;
+          }
+          thead th {
+            background: #1e3a5f;
+            color: #ffffff;
+            text-align: left;
+            padding: 9px 12px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: none;
+          }
+          tbody td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 11px;
+          }
+          tbody tr:nth-child(even) {
+            background: #f8fafc;
+          }
+          tbody tr:last-child td {
+            border-bottom: none;
+          }
+          tbody tr:hover {
+            background: #f1f5f9;
+          }
           .text-right { text-align: right; }
+          .text-center { text-align: center; }
           .text-green { color: #15803d; }
-          .text-red { color: #b91c1c; font-weight: 600; }
+          .text-red { color: #b91c1c; }
           .text-orange { color: #c2410c; }
-          .text-bold { font-weight: 600; }
-          .footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid #ddd; text-align: center; font-size: 11px; color: #888; }
+          .text-bold { font-weight: 700; }
+          .text-medium { font-weight: 600; }
+
+          /* ── TOTALS ROW ── */
+          .totals-row td {
+            background: #f1f5f9 !important;
+            font-weight: 700;
+            border-top: 2px solid #1e3a5f;
+            border-bottom: none;
+            padding: 10px 12px;
+            font-size: 11.5px;
+          }
+
+          /* ── STATUS BADGE ── */
+          .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          }
+          .badge-due { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+          .badge-clear { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+
+          /* ── FOOTER ── */
+          .doc-footer {
+            margin-top: 32px;
+            padding-top: 12px;
+            border-top: 2px solid #1e3a5f;
+          }
+          .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            font-size: 10px;
+            color: #64748b;
+          }
+          .footer-left {
+            flex: 1;
+          }
+          .footer-right {
+            text-align: right;
+          }
+          .footer-note {
+            font-style: italic;
+            margin-top: 8px;
+            font-size: 9px;
+            color: #94a3b8;
+            text-align: center;
+          }
+
           @media print {
-            body { padding: 20px; }
-            @page { margin: 15mm; }
+            body { padding: 0; }
+            .page-wrapper { max-width: 100%; }
           }
         </style>
       </head>
       <body>
-        <div class="header">
-          <h1>STUDENT FINANCIAL STATEMENT</h1>
-          <p>Generated on ${new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "numeric" })}</p>
-        </div>
+        <div class="page-wrapper">
 
-        <div class="info-row">
-          <div><span>Student:</span> <span>${studentName}</span></div>
-          <div><span>Class:</span> <span>${className}</span></div>
-        </div>
+          <!-- SCHOOL HEADER WITH LOGO -->
+          <div class="school-header">
+            <img src="/images/school-logo.png" alt="School Logo" class="school-logo" onerror="this.style.display='none'" />
+            <div class="school-info">
+              <div class="school-name">School Financial Department</div>
+              <div class="school-motto">Excellence in Education</div>
+              <div class="school-contacts">
+                P.O. Box 0000 | Tel: +256 000 000 000 | Email: info@school.ac.ug
+              </div>
+            </div>
+            <div class="logo-placeholder"></div>
+          </div>
 
-        <div class="summary">
-          <div class="summary-card">
-            <div class="label">Opening Balance</div>
-            <div class="value orange">${formatCurrency(totalOpening)}</div>
-          </div>
-          <div class="summary-card">
-            <div class="label">Total Fees Charged</div>
-            <div class="value blue">${formatCurrency(totalFees)}</div>
-          </div>
-          <div class="summary-card">
-            <div class="label">Total Paid</div>
-            <div class="value green">${formatCurrency(totalPaidAll)}</div>
-          </div>
-          <div class="summary-card">
-            <div class="label">Current Balance</div>
-            <div class="value red">${formatCurrency(lastClosing)}</div>
-          </div>
-        </div>
+          <!-- DOCUMENT TITLE -->
+          <div class="doc-title-bar">Student Financial Statement</div>
 
-        <h2>Term-by-Term Breakdown</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>Period</th>
-              <th class="text-right">Opening Bal.</th>
-              <th class="text-right">Term Fees</th>
-              <th class="text-right">Total Due</th>
-              <th class="text-right">Paid</th>
-              <th class="text-right">Closing Bal.</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${studentHistory
-              .map(
-                (r: any) => `
+          <!-- STUDENT INFORMATION -->
+          <div class="student-info">
+            <div class="info-cell">
+              <span class="info-label">Student Name:</span>
+              <span class="info-value">${studentName}</span>
+            </div>
+            <div class="info-cell">
+              <span class="info-label">Class:</span>
+              <span class="info-value">${className}</span>
+            </div>
+            <div class="info-cell">
+              <span class="info-label">Student ID:</span>
+              <span class="info-value">${studentId}</span>
+            </div>
+            <div class="info-cell">
+              <span class="info-label">Date Issued:</span>
+              <span class="info-value">${dateGenerated} at ${timeGenerated}</span>
+            </div>
+          </div>
+
+          <!-- FINANCIAL SUMMARY -->
+          <div class="summary-strip">
+            <div class="summary-box">
+              <div class="s-label">Opening Balance</div>
+              <div class="s-value s-orange">${formatCurrency(totalOpening)}</div>
+            </div>
+            <div class="summary-box">
+              <div class="s-label">Total Fees Charged</div>
+              <div class="s-value s-blue">${formatCurrency(totalFees)}</div>
+            </div>
+            <div class="summary-box">
+              <div class="s-label">Total Paid</div>
+              <div class="s-value s-green">${formatCurrency(totalPaidAll)}</div>
+            </div>
+            <div class="summary-box highlight">
+              <div class="s-label">Outstanding Balance</div>
+              <div class="s-value s-red">${formatCurrency(lastClosing)}</div>
+            </div>
+          </div>
+
+          <!-- TERM-BY-TERM BREAKDOWN -->
+          <div class="section-title"><span class="icon"></span> Term-by-Term Breakdown</div>
+          <table>
+            <thead>
               <tr>
-                <td class="text-bold">${r.year} Term ${r.term}</td>
-                <td class="text-right text-orange">${formatCurrency(r.openingBalance ?? 0)}</td>
-                <td class="text-right">${formatCurrency(r.totalExpected ?? 0)}</td>
-                <td class="text-right text-bold">${formatCurrency((r.openingBalance ?? 0) + (r.totalExpected ?? 0))}</td>
-                <td class="text-right text-green">${formatCurrency(r.totalPaid ?? 0)}</td>
-                <td class="text-right text-red">${formatCurrency(r.closingBalance ?? 0)}</td>
-              </tr>`
-              )
-              .join("")}
-          </tbody>
-        </table>
+                <th>Period</th>
+                <th class="text-right">Opening Bal.</th>
+                <th class="text-right">Term Fees</th>
+                <th class="text-right">Total Due</th>
+                <th class="text-right">Paid</th>
+                <th class="text-right">Closing Bal.</th>
+                <th class="text-center">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${studentHistory
+                .map(
+                  (r: any) => `
+                <tr>
+                  <td class="text-bold">${r.year} Term ${r.term}</td>
+                  <td class="text-right text-orange">${formatCurrency(r.openingBalance ?? 0)}</td>
+                  <td class="text-right">${formatCurrency(r.totalExpected ?? 0)}</td>
+                  <td class="text-right text-medium">${formatCurrency((r.openingBalance ?? 0) + (r.totalExpected ?? 0))}</td>
+                  <td class="text-right text-green">${formatCurrency(r.totalPaid ?? 0)}</td>
+                  <td class="text-right text-red text-bold">${formatCurrency(r.closingBalance ?? 0)}</td>
+                  <td class="text-center">
+                    <span class="badge ${(r.closingBalance ?? 0) > 0 ? 'badge-due' : 'badge-clear'}">
+                      ${(r.closingBalance ?? 0) > 0 ? 'Balance Due' : 'Cleared'}
+                    </span>
+                  </td>
+                </tr>`
+                )
+                .join("")}
+              <tr class="totals-row">
+                <td>TOTALS</td>
+                <td class="text-right text-orange">${formatCurrency(totalOpening)}</td>
+                <td class="text-right">${formatCurrency(totalFees)}</td>
+                <td class="text-right">${formatCurrency(totalOpening + totalFees)}</td>
+                <td class="text-right text-green">${formatCurrency(totalPaidAll)}</td>
+                <td class="text-right text-red">${formatCurrency(lastClosing)}</td>
+                <td></td>
+              </tr>
+            </tbody>
+          </table>
 
-        ${
-          allPayments.length > 0
-            ? `
-        <h2>Payment Transactions (${allPayments.length})</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Period</th>
-              <th>Method</th>
-              <th>Reference</th>
-              <th class="text-right">Amount</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${allPayments
-              .map(
-                (p: any) => `
+          ${
+            allPayments.length > 0
+              ? `
+          <!-- PAYMENT TRANSACTIONS -->
+          <div class="section-title"><span class="icon"></span> Payment Transactions (${allPayments.length})</div>
+          <table>
+            <thead>
               <tr>
-                <td>${new Date(p.paymentDate).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}</td>
-                <td>${p.year} T${p.term}</td>
-                <td>${p.paymentMethod?.replace(/_/g, " ") || "-"}</td>
-                <td>${p.referenceNumber || "-"}</td>
-                <td class="text-right text-green text-bold">${formatCurrency(p.amount)}</td>
-              </tr>`
-              )
-              .join("")}
-          </tbody>
-        </table>`
-            : ""
-        }
+                <th style="width:8%">#</th>
+                <th>Date</th>
+                <th>Period</th>
+                <th>Payment Method</th>
+                <th>Reference No.</th>
+                <th class="text-right">Amount (UGX)</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${allPayments
+                .map(
+                  (p: any, idx: number) => `
+                <tr>
+                  <td class="text-center">${idx + 1}</td>
+                  <td>${new Date(p.paymentDate).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}</td>
+                  <td>${p.year} Term ${p.term}</td>
+                  <td>${p.paymentMethod?.replace(/_/g, " ") || "-"}</td>
+                  <td>${p.referenceNumber || "—"}</td>
+                  <td class="text-right text-green text-bold">${formatCurrency(p.amount)}</td>
+                </tr>`
+                )
+                .join("")}
+              <tr class="totals-row">
+                <td colspan="5" class="text-right">TOTAL PAYMENTS</td>
+                <td class="text-right text-green">${formatCurrency(totalPaidAll)}</td>
+              </tr>
+            </tbody>
+          </table>`
+              : ""
+          }
 
-        <div class="footer">
-          This is a computer-generated statement. No signature is required.
+          <!-- FOOTER -->
+          <div class="doc-footer">
+            <div class="footer-content">
+              <div class="footer-left">
+                <strong>Accounts Office</strong><br />
+                For any queries, please contact the school bursar.
+              </div>
+              <div class="footer-right">
+                <strong>Statement Ref:</strong> FS-${studentId}-${new Date().getFullYear()}<br />
+                Printed: ${dateGenerated} ${timeGenerated}
+              </div>
+            </div>
+            <div class="footer-note">
+              This is a computer-generated financial statement. No signature is required.
+            </div>
+          </div>
+
         </div>
       </body>
       </html>
@@ -873,11 +1181,11 @@ function FeeManagementContent() {
                                 </Tooltip>
                               </TooltipProvider>
 
-                              <Link href={`/fees/${student.id}`}>
+                              {/* <Link href={`/fees/${student.id}`}>
                                 <Button variant="ghost" size="sm">
                                   <Eye className="h-4 w-4" />
                                 </Button>
-                              </Link>
+                              </Link> */}
                             </div>
                           </TableCell>
                         </TableRow>
@@ -1245,52 +1553,64 @@ function FeeManagementContent() {
           </DialogContent>
         </Dialog>
 
-        {/* Student Financial Statement Dialog */}
+        {/* Student Financial Statement Dialog — full-screen overlay */}
         <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
-          <DialogContent className="max-w-5xl max-h-[90vh] flex flex-col gap-0 p-0">
-            <DialogHeader className="px-6 pt-6 pb-4 border-b">
-              <div className="flex items-start justify-between">
-                <div>
-                  <DialogTitle className="text-lg">
-                    Financial Statement
-                  </DialogTitle>
-                  <DialogDescription className="mt-1">
-                    {selectedStudent?.firstName} {selectedStudent?.lastName}
-                    {selectedStudent?.enrollments?.[0]?.class?.name && (
-                      <span className="ml-2 text-xs">
-                        ({selectedStudent.enrollments[0].class.name})
-                      </span>
-                    )}
-                  </DialogDescription>
+          <DialogContent className="!w-[96vw] !max-w-[96vw] h-[95vh] max-h-[95vh] flex flex-col gap-0 p-0">
+            {/* Sticky header */}
+            <DialogHeader className="px-8 pt-6 pb-4 border-b bg-background flex-shrink-0">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="h-11 w-11 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center flex-shrink-0">
+                    <FileText className="h-5 w-5 text-slate-600 dark:text-slate-300" />
+                  </div>
+                  <div>
+                    <DialogTitle className="text-xl font-bold">
+                      Financial Statement
+                    </DialogTitle>
+                    <DialogDescription className="mt-0.5 text-sm">
+                      {selectedStudent?.firstName} {selectedStudent?.lastName}
+                      {selectedStudent?.enrollments?.[0]?.class?.name && (
+                        <Badge variant="outline" className="ml-2 text-[10px] font-normal">
+                          {selectedStudent.enrollments[0].class.name}
+                        </Badge>
+                      )}
+                    </DialogDescription>
+                  </div>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex-shrink-0"
-                  onClick={() => {
-                    if (!selectedStudent || studentHistory.length === 0) return
-                    handleDownloadStatement()
-                  }}
-                  disabled={loadingHistory || studentHistory.length === 0}
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Download PDF
-                </Button>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <Button
+                    variant="default"
+                    size="sm"
+                    className="h-9"
+                    onClick={() => {
+                      if (!selectedStudent || studentHistory.length === 0) return
+                      handleDownloadStatement()
+                    }}
+                    disabled={loadingHistory || studentHistory.length === 0}
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Download PDF
+                  </Button>
+                  <Button variant="ghost" size="sm" className="h-9" onClick={() => setShowDetailDialog(false)}>
+                    Close
+                  </Button>
+                </div>
               </div>
             </DialogHeader>
 
-            <div className="flex-1 overflow-y-auto px-6 py-4">
+            {/* Scrollable body */}
+            <div className="flex-1 overflow-y-auto px-8 py-6 min-h-0">
               {loadingHistory ? (
-                <div className="flex items-center justify-center py-16">
-                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                <div className="flex items-center justify-center py-24">
+                  <Loader2 className="h-10 w-10 animate-spin text-muted-foreground" />
                 </div>
               ) : studentHistory.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-                  <FileText className="h-12 w-12 mb-3 opacity-40" />
-                  <p className="text-sm">No fee records found for this student.</p>
+                <div className="flex flex-col items-center justify-center py-24 text-muted-foreground">
+                  <FileText className="h-16 w-16 mb-4 opacity-30" />
+                  <p className="text-base">No fee records found for this student.</p>
                 </div>
               ) : (
-                <div className="space-y-6">
+                <div className="space-y-8">
                   {/* Summary cards row */}
                   {(() => {
                     const totalOpening = studentHistory[0]?.openingBalance ?? 0
@@ -1298,74 +1618,99 @@ function FeeManagementContent() {
                     const totalPaidAll = studentHistory.reduce((s: number, r: any) => s + (r.totalPaid ?? 0), 0)
                     const lastClosing = studentHistory[studentHistory.length - 1]?.closingBalance ?? 0
                     return (
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                        <div className="rounded-lg border bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-800 p-3">
-                          <p className="text-xs font-medium text-muted-foreground">Opening Balance</p>
-                          <p className="text-lg font-bold text-orange-600 mt-1">{formatCurrency(totalOpening)}</p>
+                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div className="rounded-xl border-2 bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-800 p-4">
+                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Opening Balance</p>
+                          <p className="text-2xl font-bold text-orange-600 mt-2">{formatCurrency(totalOpening)}</p>
                         </div>
-                        <div className="rounded-lg border bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800 p-3">
-                          <p className="text-xs font-medium text-muted-foreground">Total Fees Charged</p>
-                          <p className="text-lg font-bold text-blue-600 mt-1">{formatCurrency(totalFees)}</p>
+                        <div className="rounded-xl border-2 bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800 p-4">
+                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Total Fees Charged</p>
+                          <p className="text-2xl font-bold text-blue-600 mt-2">{formatCurrency(totalFees)}</p>
                         </div>
-                        <div className="rounded-lg border bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800 p-3">
-                          <p className="text-xs font-medium text-muted-foreground">Total Paid</p>
-                          <p className="text-lg font-bold text-green-600 mt-1">{formatCurrency(totalPaidAll)}</p>
+                        <div className="rounded-xl border-2 bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800 p-4">
+                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Total Paid</p>
+                          <p className="text-2xl font-bold text-green-600 mt-2">{formatCurrency(totalPaidAll)}</p>
                         </div>
-                        <div className="rounded-lg border bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800 p-3">
-                          <p className="text-xs font-medium text-muted-foreground">Current Balance</p>
-                          <p className="text-lg font-bold text-red-600 mt-1">{formatCurrency(lastClosing)}</p>
+                        <div className="rounded-xl border-2 bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800 p-4">
+                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Outstanding Balance</p>
+                          <p className="text-2xl font-bold text-red-600 mt-2">{formatCurrency(lastClosing)}</p>
                         </div>
                       </div>
                     )
                   })()}
 
                   {/* Term-by-term breakdown table */}
-                  <div className="rounded-lg border overflow-hidden">
-                    <Table>
-                      <TableHeader>
-                        <TableRow className="bg-muted/50 hover:bg-muted/50">
-                          <TableHead className="font-semibold py-3">Period</TableHead>
-                          <TableHead className="text-right font-semibold py-3">Opening Bal.</TableHead>
-                          <TableHead className="text-right font-semibold py-3">Term Fees</TableHead>
-                          <TableHead className="text-right font-semibold py-3">Total Due</TableHead>
-                          <TableHead className="text-right font-semibold py-3">Paid</TableHead>
-                          <TableHead className="text-right font-semibold py-3">Closing Bal.</TableHead>
-                          <TableHead className="font-semibold py-3">Status</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {studentHistory.map((record: any, index: number) => (
-                          <TableRow key={record.id || index} className="hover:bg-muted/30">
-                            <TableCell className="font-medium">
-                              {record.year} Term {record.term}
-                            </TableCell>
-                            <TableCell className="text-right text-orange-600">
-                              {formatCurrency(record.openingBalance ?? 0)}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              {formatCurrency(record.totalExpected ?? 0)}
-                            </TableCell>
-                            <TableCell className="text-right font-medium">
-                              {formatCurrency((record.openingBalance ?? 0) + (record.totalExpected ?? 0))}
-                            </TableCell>
-                            <TableCell className="text-right text-green-600">
-                              {formatCurrency(record.totalPaid ?? 0)}
-                            </TableCell>
-                            <TableCell className="text-right font-semibold text-red-600">
-                              {formatCurrency(record.closingBalance ?? 0)}
-                            </TableCell>
-                            <TableCell>
-                              <Badge
-                                variant={record.closingBalance > 0 ? "destructive" : "default"}
-                                className="text-[10px]"
-                              >
-                                {record.closingBalance > 0 ? "Balance Due" : "Cleared"}
-                              </Badge>
-                            </TableCell>
+                  <div>
+                    <h3 className="text-sm font-bold mb-3 flex items-center gap-2 text-slate-700 dark:text-slate-200 uppercase tracking-wide">
+                      <Calendar className="h-4 w-4" />
+                      Term-by-Term Breakdown
+                    </h3>
+                    <div className="rounded-xl border-2 overflow-hidden">
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="bg-slate-100 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800/60 border-b-2">
+                            <TableHead className="font-bold py-3.5 text-slate-700 dark:text-slate-200">Period</TableHead>
+                            <TableHead className="text-right font-bold py-3.5 text-slate-700 dark:text-slate-200">Opening Bal.</TableHead>
+                            <TableHead className="text-right font-bold py-3.5 text-slate-700 dark:text-slate-200">Term Fees</TableHead>
+                            <TableHead className="text-right font-bold py-3.5 text-slate-700 dark:text-slate-200">Total Due</TableHead>
+                            <TableHead className="text-right font-bold py-3.5 text-slate-700 dark:text-slate-200">Paid</TableHead>
+                            <TableHead className="text-right font-bold py-3.5 text-slate-700 dark:text-slate-200">Closing Bal.</TableHead>
+                            <TableHead className="font-bold py-3.5 text-slate-700 dark:text-slate-200">Status</TableHead>
                           </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
+                        </TableHeader>
+                        <TableBody>
+                          {studentHistory.map((record: any, index: number) => (
+                            <TableRow key={record.id || index} className="hover:bg-muted/30">
+                              <TableCell className="font-semibold py-3">
+                                {record.year} Term {record.term}
+                              </TableCell>
+                              <TableCell className="text-right text-orange-600 py-3">
+                                {formatCurrency(record.openingBalance ?? 0)}
+                              </TableCell>
+                              <TableCell className="text-right py-3">
+                                {formatCurrency(record.totalExpected ?? 0)}
+                              </TableCell>
+                              <TableCell className="text-right font-medium py-3">
+                                {formatCurrency((record.openingBalance ?? 0) + (record.totalExpected ?? 0))}
+                              </TableCell>
+                              <TableCell className="text-right text-green-600 py-3">
+                                {formatCurrency(record.totalPaid ?? 0)}
+                              </TableCell>
+                              <TableCell className="text-right font-bold text-red-600 py-3">
+                                {formatCurrency(record.closingBalance ?? 0)}
+                              </TableCell>
+                              <TableCell className="py-3">
+                                <Badge
+                                  variant={record.closingBalance > 0 ? "destructive" : "default"}
+                                  className="text-[11px]"
+                                >
+                                  {record.closingBalance > 0 ? "Balance Due" : "Cleared"}
+                                </Badge>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+
+                          {/* Totals row */}
+                          {(() => {
+                            const totalOpening = studentHistory[0]?.openingBalance ?? 0
+                            const totalFees = studentHistory.reduce((s: number, r: any) => s + (r.totalExpected ?? 0), 0)
+                            const totalPaidAll = studentHistory.reduce((s: number, r: any) => s + (r.totalPaid ?? 0), 0)
+                            const lastClosing = studentHistory[studentHistory.length - 1]?.closingBalance ?? 0
+                            return (
+                              <TableRow className="bg-slate-100 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800/60 border-t-2">
+                                <TableCell className="font-bold py-3.5">TOTALS</TableCell>
+                                <TableCell className="text-right font-bold text-orange-600 py-3.5">{formatCurrency(totalOpening)}</TableCell>
+                                <TableCell className="text-right font-bold py-3.5">{formatCurrency(totalFees)}</TableCell>
+                                <TableCell className="text-right font-bold py-3.5">{formatCurrency(totalOpening + totalFees)}</TableCell>
+                                <TableCell className="text-right font-bold text-green-600 py-3.5">{formatCurrency(totalPaidAll)}</TableCell>
+                                <TableCell className="text-right font-bold text-red-600 py-3.5">{formatCurrency(lastClosing)}</TableCell>
+                                <TableCell className="py-3.5"></TableCell>
+                              </TableRow>
+                            )
+                          })()}
+                        </TableBody>
+                      </Table>
+                    </div>
                   </div>
 
                   {/* Payment transactions table */}
@@ -1376,47 +1721,61 @@ function FeeManagementContent() {
                     if (allPayments.length === 0) return null
                     return (
                       <div>
-                        <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                        <h3 className="text-sm font-bold mb-3 flex items-center gap-2 text-slate-700 dark:text-slate-200 uppercase tracking-wide">
                           <Receipt className="h-4 w-4" />
                           Payment Transactions ({allPayments.length})
                         </h3>
-                        <div className="rounded-lg border overflow-hidden">
+                        <div className="rounded-xl border-2 overflow-hidden">
                           <Table>
                             <TableHeader>
-                              <TableRow className="bg-muted/50 hover:bg-muted/50">
-                                <TableHead className="font-semibold py-3">Date</TableHead>
-                                <TableHead className="font-semibold py-3">Period</TableHead>
-                                <TableHead className="font-semibold py-3">Method</TableHead>
-                                <TableHead className="font-semibold py-3">Reference</TableHead>
-                                <TableHead className="text-right font-semibold py-3">Amount</TableHead>
+                              <TableRow className="bg-slate-100 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800/60 border-b-2">
+                                <TableHead className="font-bold py-3.5 text-slate-700 dark:text-slate-200 w-12">#</TableHead>
+                                <TableHead className="font-bold py-3.5 text-slate-700 dark:text-slate-200">Date</TableHead>
+                                <TableHead className="font-bold py-3.5 text-slate-700 dark:text-slate-200">Period</TableHead>
+                                <TableHead className="font-bold py-3.5 text-slate-700 dark:text-slate-200">Payment Method</TableHead>
+                                <TableHead className="font-bold py-3.5 text-slate-700 dark:text-slate-200">Reference</TableHead>
+                                <TableHead className="text-right font-bold py-3.5 text-slate-700 dark:text-slate-200">Amount</TableHead>
                               </TableRow>
                             </TableHeader>
                             <TableBody>
                               {allPayments.map((payment: any, idx: number) => (
                                 <TableRow key={idx} className="hover:bg-muted/30">
-                                  <TableCell className="text-sm">
+                                  <TableCell className="text-sm text-muted-foreground py-3">
+                                    {idx + 1}
+                                  </TableCell>
+                                  <TableCell className="text-sm py-3">
                                     {new Date(payment.paymentDate).toLocaleDateString("en-GB", {
                                       day: "2-digit",
                                       month: "short",
                                       year: "numeric",
                                     })}
                                   </TableCell>
-                                  <TableCell className="text-sm">
-                                    {payment.year} T{payment.term}
+                                  <TableCell className="text-sm py-3">
+                                    {payment.year} Term {payment.term}
                                   </TableCell>
-                                  <TableCell>
-                                    <Badge variant="outline" className="text-[10px] font-normal">
+                                  <TableCell className="py-3">
+                                    <Badge variant="outline" className="text-[11px] font-normal">
                                       {payment.paymentMethod?.replace(/_/g, " ")}
                                     </Badge>
                                   </TableCell>
-                                  <TableCell className="text-sm text-muted-foreground">
-                                    {payment.referenceNumber || "-"}
+                                  <TableCell className="text-sm text-muted-foreground py-3">
+                                    {payment.referenceNumber || "—"}
                                   </TableCell>
-                                  <TableCell className="text-right font-semibold text-green-600">
+                                  <TableCell className="text-right font-bold text-green-600 py-3">
                                     {formatCurrency(payment.amount)}
                                   </TableCell>
                                 </TableRow>
                               ))}
+
+                              {/* Total payments row */}
+                              <TableRow className="bg-slate-100 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800/60 border-t-2">
+                                <TableCell colSpan={5} className="text-right font-bold py-3.5">
+                                  TOTAL PAYMENTS
+                                </TableCell>
+                                <TableCell className="text-right font-bold text-green-600 py-3.5">
+                                  {formatCurrency(allPayments.reduce((s: number, p: any) => s + (p.amount ?? 0), 0))}
+                                </TableCell>
+                              </TableRow>
                             </TableBody>
                           </Table>
                         </div>
@@ -1427,7 +1786,11 @@ function FeeManagementContent() {
               )}
             </div>
 
-            <div className="px-6 py-4 border-t flex justify-end">
+            {/* Sticky footer */}
+            <div className="px-8 py-4 border-t bg-background flex-shrink-0 flex items-center justify-between">
+              <p className="text-xs text-muted-foreground">
+                This is a computer-generated financial statement.
+              </p>
               <Button variant="outline" onClick={() => setShowDetailDialog(false)}>
                 Close
               </Button>

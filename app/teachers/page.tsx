@@ -120,7 +120,7 @@ function TeachersContent() {
     return <Badge variant={variants[status] || "default"}>{status}</Badge>
   }
 
-  const breadcrumbs = [{ label: "Dashboard", href: "/dashboard" }, { label: "Teachers" }]
+  const breadcrumbs = [{ label: "Dashboard"}, { label: "Teachers" }]
 
   return (
     <MainLayout userRole={user.role} userName={user.name} breadcrumbs={breadcrumbs}>

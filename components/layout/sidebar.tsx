@@ -290,18 +290,17 @@ function buildNavigation(
         module: item.module,
       })
 
-      // Also add financial reports if user can view reports
-      if (userPermissions.has("fees.view_reports")) {
-        if (!nav.some(n => n.name === "Financial Reports")) {
-          nav.push({
-            name: "Financial Reports",
-            href: "/finance",
-            icon: BarChart3,
-            module: "fees_reports",
-          })
-        }
-      }
-      continue
+      // if (userPermissions.has("fees.view_reports")) {
+      //   if (!nav.some(n => n.name === "Financial Reports")) {
+      //     nav.push({
+      //       name: "Financial Reports",
+      //       href: "/finance",
+      //       icon: BarChart3,
+      //       module: "fees_reports",
+      //     })
+      //   }
+      // }
+      // continue
     }
 
     // Signatures — add to settings

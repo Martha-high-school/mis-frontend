@@ -254,7 +254,7 @@ function StudentsContent() {
     feeStatusFilter !== "All Fee Statuses" ||
     searchTerm !== ""
 
-  const breadcrumbs = [{ label: "Dashboard", href: "/dashboard" }, { label: "Students" }]
+  const breadcrumbs = [{ label: "Dashboard"}, { label: "Students" }]
 
   if (contextLoading) {
     return (

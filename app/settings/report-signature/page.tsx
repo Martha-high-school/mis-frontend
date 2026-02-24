@@ -10,7 +10,7 @@ import Link from 'next/link'
 function SignatureSettingsContent() {
 
  const breadcrumbs = [
-    { label: "Dashboard", href: "/dashboard" },
+    { label: "Dashboard"},
     { label: "Setting" },
     { label: "Report Signature" }
   ]

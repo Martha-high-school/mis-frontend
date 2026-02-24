@@ -43,7 +43,7 @@ function UserManagementContent() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
 
   const breadcrumbs = [
-    { label: "Dashboard", href: "/dashboard" },
+    { label: "Dashboard" },
     { label: "User Management" }
   ]
 

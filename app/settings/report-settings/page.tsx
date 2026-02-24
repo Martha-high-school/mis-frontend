@@ -197,7 +197,7 @@ function TeacherReportsContent() {
   }
 
   const breadcrumbs = [
-    { label: "Dashboard", href: "/dashboard" },
+    { label: "Dashboard"},
     { label: "Setting" },
     { label: "Report Settings" }
   ]
