@@ -50,60 +50,47 @@ export function ProtectedRoute({
 
   const isLoading = authLoading || permLoading
 
+  // Compute access result synchronously (no useEffect redirect)
+  const accessAllowed = (() => {
+    if (isLoading || !user) return null // still loading — undecided
+
+    // Director always has full access
+    if (user.role === "director") return true
+
+    // Check module access
+    if (module && !canAccessModule(module)) return false
+
+    // Check permission-based access
+    if (requiredPermissions && requiredPermissions.length > 0) {
+      return requireAll
+        ? hasAllPermissions(...requiredPermissions)
+        : hasAnyPermission(...requiredPermissions)
+    }
+
+    // Backwards compatible: check role-based access
+    if (allowedRoles && allowedRoles.length > 0 && !requiredPermissions && !module) {
+      return allowedRoles.includes(user.role)
+    }
+
+    // No restrictions defined — allow
+    return true
+  })()
+
+  // Redirect side-effects
   useEffect(() => {
     if (isLoading) return
-
-    // Not logged in
     if (!user) {
       router.push("/auth/login")
       return
     }
-
-    // Check module access
-    if (module && !canAccessModule(module)) {
+    if (accessAllowed === false) {
       router.push("/unauthorized")
-      return
     }
+  }, [user, isLoading, accessAllowed, router])
 
-    // Check permission-based access
-    if (requiredPermissions && requiredPermissions.length > 0) {
-      const hasAccess = requireAll
-        ? hasAllPermissions(...requiredPermissions)
-        : hasAnyPermission(...requiredPermissions)
+  // --- Render ---
 
-      if (!hasAccess) {
-        router.push("/unauthorized")
-        return
-      }
-    }
-
-    // Backwards compatible: check role-based access
-    if (
-      allowedRoles &&
-      allowedRoles.length > 0 &&
-      !requiredPermissions &&
-      !module
-    ) {
-      // Director always passes
-      if (user.role !== "director" && !allowedRoles.includes(user.role)) {
-        router.push("/unauthorized")
-        return
-      }
-    }
-  }, [
-    user,
-    isLoading,
-    router,
-    allowedRoles,
-    requiredPermissions,
-    requireAll,
-    module,
-    hasAnyPermission,
-    hasAllPermissions,
-    canAccessModule,
-  ])
-
-  if (isLoading) {
+  if (isLoading || accessAllowed === null) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="flex flex-col items-center gap-4">
@@ -114,7 +101,7 @@ export function ProtectedRoute({
     )
   }
 
-  if (!user) return null
+  if (!user || accessAllowed === false) return null
 
   return <>{children}</>
 }
